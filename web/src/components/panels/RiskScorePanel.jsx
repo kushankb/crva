@@ -26,27 +26,6 @@ export default function RiskScorePanel() {
         ⚠ Placeholder data — finalise indicator datasets to compute risk scores
       </div>
 
-      {/* Formula */}
-      <div className={styles.sectionLabel} style={{ marginTop: 12 }}>RISK FORMULA</div>
-      <div className={styles.formula}>
-        <div className={styles.formulaLine}>
-          <span style={{ color: 'var(--dim-risk)', fontWeight: 700 }}>Risk</span>
-          <span className={styles.formulaOp}>=</span>
-          <span style={{ color: 'var(--dim-hazard)' }}>H_future</span>
-          <span className={styles.formulaOp}>+</span>
-          <span style={{ color: 'var(--dim-hist)' }}>H_hist</span>
-          <span className={styles.formulaOp}>+</span>
-          <span style={{ color: 'var(--dim-exposure)' }}>E</span>
-          <span className={styles.formulaOp}>+</span>
-          <span style={{ color: 'var(--dim-vuln)' }}>S</span>
-          <span className={styles.formulaOp}>−</span>
-          <span style={{ color: '#1A9850' }}>AC</span>
-        </div>
-        <div className={styles.formulaNote}>
-          Equal weights by default; sensitivity analysis to alternate weights documented separately.
-        </div>
-      </div>
-
       {/* Risk distribution */}
       <div className={styles.sectionLabel} style={{ marginTop: 14 }}>DISTRICT DISTRIBUTION</div>
       <div className={styles.riskDist}>
