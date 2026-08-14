@@ -54,33 +54,6 @@
   margin-top: 1px;
 }
 
-.divider {
-  width: 1px;
-  height: 28px;
-  background: var(--border);
-  flex-shrink: 0;
-}
-
-.ssps {
-  display: flex;
-  gap: 4px;
-}
-
-.sspBtn {
-  padding: 5px 10px;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-secondary);
-  transition: background 0.12s;
-}
-.sspBtn:hover { background: var(--border); }
-.sspBtn.sspActive {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
 
 .note {
   font-size: 13px;

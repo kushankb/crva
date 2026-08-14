@@ -1,11 +1,11 @@
 import React from 'react'
-import { useCRVAStore, HAZARD_PERIODS, CROP_PERIODS, SSPS, SSP_LABELS } from '../store/useCRVAStore.js'
+import { useCRVAStore, HAZARD_PERIODS, CROP_PERIODS } from '../store/useCRVAStore.js'
 import styles from './Timeline.module.css'
 
 export default function Timeline() {
   const {
     dimensionId,
-    hazardPeriod, setHazardPeriod, hazardSsp, setHazardSsp,
+    hazardPeriod, setHazardPeriod,
     cropPeriod, setCropPeriod,
   } = useCRVAStore()
 
@@ -18,14 +18,6 @@ export default function Timeline() {
             <button key={p.id} className={`${styles.period} ${hazardPeriod === p.id ? styles.active : ''}`} onClick={() => setHazardPeriod(p.id)}>
               <span className={styles.periodLabel}>{p.label}</span>
               <span className={styles.periodRange}>{p.range}</span>
-            </button>
-          ))}
-        </div>
-        <div className={styles.divider} />
-        <div className={styles.ssps}>
-          {SSPS.map(s => (
-            <button key={s} className={`${styles.sspBtn} ${hazardSsp === s ? styles.sspActive : ''}`} onClick={() => setHazardSsp(s)}>
-              {SSP_LABELS[s]}
             </button>
           ))}
         </div>
