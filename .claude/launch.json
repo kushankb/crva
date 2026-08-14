@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "india-crva-tool",
+      "cwd": "/Volumes/Extreme SSD/FAO_India/CRVATool/web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "5176"],
+      "port": 5176
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+[
+  {
+    "group": "Land & Agriculture",
+    "indicators": [
+      {
+        "id": "net_sown_area_pct",
+        "label": "Net sown area",
+        "unit": "% of geographical area",
+        "direction": "+",
+        "source": "Agriculture Census 2015–16",
+        "rationale": "Higher cultivated area means more area may be affected by climate change.",
+        "cmap": "YlOrRd"
+      },
+      {
+        "id": "small_marginal_farmers_pct",
+        "label": "Small & marginal farmers",
+        "unit": "% of total farmers",
+        "direction": "+",
+        "source": "Agriculture Census 2015–16",
+        "rationale": "Higher share means more people exposed with fewer resources.",
+        "cmap": "YlOrRd"
+      },
+      {
+        "id": "crossbred_cattle_pct",
+        "label": "Cross-bred cattle",
+        "unit": "% of total livestock",
+        "direction": "+",
+        "source": "Livestock Census 2019",
+        "rationale": "Cross-bred cattle are more productive but more sensitive to climate stress.",
+        "cmap": "YlOrRd"
+      }
+    ]
+  },
+  {
+    "group": "Population & Social",
+    "indicators": [
+      {
+        "id": "rural_pop_density",
+        "label": "Rural population density",
+        "unit": "persons per km²",
+        "direction": "+",
+        "source": "Census 2011 / 2024 projections",
+        "rationale": "Higher density means a greater number of people at risk.",
+        "cmap": "YlOrRd"
+      },
+      {
+        "id": "scst_population_pct",
+        "label": "SC/ST population",
+        "unit": "% of total population",
+        "direction": "+",
+        "source": "Census 2011",
+        "rationale": "SC/ST population is more heavily dependent on natural resources and more exposed.",
+        "cmap": "YlOrRd"
+      },
+      {
+        "id": "women_landholdings_pct",
+        "label": "Women-owned landholdings",
+        "unit": "% of total landholdings",
+        "direction": "+",
+        "source": "Agriculture Census 2015–16",
+        "rationale": "Women's landholdings are generally smaller and resource-poor.",
+        "cmap": "YlOrRd"
+      }
+    ]
+  }
+]

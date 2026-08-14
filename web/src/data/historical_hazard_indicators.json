@@ -1,0 +1,12 @@
+[
+  {
+    "group": "Disaster Proneness",
+    "indicators": [
+      { "id": "drought_proneness_pct", "label": "Drought proneness", "unit": "% of geographical area", "direction": "+", "source": "NRAA / IMD", "rationale": "Frequent drought incidence implies riskier agriculture.", "cmap": "YlOrBr" },
+      { "id": "flood_proneness_pct", "label": "Flood proneness", "unit": "% of geographical area", "direction": "+", "source": "NDMA / CWC", "rationale": "Larger flood-susceptible area implies more land under risk.", "cmap": "Blues" },
+      { "id": "earthquake_proneness_pct", "label": "Earthquake proneness", "unit": "% of geographical area", "direction": "+", "source": "BIS / NDMA Seismic Zone Map", "rationale": "Earthquake-prone areas risk crop, livestock and infrastructure damage.", "cmap": "YlOrRd" },
+      { "id": "forest_fire_proneness_pct", "label": "Forest fire proneness", "unit": "% of geographical area", "direction": "+", "source": "FSI / ISFR 2021", "rationale": "Forest fires can spread into farmlands, destroying crops and infrastructure.", "cmap": "YlOrRd" },
+      { "id": "cyclone_proneness_pct", "label": "Cyclone proneness", "unit": "% of geographical area", "direction": "+", "source": "IMD Cyclone Atlas / NDMA", "rationale": "Cyclones bring strong winds, flooding, and saline intrusion that degrade soil.", "cmap": "PuBu" }
+    ]
+  }
+]

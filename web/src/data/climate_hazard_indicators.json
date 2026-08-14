@@ -1,0 +1,324 @@
+[
+  {
+    "group": "Heat",
+    "indicators": [
+      {
+        "id": "heat_stress_35",
+        "label": "Heat stress days (Tmax > 35°C)",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 310
+      },
+      {
+        "id": "heat_stress_40",
+        "label": "Heat stress days (Tmax > 40°C)",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 205
+      },
+      {
+        "id": "tropical_nights",
+        "label": "Tropical nights (Tmin > 25°C)",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 365
+      },
+      {
+        "id": "heatwave_days",
+        "label": "Heatwave days (≥3 d above 40°C)",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 205
+      },
+      {
+        "id": "wsdi",
+        "label": "Warm spell duration index",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 30
+      },
+      {
+        "id": "heat_fatal_45",
+        "label": "Extreme heat days (Tmax > 45°C)",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 70
+      },
+      {
+        "id": "cdd_energy",
+        "label": "Cooling degree days (base 18°C)",
+        "unit": "°C days",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 5700
+      },
+      {
+        "id": "tmean",
+        "label": "Annual mean temperature",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": -15,
+        "vmax": 34
+      },
+      {
+        "id": "dtr",
+        "label": "Diurnal temperature range",
+        "unit": "°C",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 16
+      }
+    ]
+  },
+  {
+    "group": "Cold",
+    "indicators": [
+      {
+        "id": "frost_days",
+        "label": "Frost days (Tmin < 0°C)",
+        "unit": "days yr⁻¹",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu",
+        "vmin": 0,
+        "vmax": 365
+      },
+      {
+        "id": "csdi",
+        "label": "Cold spell duration index",
+        "unit": "days yr⁻¹",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu",
+        "vmin": 0,
+        "vmax": 30
+      },
+      {
+        "id": "hdd",
+        "label": "Heating degree days (base 18°C)",
+        "unit": "°C days",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu",
+        "vmin": 0,
+        "vmax": 12000
+      },
+      {
+        "id": "tn90p",
+        "label": "Warm nights (Tmin > 90th pct)",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 100
+      },
+      {
+        "id": "tx10p",
+        "label": "Cool days (Tmax < 10th pct)",
+        "unit": "days yr⁻¹",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu",
+        "vmin": 0,
+        "vmax": 100
+      }
+    ]
+  },
+  {
+    "group": "Precipitation",
+    "indicators": [
+      {
+        "id": "prcptot",
+        "label": "Annual total precipitation",
+        "unit": "mm yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 11200
+      },
+      {
+        "id": "rx1day",
+        "label": "Max 1-day precipitation",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 400
+      },
+      {
+        "id": "rx5day",
+        "label": "Max 5-day precipitation",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 600
+      },
+      {
+        "id": "r95ptot",
+        "label": "Very heavy precipitation days (> 95th pct)",
+        "unit": "mm yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 0.75
+      },
+      {
+        "id": "r99ptot",
+        "label": "Extremely heavy precipitation (> 99th pct)",
+        "unit": "mm yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 1
+      },
+      {
+        "id": "r1mm",
+        "label": "Wet days (R ≥ 1 mm)",
+        "unit": "days yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 365
+      },
+      {
+        "id": "r10mm",
+        "label": "Heavy rain days (R ≥ 10 mm)",
+        "unit": "days yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 220
+      },
+      {
+        "id": "r20mm",
+        "label": "Very heavy rain days (R ≥ 20 mm)",
+        "unit": "days yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 190
+      },
+      {
+        "id": "kharif_precip",
+        "label": "Kharif season precipitation (Jun–Sep)",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 15000
+      },
+      {
+        "id": "monsoon_onset",
+        "label": "Monsoon onset day",
+        "unit": "day of year",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 121,
+        "vmax": 365
+      }
+    ]
+  },
+  {
+    "group": "Drought & Dry",
+    "indicators": [
+      {
+        "id": "cdd",
+        "label": "Consecutive dry days",
+        "unit": "days",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "BrBG_r",
+        "vmin": 0,
+        "vmax": 180
+      },
+      {
+        "id": "cwd",
+        "label": "Consecutive wet days",
+        "unit": "days",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 340
+      },
+      {
+        "id": "spi3",
+        "label": "SPI-3 drought frequency (SPI < −1)",
+        "unit": "% of months",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "BrBG_r",
+        "vmin": 0,
+        "vmax": 25
+      },
+      {
+        "id": "spei3",
+        "label": "SPEI-3 drought frequency (SPEI < −1)",
+        "unit": "% of months",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "BrBG_r",
+        "vmin": 0,
+        "vmax": 100
+      }
+    ]
+  },
+  {
+    "group": "Agriculture",
+    "indicators": [
+      {
+        "id": "gdd_10",
+        "label": "Growing degree days (base 10°C)",
+        "unit": "°C days",
+        "cmap": "RdYlGn",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 8600
+      },
+      {
+        "id": "gdd_38",
+        "label": "Killing degree days (base 38°C)",
+        "unit": "°C days",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 1200
+      },
+      {
+        "id": "gsl",
+        "label": "Growing season length",
+        "unit": "days",
+        "cmap": "RdYlGn",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 365
+      },
+      {
+        "id": "rabi_tmax",
+        "label": "Rabi season max temperature (Nov–Mar)",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": -22,
+        "vmax": 37
+      },
+      {
+        "id": "etr",
+        "label": "Extreme temperature range",
+        "unit": "°C",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 50
+      }
+    ]
+  }
+]

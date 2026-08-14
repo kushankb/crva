@@ -1,0 +1,34 @@
+[
+  {
+    "id": "climate_hazard",
+    "label": "Climate Hazard",
+    "description": "Future climate hazard projections from INDRA-CMIP6 bias-corrected downscaled data (0.1° grid, 14-model ensemble mean) across four SSP scenarios and three time periods.",
+    "mapType": "pmtiles",
+    "hasTimeline": true,
+    "hasScenario": true
+  },
+  {
+    "id": "exposure",
+    "label": "Exposure",
+    "description": "Inventory of rural people and agriculture-dependent livelihoods that could be adversely affected by climate change impacts.",
+    "mapType": "choropleth",
+    "hasTimeline": false,
+    "hasScenario": false
+  },
+  {
+    "id": "vulnerability",
+    "label": "Vulnerability",
+    "description": "Sensitivity (factors increasing susceptibility, including projected crop yield impacts) and adaptive capacity (factors enabling adjustment) of agriculture-dependent communities.",
+    "mapType": "choropleth",
+    "hasTimeline": false,
+    "hasScenario": false
+  },
+  {
+    "id": "risk_score",
+    "label": "Risk Score",
+    "description": "Composite district-level climate risk classification (Very High to Very Low) combining hazard, exposure and vulnerability following the IPCC WG2 risk framework.",
+    "mapType": "risk",
+    "hasTimeline": false,
+    "hasScenario": false
+  }
+]

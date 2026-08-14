@@ -1,0 +1,264 @@
+{
+  "state:27": {
+    "risk_score": {
+      "class": 4,
+      "score": 68.2
+    },
+    "climate_hazard": {
+      "composite_score": 71.5,
+      "historical": 87.3,
+      "projections": {
+        "SSP126": {
+          "2047": 84.7,
+          "2050": 166.4,
+          "2100": 174.0
+        },
+        "SSP245": {
+          "2047": 102.8,
+          "2050": 178.0,
+          "2100": 161.5
+        },
+        "SSP370": {
+          "2047": 140.5,
+          "2050": 142.4,
+          "2100": 109.2
+        },
+        "SSP585": {
+          "2047": 108.4,
+          "2050": 133.8,
+          "2100": 149.7
+        }
+      }
+    },
+    "crop_impact": {
+      "composite_score": 58.4,
+      "yields": {
+        "Rice_Irrigated": {
+          "2020": 0.6,
+          "2050": -19.4,
+          "2080": -22.0
+        },
+        "Wheat": {
+          "2020": 4.2,
+          "2050": -10.5,
+          "2080": -24.6
+        },
+        "Maize": {
+          "2020": -10.7,
+          "2050": 5.9,
+          "2080": -5.6
+        },
+        "Chickpea": {
+          "2020": 12.2,
+          "2050": -12.5,
+          "2080": -4.9
+        },
+        "Pigeonpea": {
+          "2020": 8.2,
+          "2050": -14.5,
+          "2080": 0.2
+        },
+        "Soybean": {
+          "2020": -9.6,
+          "2050": -1.3,
+          "2080": -11.7
+        },
+        "Groundnut": {
+          "2020": -3.9,
+          "2050": -3.9,
+          "2080": -10.4
+        },
+        "Mustard": {
+          "2020": -11.2,
+          "2050": -3.6,
+          "2080": -8.6
+        },
+        "Cotton": {
+          "2020": 0.8,
+          "2050": -20.2,
+          "2080": -2.2
+        },
+        "Potato": {
+          "2020": -7.1,
+          "2050": 11.9,
+          "2080": -26.7
+        },
+        "Sorghum": {
+          "2020": -8.2,
+          "2050": -3.9,
+          "2080": -29.3
+        },
+        "Pearl_Millet": {
+          "2020": 13.9,
+          "2050": -3.9,
+          "2080": 7.5
+        }
+      }
+    },
+    "exposure": {
+      "composite_score": 65.1,
+      "indicators": {
+        "net_sown_area_pct": 46.5,
+        "rural_pop_density": 487.0,
+        "small_marginal_farmers_pct": 79.2,
+        "scst_population_pct": 37.3,
+        "women_landholdings_pct": 14.7,
+        "crossbred_cattle_pct": 16.3
+      }
+    },
+    "vulnerability": {
+      "composite_score": 60.8,
+      "sensitivity_score": 66.2,
+      "adaptive_capacity_score": 45.3,
+      "indicators": {
+        "annual_rainfall_mm": 1113.0,
+        "groundwater_depletion_pct": 83.0,
+        "rainfed_area_pct": 67.9,
+        "rural_road_density": 1.04,
+        "crop_insurance_pct": 48.6,
+        "crop_diversity_kharif": 0.429
+      }
+    },
+    "historical_hazard": {
+      "composite_score": 54.7,
+      "indicators": {
+        "drought_proneness_pct": 18.8,
+        "flood_proneness_pct": 25.4,
+        "earthquake_proneness_pct": 43.6,
+        "forest_fire_proneness_pct": 18.0,
+        "cyclone_proneness_pct": 5.4
+      }
+    }
+  },
+  "district:496": {
+    "risk_score": {
+      "class": 5,
+      "score": 78.1
+    },
+    "climate_hazard": {
+      "composite_score": 82.3,
+      "historical": 112.4,
+      "projections": {
+        "SSP126": {
+          "2047": 109.4,
+          "2050": 159.5,
+          "2100": 95.1
+        },
+        "SSP245": {
+          "2047": 81.3,
+          "2050": 137.5,
+          "2100": 131.3
+        },
+        "SSP370": {
+          "2047": 141.5,
+          "2050": 161.2,
+          "2100": 137.9
+        },
+        "SSP585": {
+          "2047": 112.0,
+          "2050": 127.9,
+          "2100": 127.6
+        }
+      }
+    },
+    "crop_impact": {
+      "composite_score": 72.1,
+      "yields": {
+        "Rice_Irrigated": {
+          "2020": 0.6,
+          "2050": -13.7,
+          "2080": 14.6
+        },
+        "Wheat": {
+          "2020": -27.1,
+          "2050": -5.9,
+          "2080": 6.5
+        },
+        "Maize": {
+          "2020": 4.7,
+          "2050": 1.7,
+          "2080": -14.2
+        },
+        "Chickpea": {
+          "2020": -1.9,
+          "2050": -2.3,
+          "2080": -26.8
+        },
+        "Pigeonpea": {
+          "2020": -17.3,
+          "2050": -24.1,
+          "2080": 1.2
+        },
+        "Soybean": {
+          "2020": -1.0,
+          "2050": 2.1,
+          "2080": -10.7
+        },
+        "Groundnut": {
+          "2020": -20.8,
+          "2050": 10.2,
+          "2080": -14.7
+        },
+        "Mustard": {
+          "2020": 0.3,
+          "2050": 8.7,
+          "2080": -17.3
+        },
+        "Cotton": {
+          "2020": -29.3,
+          "2050": 8.6,
+          "2080": 11.0
+        },
+        "Potato": {
+          "2020": -7.5,
+          "2050": -25.0,
+          "2080": 4.9
+        },
+        "Sorghum": {
+          "2020": -22.0,
+          "2050": 8.2,
+          "2080": -2.6
+        },
+        "Pearl_Millet": {
+          "2020": 3.5,
+          "2050": -24.8,
+          "2080": -14.0
+        }
+      }
+    },
+    "exposure": {
+      "composite_score": 74.5,
+      "indicators": {
+        "net_sown_area_pct": 48.8,
+        "rural_pop_density": 496.0,
+        "small_marginal_farmers_pct": 75.1,
+        "scst_population_pct": 17.7,
+        "women_landholdings_pct": 17.3,
+        "crossbred_cattle_pct": 16.9
+      }
+    },
+    "vulnerability": {
+      "composite_score": 69.2,
+      "sensitivity_score": 74.8,
+      "adaptive_capacity_score": 35.1,
+      "indicators": {
+        "annual_rainfall_mm": 986.0,
+        "groundwater_depletion_pct": 56.3,
+        "rainfed_area_pct": 66.6,
+        "rural_road_density": 0.73,
+        "crop_insurance_pct": 21.7,
+        "crop_diversity_kharif": 0.379
+      }
+    },
+    "historical_hazard": {
+      "composite_score": 63.8,
+      "indicators": {
+        "drought_proneness_pct": 23.9,
+        "flood_proneness_pct": 6.1,
+        "earthquake_proneness_pct": 11.5,
+        "forest_fire_proneness_pct": 18.0,
+        "cyclone_proneness_pct": 2.7
+      }
+    }
+  }
+}

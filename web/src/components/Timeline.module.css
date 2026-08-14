@@ -1,0 +1,89 @@
+.bar {
+  height: var(--timeline-h);
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.periods {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.period {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  transition: background 0.12s, border-color 0.12s;
+  min-width: 80px;
+}
+.period:hover { background: var(--border); }
+.period.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.period.active .periodLabel { color: #fff; }
+.period.active .periodRange { color: rgba(255,255,255,0.7); }
+
+.periodLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.periodRange {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.ssps {
+  display: flex;
+  gap: 4px;
+}
+
+.sspBtn {
+  padding: 5px 10px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: background 0.12s;
+}
+.sspBtn:hover { background: var(--border); }
+.sspBtn.sspActive {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.note {
+  font-size: 13px;
+  color: var(--text-muted);
+  flex: 1;
+}

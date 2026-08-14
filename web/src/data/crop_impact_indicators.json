@@ -1,0 +1,29 @@
+[
+  {
+    "group": "Cereals",
+    "indicators": [
+      { "id": "Rice_Irrigated", "label": "Rice (Irrigated)", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Wheat", "label": "Wheat", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Maize", "label": "Maize", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Sorghum", "label": "Sorghum", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Pearl_Millet", "label": "Pearl Millet", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" }
+    ]
+  },
+  {
+    "group": "Pulses & Oilseeds",
+    "indicators": [
+      { "id": "Chickpea", "label": "Chickpea", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Pigeonpea", "label": "Pigeonpea", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Soybean", "label": "Soybean", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Groundnut", "label": "Groundnut", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Mustard", "label": "Mustard", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" }
+    ]
+  },
+  {
+    "group": "Other Crops",
+    "indicators": [
+      { "id": "Cotton", "label": "Cotton", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" },
+      { "id": "Potato", "label": "Potato", "unit": "% yield change", "cmap": "RdYlGn", "anomaly_cmap": "RdYlGn" }
+    ]
+  }
+]
