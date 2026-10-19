@@ -31,6 +31,9 @@ export const useCRVAStore = create((set, get) => ({
   setDimension: (id) => set({ dimensionId: id, selectedFeature: null }),
 
   // Climate hazard
+  drawerTab: 'overview',
+  setDrawerTab: (t) => set({ drawerTab: t }),
+
   hazardIndicatorId: 'cdd',
   setHazardIndicator: (id) => set({ hazardIndicatorId: id }),
   hazardSsp: 'SSP245',

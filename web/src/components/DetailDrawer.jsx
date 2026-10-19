@@ -43,7 +43,7 @@ const TABS = [
 export default function DetailDrawer() {
   const { selectedFeature, setSelectedFeature } = useCRVAStore()
   const [stats, setStats] = React.useState(null)
-  const [activeTab, setActiveTab] = React.useState('overview')
+  const { drawerTab: activeTab, setDrawerTab: setActiveTab } = useCRVAStore()
 
   React.useEffect(() => {
     if (!selectedFeature) { setStats(null); return }
@@ -52,11 +52,6 @@ export default function DetailDrawer() {
       setStats(data[key] ?? null)
     })
   }, [selectedFeature])
-
-  // Reset to overview when feature changes
-  React.useEffect(() => {
-    setActiveTab('overview')
-  }, [selectedFeature?.id])
 
   if (!selectedFeature) return null
 
@@ -121,6 +116,7 @@ export default function DetailDrawer() {
 }
 
 function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
+  const { hazardSsp, hazardPeriod } = useCRVAStore()
   if (!hasHazardData && !stats) {
     return (
       <div className={styles.empty}>
@@ -135,10 +131,13 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
   if (hasHazardData) {
     const inds = stats.climate_hazard.indicators
     const KEY_INDS = ['tmean', 'heat_stress_35', 'summer_tmean', 'prcptot', 'june_precip', 'cdd', 'rx3day']
+    // Historical has no future to compare against, so default the comparison to ~2050.
+    const period = hazardPeriod === 'historical' ? '2050' : hazardPeriod
+    const futLabel = `${SSP_LABELS[hazardSsp]} ${HAZARD_PERIODS.find(p => p.id === period)?.label ?? period}`
     const summaryRows = KEY_INDS.filter(id => inds[id]).map(id => {
       const meta = getIndicatorMeta(id)
       const hist = inds[id]?.historical?.mean
-      const fut585 = inds[id]?.SSP585?.['2100']?.mean
+      const fut585 = inds[id]?.[hazardSsp]?.[period]?.mean
       const delta = (hist != null && fut585 != null) ? (fut585 - hist) : null
       return { id, label: meta?.label ?? id, unit: meta?.unit ?? '', hist, fut585, delta }
     })
@@ -146,13 +145,13 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
     return (
       <>
         <div className={styles.sectionTitle}>Key Climate Hazard Indicators</div>
-        <div className={styles.summaryNote}>Historical baseline vs SSP5-8.5 ~2100</div>
+        <div className={styles.summaryNote}>Historical baseline (1985–2014) vs {futLabel} · set scenario and period on the left</div>
         <table className={styles.table}>
           <thead>
             <tr>
               <th>Indicator</th>
               <th style={{ textAlign: 'right' }}>Historical</th>
-              <th style={{ textAlign: 'right' }}>SSP5-8.5 ~2100</th>
+              <th style={{ textAlign: 'right' }}>{futLabel}</th>
               <th style={{ textAlign: 'right' }}>Change</th>
             </tr>
           </thead>
