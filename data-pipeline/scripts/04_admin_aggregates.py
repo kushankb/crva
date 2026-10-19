@@ -57,6 +57,8 @@ INDICATORS = [
     "r99ptot", "r95ptot", "tn90p", "tx10p", "gsl",
     # New Rama Rao indicators computed from raw daily pr
     "june_precip", "july_precip", "rx3day", "r100mm3d",
+    # New Rama Rao indicators computed from raw daily tasmax/tasmin
+    "tmax_mean", "tmin_mean", "summer_tmean",
 ]
 
 # ── Boundary loading ──────────────────────────────────────────────────────────

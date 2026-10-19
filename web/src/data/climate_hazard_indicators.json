@@ -82,6 +82,33 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
         "vmax": 16
+      },
+      {
+        "id": "tmax_mean",
+        "label": "Annual mean Tmax",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 10,
+        "vmax": 42
+      },
+      {
+        "id": "tmin_mean",
+        "label": "Annual mean Tmin",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 30
+      },
+      {
+        "id": "summer_tmean",
+        "label": "Summer mean temperature (Apr–Jun)",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 15,
+        "vmax": 42
       }
     ]
   },

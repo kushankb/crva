@@ -22,8 +22,10 @@ INDICATOR_IDS = [
     'cdd','spi3','spei3','gdd_10','gdd_38','monsoon_onset','dtr','etr',
     # Previously computed but excluded
     'r99ptot','r95ptot','tn90p','tx10p','gsl',
-    # New Rama Rao indicators
+    # New Rama Rao indicators (precipitation)
     'june_precip','july_precip','rx3day','r100mm3d',
+    # New Rama Rao indicators (temperature)
+    'tmax_mean','tmin_mean','summer_tmean',
 ]
 
 with open(SRC) as f:
