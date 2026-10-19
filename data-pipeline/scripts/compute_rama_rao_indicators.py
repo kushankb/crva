@@ -10,7 +10,7 @@ New indicators:
 Output NetCDFs written to the same ClimateHazards/output folder structure
 so they can be picked up by 04_admin_aggregates.py.
 
-Units: pr in raw files is kg m-2 s-1 → multiply by 86400 to get mm/day.
+Units: pr in raw INDRA-CMIP6 files is already in mm/day (no conversion needed).
 """
 
 import warnings
@@ -90,7 +90,7 @@ def compute_indicators(ds, dates, year_start, year_end):
             continue
 
         months = np.array([dates[i].month for i in idx])
-        pr_year = pr_var[idx[0]:idx[-1]+1, :, :] * 86400.0  # → mm/day
+        pr_year = pr_var[idx[0]:idx[-1]+1, :, :]  # already in mm/day
 
         # June precipitation (month 6)
         jun_mask = months == 6
