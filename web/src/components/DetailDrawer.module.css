@@ -300,3 +300,91 @@
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
+
+/* Hazard tab — indicator picker */
+.indicatorPickerRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.activeIndicatorLabel {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+}
+
+.activeIndicatorUnit {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.changeIndBtn {
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 99px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  white-space: nowrap;
+  transition: background 0.12s, color 0.12s;
+}
+.changeIndBtn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.indicatorPicker {
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.pickerGroup {
+  border-bottom: 1px solid var(--border);
+}
+.pickerGroup:last-child { border-bottom: none; }
+
+.pickerGroupLabel {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 6px 10px 4px;
+  background: var(--bg-panel);
+}
+
+.pickerItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 5px 10px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  transition: background 0.1s;
+  border-bottom: 1px solid var(--border);
+}
+.pickerItem:last-child { border-bottom: none; }
+.pickerItem:hover { background: var(--border); color: var(--text-primary); }
+
+.pickerItemActive {
+  color: var(--accent);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+/* Overview summary note */
+.summaryNote {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 8px;
+  line-height: 1.45;
+  font-style: italic;
+}

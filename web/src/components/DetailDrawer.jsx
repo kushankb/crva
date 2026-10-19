@@ -1,7 +1,7 @@
 import React from 'react'
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, Legend as RechartsLegend } from 'recharts'
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from 'recharts'
 import { useCRVAStore, RISK_CLASSES, SSPS, SSP_LABELS, HAZARD_PERIODS } from '../store/useCRVAStore.js'
-import dimensions from '../data/dimensions.json'
+import hazardIndicators from '../data/climate_hazard_indicators.json'
 import styles from './DetailDrawer.module.css'
 
 let crvaStats = null
@@ -14,6 +14,14 @@ async function loadStats() {
   return crvaStats
 }
 
+function getIndicatorMeta(id) {
+  for (const g of hazardIndicators) {
+    const ind = g.indicators.find(i => i.id === id)
+    if (ind) return ind
+  }
+  return null
+}
+
 const DIM_COLORS = {
   climate_hazard: '#E05A3A',
   exposure: '#4A90C4',
@@ -21,7 +29,7 @@ const DIM_COLORS = {
   risk_score: '#D73027',
 }
 
-const SSP_COLORS = { SSP126: '#1A9850', SSP245: '#FEE08B', SSP370: '#F46D43', SSP585: '#D73027' }
+const SSP_COLORS = { SSP126: '#1A9850', SSP245: '#80C97A', SSP370: '#F46D43', SSP585: '#D73027' }
 
 const TABS = [
   { id: 'overview',     label: 'Overview' },
@@ -44,6 +52,11 @@ export default function DetailDrawer() {
     })
   }, [selectedFeature])
 
+  // Reset to overview when feature changes
+  React.useEffect(() => {
+    setActiveTab('overview')
+  }, [selectedFeature?.id])
+
   if (!selectedFeature) return null
 
   const riskClass = stats?.risk_score?.class ?? null
@@ -54,6 +67,8 @@ export default function DetailDrawer() {
     { axis: 'Exposure',        value: stats?.exposure?.composite_score ?? 0 },
     { axis: 'Vulnerability',   value: stats?.vulnerability?.composite_score ?? 0 },
   ]
+
+  const hasHazardData = !!(stats?.climate_hazard?.indicators)
 
   return (
     <aside className={styles.drawer}>
@@ -82,23 +97,88 @@ export default function DetailDrawer() {
       </div>
 
       <div className={styles.body}>
-        {!stats && (
+        {!stats && !hasHazardData && (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>◎</div>
-            <div>No CRVA data available for this {selectedFeature.type}.</div>
-            <div className={styles.emptyNote}>Placeholder data · Run the pipeline to connect real district statistics.</div>
+            <div>No CRVA data for this {selectedFeature.type}.</div>
+            <div className={styles.emptyNote}>Exposure, Vulnerability and Risk Score data pending.</div>
           </div>
         )}
 
-        {stats && activeTab === 'overview' && (
+        {activeTab === 'overview' && (
+          <OverviewTab stats={stats} riskInfo={riskInfo} radarData={radarData} hasHazardData={hasHazardData} />
+        )}
+        {activeTab === 'hazard' && <HazardTab stats={stats} />}
+        {activeTab === 'crop' && <CropTab stats={stats} />}
+        {activeTab === 'exposure' && <IndicatorTab data={stats?.exposure} label="Exposure" color={DIM_COLORS.exposure} note="Agricultural exposure of rural livelihoods" />}
+        {activeTab === 'vulnerability' && <IndicatorTab data={stats?.vulnerability} label="Vulnerability" color={DIM_COLORS.vulnerability} note="Sensitivity factors and adaptive capacity" />}
+      </div>
+
+      <div className={styles.source}>TCP/IND/4005 · IPCC WG2 AR6 · CRIDA · INDRA-CMIP6</div>
+    </aside>
+  )
+}
+
+function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
+  if (!hasHazardData && !stats) {
+    return (
+      <div className={styles.empty}>
+        <div className={styles.emptyIcon}>◎</div>
+        <div>No data available.</div>
+        <div className={styles.emptyNote}>Exposure, Vulnerability and Risk Score data pending.</div>
+      </div>
+    )
+  }
+
+  // If we have hazard data, show a summary of key indicators
+  if (hasHazardData) {
+    const inds = stats.climate_hazard.indicators
+    const KEY_INDS = ['heat_stress_35', 'tropical_nights', 'prcptot', 'cdd', 'gdd_10']
+    const summaryRows = KEY_INDS.filter(id => inds[id]).map(id => {
+      const meta = getIndicatorMeta(id)
+      const hist = inds[id]?.historical?.mean
+      const fut585 = inds[id]?.SSP585?.['2100']?.mean
+      const delta = (hist != null && fut585 != null) ? (fut585 - hist) : null
+      return { id, label: meta?.label ?? id, unit: meta?.unit ?? '', hist, fut585, delta }
+    })
+
+    return (
+      <>
+        <div className={styles.sectionTitle}>Key Climate Hazard Indicators</div>
+        <div className={styles.summaryNote}>Historical baseline vs SSP5-8.5 ~2100</div>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Indicator</th>
+              <th style={{ textAlign: 'right' }}>Historical</th>
+              <th style={{ textAlign: 'right' }}>SSP5-8.5 ~2100</th>
+              <th style={{ textAlign: 'right' }}>Change</th>
+            </tr>
+          </thead>
+          <tbody>
+            {summaryRows.map(r => (
+              <tr key={r.id}>
+                <td style={{ fontSize: 10.5 }}>{r.label}</td>
+                <td style={{ textAlign: 'right' }}>{r.hist != null ? r.hist.toFixed(1) : '—'}</td>
+                <td style={{ textAlign: 'right' }}>{r.fut585 != null ? r.fut585.toFixed(1) : '—'}</td>
+                <td style={{ textAlign: 'right', color: r.delta > 0 ? '#D73027' : r.delta < 0 ? '#1A9850' : 'var(--text-muted)', fontWeight: 600 }}>
+                  {r.delta != null ? `${r.delta > 0 ? '+' : ''}${r.delta.toFixed(1)}` : '—'}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className={styles.summaryNote} style={{ marginTop: 8 }}>→ Switch to Climate Hazard tab for full projections by indicator and scenario.</div>
+
+        {stats?.risk_score && (
           <>
-            <div className={styles.sectionTitle}>CRVA Summary Scores</div>
+            <div className={styles.sectionTitle} style={{ marginTop: 14 }}>CRVA Summary Scores</div>
             <div className={styles.scoreGrid}>
               {[
                 { id: 'climate_hazard', label: 'Climate Hazard', score: stats?.climate_hazard?.composite_score },
-                { id: 'exposure',       label: 'Exposure',        score: stats?.exposure?.composite_score },
-                { id: 'vulnerability',  label: 'Vulnerability',   score: stats?.vulnerability?.composite_score },
-                { id: 'risk_score',     label: 'Risk Score',      score: stats?.risk_score?.score },
+                { id: 'exposure',       label: 'Exposure',       score: stats?.exposure?.composite_score },
+                { id: 'vulnerability',  label: 'Vulnerability',  score: stats?.vulnerability?.composite_score },
+                { id: 'risk_score',     label: 'Risk Score',     score: stats?.risk_score?.score },
               ].map(d => (
                 <div key={d.id} className={styles.scoreCard}>
                   <div className={styles.scoreDimLabel}>{d.label}</div>
@@ -108,64 +188,146 @@ export default function DetailDrawer() {
                 </div>
               ))}
             </div>
-
-            <div className={styles.sectionTitle} style={{ marginTop: 14 }}>Risk Profile</div>
-            <div className={styles.radarWrap}>
-              <ResponsiveContainer width="100%" height={200}>
-                <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-                  <PolarGrid stroke="var(--border)" />
-                  <PolarAngleAxis dataKey="axis" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
-                  <Radar name="Score" dataKey="value" stroke="#E05A3A" fill="#E05A3A" fillOpacity={0.25} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {riskInfo && (
-              <div className={styles.riskSummary} style={{ borderColor: riskInfo.color + '44', background: riskInfo.color + '11' }}>
-                <span className={styles.riskDot} style={{ background: riskInfo.color }} />
-                <span style={{ color: riskInfo.color, fontWeight: 700 }}>{riskInfo.label} Risk</span>
-                <span className={styles.riskScore}>Score: {stats.risk_score.score.toFixed(1)} / 100</span>
-              </div>
-            )}
           </>
         )}
+      </>
+    )
+  }
 
-        {stats && activeTab === 'hazard' && <HazardTab stats={stats} />}
-        {stats && activeTab === 'crop' && <CropTab stats={stats} />}
-        {stats && activeTab === 'exposure' && <IndicatorTab data={stats?.exposure} label="Exposure" color={DIM_COLORS.exposure} note="Agricultural exposure of rural livelihoods" />}
-        {stats && activeTab === 'vulnerability' && <IndicatorTab data={stats?.vulnerability} label="Vulnerability" color={DIM_COLORS.vulnerability} note="Sensitivity factors and adaptive capacity" />}
+  // Fallback: full CRVA overview (for when all dimension data exists)
+  return (
+    <>
+      <div className={styles.sectionTitle}>CRVA Summary Scores</div>
+      <div className={styles.scoreGrid}>
+        {[
+          { id: 'climate_hazard', label: 'Climate Hazard', score: stats?.climate_hazard?.composite_score },
+          { id: 'exposure',       label: 'Exposure',        score: stats?.exposure?.composite_score },
+          { id: 'vulnerability',  label: 'Vulnerability',   score: stats?.vulnerability?.composite_score },
+          { id: 'risk_score',     label: 'Risk Score',      score: stats?.risk_score?.score },
+        ].map(d => (
+          <div key={d.id} className={styles.scoreCard}>
+            <div className={styles.scoreDimLabel}>{d.label}</div>
+            <div className={styles.scoreVal} style={{ color: DIM_COLORS[d.id] }}>
+              {d.score != null ? d.score.toFixed(1) : '—'}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className={styles.source}>TCP/IND/4005 · IPCC WG2 AR6 · CRIDA methodology · Placeholder data</div>
-    </aside>
+      <div className={styles.sectionTitle} style={{ marginTop: 14 }}>Risk Profile</div>
+      <div className={styles.radarWrap}>
+        <ResponsiveContainer width="100%" height={200}>
+          <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
+            <PolarGrid stroke="var(--border)" />
+            <PolarAngleAxis dataKey="axis" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
+            <Radar name="Score" dataKey="value" stroke="#E05A3A" fill="#E05A3A" fillOpacity={0.25} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {riskInfo && (
+        <div className={styles.riskSummary} style={{ borderColor: riskInfo.color + '44', background: riskInfo.color + '11' }}>
+          <span className={styles.riskDot} style={{ background: riskInfo.color }} />
+          <span style={{ color: riskInfo.color, fontWeight: 700 }}>{riskInfo.label} Risk</span>
+          <span className={styles.riskScore}>Score: {stats.risk_score.score.toFixed(1)} / 100</span>
+        </div>
+      )}
+    </>
   )
 }
 
 function HazardTab({ stats }) {
-  const histVal = stats?.climate_hazard?.historical ?? null
-  const hazardData = HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => {
+  const { hazardIndicatorId } = useCRVAStore()
+  const indicators = stats?.climate_hazard?.indicators
+
+  // All available indicator IDs from the data
+  const availableIds = indicators ? Object.keys(indicators) : []
+
+  // Use the store's selected indicator if available, else first available
+  const activeId = (indicators && indicators[hazardIndicatorId]) ? hazardIndicatorId : availableIds[0]
+  const meta = getIndicatorMeta(activeId)
+  const indData = indicators?.[activeId]
+
+  if (!indicators || availableIds.length === 0) {
+    return (
+      <div className={styles.empty} style={{ height: 120 }}>
+        <div>No climate hazard data available.</div>
+      </div>
+    )
+  }
+
+  const histMean = indData?.historical?.mean ?? null
+  const histP10  = indData?.historical?.p10  ?? null
+  const histP90  = indData?.historical?.p90  ?? null
+
+  // Build bar chart data: one row per future period, columns per SSP (mean values)
+  const chartData = HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => {
     const row = { period: p.label }
-    SSPS.forEach(s => { row[s] = stats?.climate_hazard?.projections?.[s]?.[p.id] ?? null })
+    SSPS.forEach(s => {
+      row[s]         = indData?.[s]?.[p.id]?.mean  ?? null
+      row[`${s}_p10`] = indData?.[s]?.[p.id]?.p10  ?? null
+      row[`${s}_p90`] = indData?.[s]?.[p.id]?.p90  ?? null
+    })
     return row
   })
 
+  // Indicator selector — list all 28 available indicators grouped
+  const [showPicker, setShowPicker] = React.useState(false)
+  const { setHazardIndicator } = useCRVAStore()
+
   return (
     <>
-      <div className={styles.sectionTitle}>Future Projections (INDRA-CMIP6)</div>
+      {/* Indicator selector */}
+      <div className={styles.indicatorPickerRow}>
+        <div className={styles.activeIndicatorLabel}>
+          {meta?.label ?? activeId}
+          <span className={styles.activeIndicatorUnit}>{meta?.unit}</span>
+        </div>
+        <button className={styles.changeIndBtn} onClick={() => setShowPicker(v => !v)}>
+          {showPicker ? 'Done' : 'Change'}
+        </button>
+      </div>
 
-      {histVal != null && (
-        <div className={styles.baselineRow}>
-          <span>Historical baseline (1985–2014)</span>
-          <span className={styles.baselineVal}>{histVal.toFixed(1)}</span>
+      {showPicker && (
+        <div className={styles.indicatorPicker}>
+          {hazardIndicators.map(g => (
+            <div key={g.group}>
+              <div className={styles.pickerGroup}>{g.group}</div>
+              {g.indicators.filter(i => availableIds.includes(i.id)).map(i => (
+                <button
+                  key={i.id}
+                  className={`${styles.pickerItem} ${i.id === activeId ? styles.pickerItemActive : ''}`}
+                  onClick={() => { setHazardIndicator(i.id); setShowPicker(false) }}
+                >
+                  {i.label}
+                </button>
+              ))}
+            </div>
+          ))}
         </div>
       )}
 
+      {/* Historical baseline */}
+      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1985–2014)</div>
+      <div className={styles.baselineRow}>
+        <span>Mean</span>
+        <span className={styles.baselineVal}>{histMean != null ? histMean.toFixed(1) : '—'}</span>
+      </div>
+      {histP10 != null && (
+        <div className={styles.baselineRow} style={{ fontSize: 11, opacity: 0.7 }}>
+          <span>P10 – P90 range</span>
+          <span className={styles.baselineVal}>{histP10.toFixed(1)} – {histP90.toFixed(1)}</span>
+        </div>
+      )}
+
+      {/* Future projections bar chart */}
+      <div className={styles.sectionTitle} style={{ marginTop: 10 }}>Future projections by scenario</div>
       <div className={styles.chartWrap}>
-        <ResponsiveContainer width="100%" height={170}>
-          <BarChart data={hazardData} barSize={8} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>
+        <ResponsiveContainer width="100%" height={160}>
+          <BarChart data={chartData} barSize={7} barGap={1} barCategoryGap="25%" margin={{ top: 4, right: 8, bottom: 0, left: -22 }}>
             <XAxis dataKey="period" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 9, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
-            {histVal != null && <ReferenceLine y={histVal} stroke="#666" strokeDasharray="4 2" label={{ value: 'Baseline', position: 'right', fontSize: 8, fill: '#999' }} />}
+            {histMean != null && <ReferenceLine y={histMean} stroke="#888" strokeDasharray="4 2" />}
             <Tooltip
               contentStyle={{ background: 'var(--bg-overlay)', border: '1px solid var(--border)', fontSize: 11, borderRadius: 6 }}
               formatter={(v, name) => [v != null ? v.toFixed(1) : '—', SSP_LABELS[name] ?? name]}
@@ -175,9 +337,8 @@ function HazardTab({ stats }) {
         </ResponsiveContainer>
       </div>
 
-      {/* SSP color legend */}
+      {/* SSP legend */}
       <div className={styles.sspLegend}>
-        <div className={styles.sspLegendTitle}>Scenario colors</div>
         <div className={styles.sspLegendItems}>
           {SSPS.map(s => (
             <div key={s} className={styles.sspLegendItem}>
@@ -186,22 +347,42 @@ function HazardTab({ stats }) {
             </div>
           ))}
         </div>
-        <div className={styles.sspLegendNote}>
-          SSP1-2.6: low emissions · SSP2-4.5: intermediate · SSP3-7.0: high · SSP5-8.5: very high
-        </div>
       </div>
 
-      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Composite Hazard Score</div>
-      <div className={styles.scoreBar}>
-        <div className={styles.scoreBarFill} style={{ width: `${stats?.climate_hazard?.composite_score ?? 0}%`, background: '#E05A3A' }} />
-      </div>
-      <div className={styles.scoreBarLabel}>{(stats?.climate_hazard?.composite_score ?? 0).toFixed(1)} / 100</div>
+      {/* SSP × Period table */}
+      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Mean values by scenario &amp; period</div>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Period</th>
+            {SSPS.map(s => <th key={s} style={{ textAlign: 'right' }}>{SSP_LABELS[s]}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Historical</td>
+            <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
+              {histMean != null ? histMean.toFixed(1) : '—'}
+            </td>
+          </tr>
+          {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => (
+            <tr key={p.id}>
+              <td>{p.label}</td>
+              {SSPS.map(s => (
+                <td key={s} style={{ textAlign: 'right' }}>
+                  {indData?.[s]?.[p.id]?.mean != null ? indData[s][p.id].mean.toFixed(1) : '—'}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </>
   )
 }
 
 const ALL_CROPS = ['Rice_Irrigated','Wheat','Maize','Chickpea','Pigeonpea','Soybean','Groundnut','Mustard','Cotton','Potato','Sorghum','Pearl_Millet']
-const CROP_PERIODS = ['2020','2050','2080']
+const CROP_PERIODS_LIST = ['2020','2050','2080']
 
 function CropTab({ stats }) {
   const yields = stats?.crop_impact?.yields ?? {}
@@ -223,7 +404,7 @@ function CropTab({ stats }) {
           {crops.map(c => (
             <tr key={c}>
               <td>{c.replace(/_/g, ' ')}</td>
-              {CROP_PERIODS.map(p => {
+              {CROP_PERIODS_LIST.map(p => {
                 const v = yields[c]?.[p]
                 return (
                   <td key={p} style={{ textAlign: 'right', color: v > 0 ? '#1A9850' : v < 0 ? '#D73027' : 'var(--text-muted)', fontWeight: Math.abs(v ?? 0) > 20 ? 700 : 400 }}>
@@ -234,8 +415,10 @@ function CropTab({ stats }) {
             </tr>
           ))}
         </tbody>
+        {crops.length === 0 && (
+          <tbody><tr><td colSpan={4}><div className={styles.cropNote} style={{ padding: '12px 0' }}>No crop data available for this area.</div></td></tr></tbody>
+        )}
       </table>
-      {crops.length === 0 && <div className={styles.empty} style={{ height: 80 }}><div>No crop data available</div></div>}
     </>
   )
 }
