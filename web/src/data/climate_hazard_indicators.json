@@ -227,6 +227,42 @@
         "anomaly_cmap": "BrBG",
         "vmin": 121,
         "vmax": 365
+      },
+      {
+        "id": "june_precip",
+        "label": "June total precipitation",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 1200
+      },
+      {
+        "id": "july_precip",
+        "label": "July total precipitation",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 1500
+      },
+      {
+        "id": "rx3day",
+        "label": "Max 3-day precipitation",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 700
+      },
+      {
+        "id": "r100mm3d",
+        "label": "3-day events > 100 mm",
+        "unit": "events yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 20
       }
     ]
   },
