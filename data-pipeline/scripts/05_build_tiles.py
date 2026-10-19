@@ -4,8 +4,8 @@ Build per-indicator vector PMTiles for the CRVA map.
 Each India grid cell becomes a point with properties:
   hist, {ssp}_{period}, delta_{ssp}_{period}   (delta = future − historical)
 
-Writes tiles/vector_v2/{indicator}.pmtiles; publish by copying into the
-kushankb/india-climate-hazards-tiles repo under vector_v2/.
+Writes tiles/vector_v2/{indicator}.pmtiles; publish by copying into vector/ of
+the kushankb/crva-tiles repo (served at kushankbajaj.com/crva-tiles).
 
 Run:
   conda run -n ml_trade python 05_build_tiles.py [indicator ...]

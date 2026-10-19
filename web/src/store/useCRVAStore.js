@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 
-const TILES_BASE = import.meta.env.VITE_TILES_BASE ?? 'https://kushankbajaj.com/india-climate-hazards-tiles'
+const TILES_BASE = import.meta.env.VITE_TILES_BASE ?? 'https://kushankbajaj.com/crva-tiles'
 
 export const SSPS = ['SSP126', 'SSP245', 'SSP370', 'SSP585']
 export const SSP_LABELS = { SSP126: 'SSP1-2.6', SSP245: 'SSP2-4.5', SSP370: 'SSP3-7.0', SSP585: 'SSP5-8.5' }
@@ -61,7 +61,7 @@ export const useCRVAStore = create((set, get) => ({
   // Helpers
   getHazardTileUrl: () => {
     const { hazardIndicatorId } = get()
-    return `${TILES_BASE}/vector_v2/${hazardIndicatorId}.pmtiles`
+    return `${TILES_BASE}/vector/${hazardIndicatorId}.pmtiles`
   },
   getHazardPropertyKey: () => {
     const { hazardSsp, hazardPeriod, hazardViewMode } = get()
