@@ -133,7 +133,7 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
   // If we have hazard data, show a summary of key indicators
   if (hasHazardData) {
     const inds = stats.climate_hazard.indicators
-    const KEY_INDS = ['heat_stress_35', 'tropical_nights', 'prcptot', 'cdd', 'gdd_10']
+    const KEY_INDS = ['tmean', 'heat_stress_35', 'summer_tmean', 'prcptot', 'june_precip', 'cdd', 'rx3day']
     const summaryRows = KEY_INDS.filter(id => inds[id]).map(id => {
       const meta = getIndicatorMeta(id)
       const hist = inds[id]?.historical?.mean
@@ -271,7 +271,7 @@ function HazardTab({ stats }) {
     return row
   })
 
-  // Indicator selector — list all 28 available indicators grouped
+  // Indicator selector — list all available indicators grouped
   const [showPicker, setShowPicker] = React.useState(false)
   const { setHazardIndicator } = useCRVAStore()
 
@@ -290,25 +290,29 @@ function HazardTab({ stats }) {
 
       {showPicker && (
         <div className={styles.indicatorPicker}>
-          {hazardIndicators.map(g => (
-            <div key={g.group}>
-              <div className={styles.pickerGroup}>{g.group}</div>
-              {g.indicators.filter(i => availableIds.includes(i.id)).map(i => (
-                <button
-                  key={i.id}
-                  className={`${styles.pickerItem} ${i.id === activeId ? styles.pickerItemActive : ''}`}
-                  onClick={() => { setHazardIndicator(i.id); setShowPicker(false) }}
-                >
-                  {i.label}
-                </button>
-              ))}
-            </div>
-          ))}
+          {hazardIndicators.map(g => {
+            const groupItems = g.indicators.filter(i => availableIds.includes(i.id))
+            if (groupItems.length === 0) return null
+            return (
+              <div key={g.group} className={styles.pickerGroup}>
+                <div className={styles.pickerGroupLabel}>{g.group}</div>
+                {groupItems.map(i => (
+                  <button
+                    key={i.id}
+                    className={`${styles.pickerItem} ${i.id === activeId ? styles.pickerItemActive : ''}`}
+                    onClick={() => { setHazardIndicator(i.id); setShowPicker(false) }}
+                  >
+                    {i.label}
+                  </button>
+                ))}
+              </div>
+            )
+          })}
         </div>
       )}
 
       {/* Historical baseline */}
-      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1985–2014)</div>
+      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1976–2005)</div>
       <div className={styles.baselineRow}>
         <span>Mean</span>
         <span className={styles.baselineVal}>{histMean != null ? histMean.toFixed(1) : '—'}</span>
