@@ -10,7 +10,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
         "vmax": 250.0,
-        "anomaly_max": 100.0
+        "anomaly_max": 100.0,
+        "description": "Days per year when the daily maximum temperature exceeds 35°C. Above this, many crops (e.g. wheat, rice at flowering) suffer heat stress and outdoor work becomes harder."
       },
       {
         "id": "heat_stress_40",
@@ -20,7 +21,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
         "vmax": 90.0,
-        "anomaly_max": 65.0
+        "anomaly_max": 65.0,
+        "description": "Days per year when the daily maximum temperature exceeds 40°C — severe heat for crops, livestock and people."
       },
       {
         "id": "tropical_nights",
@@ -30,7 +32,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
         "vmax": 300.0,
-        "anomaly_max": 150.0
+        "anomaly_max": 150.0,
+        "description": "Nights per year when the minimum temperature stays above 25°C. Warm nights raise crop respiration losses and prevent livestock and people from recovering from daytime heat."
       },
       {
         "id": "heatwave_days",
@@ -40,7 +43,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
         "vmax": 90.0,
-        "anomaly_max": 65.0
+        "anomaly_max": 65.0,
+        "description": "Days per year that fall in a spell of 3 or more consecutive days with maximum temperature above 40°C."
       },
       {
         "id": "heat_fatal_45",
@@ -50,7 +54,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
         "vmax": 15.0,
-        "anomaly_max": 20.0
+        "anomaly_max": 20.0,
+        "description": "Days per year with maximum temperature above 45°C — extreme heat associated with heat-related deaths and crop failure."
       },
       {
         "id": "cdd_energy",
@@ -58,9 +63,10 @@
         "unit": "°C days",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 0,
-        "vmax": 5000.0,
-        "anomaly_max": 1500.0
+        "vmin": 1500,
+        "vmax": 5500,
+        "anomaly_max": 1500.0,
+        "description": "Cooling degree days: the yearly sum of how far daily mean temperature exceeds 18°C. A measure of cumulative heat load and cooling demand."
       },
       {
         "id": "tmean",
@@ -68,9 +74,10 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": -5.0,
-        "vmax": 35.0,
-        "anomaly_max": 4.5
+        "vmin": 18,
+        "vmax": 33,
+        "anomaly_max": 4.5,
+        "description": "Average daily mean temperature over the year (Rama Rao indicator)."
       },
       {
         "id": "dtr",
@@ -80,7 +87,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 5.0,
         "vmax": 15.0,
-        "anomaly_max": 0.8
+        "anomaly_max": 0.8,
+        "description": "Diurnal temperature range: average difference between daily maximum and minimum temperature."
       },
       {
         "id": "tmax_mean",
@@ -88,9 +96,10 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 0.5,
-        "vmax": 40.0,
-        "anomaly_max": 4.5
+        "vmin": 24,
+        "vmax": 38,
+        "anomaly_max": 4.5,
+        "description": "Average of daily maximum temperatures over the year (Rama Rao indicator)."
       },
       {
         "id": "tmin_mean",
@@ -98,9 +107,10 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": -15.0,
-        "vmax": 30.0,
-        "anomaly_max": 5.0
+        "vmin": 12,
+        "vmax": 29,
+        "anomaly_max": 5.0,
+        "description": "Average of daily minimum temperatures over the year (Rama Rao indicator)."
       },
       {
         "id": "summer_tmean",
@@ -108,9 +118,10 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": -1.5,
-        "vmax": 40.0,
-        "anomaly_max": 5.0
+        "vmin": 24,
+        "vmax": 39,
+        "anomaly_max": 5.0,
+        "description": "Average daily mean temperature, computed as (Tmax + Tmin) / 2, over April–June, the hottest pre-monsoon months (Rama Rao indicator)."
       }
     ]
   },
@@ -125,7 +136,8 @@
         "anomaly_cmap": "RdBu",
         "vmin": 0,
         "vmax": 300.0,
-        "anomaly_max": 45.0
+        "anomaly_max": 45.0,
+        "description": "Days per year when the minimum temperature falls below 0°C. Frost damages rabi crops such as mustard, chickpea and potato; mostly relevant in the hills."
       },
       {
         "id": "hdd",
@@ -135,7 +147,8 @@
         "anomaly_cmap": "RdBu",
         "vmin": 0,
         "vmax": 8500.0,
-        "anomaly_max": 1000.0
+        "anomaly_max": 1000.0,
+        "description": "Heating degree days: the yearly sum of how far daily mean temperature falls below 18°C. A measure of cold load."
       }
     ]
   },
@@ -150,7 +163,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 200.0,
         "vmax": 4000.0,
-        "anomaly_max": 650.0
+        "anomaly_max": 650.0,
+        "description": "Total precipitation over the year (Rama Rao indicator)."
       },
       {
         "id": "rx1day",
@@ -160,7 +174,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 3.0,
         "vmax": 70.0,
-        "anomaly_max": 10.0
+        "anomaly_max": 10.0,
+        "description": "Wettest single day of the year: the highest one-day rainfall total, averaged over years. Indicates flash-flood and waterlogging risk."
       },
       {
         "id": "rx5day",
@@ -170,7 +185,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 10.0,
         "vmax": 300.0,
-        "anomaly_max": 40.0
+        "anomaly_max": 40.0,
+        "description": "Wettest 5-day period of the year: the highest 5-day rainfall total, averaged over years (Rama Rao indicator)."
       },
       {
         "id": "r95ptot",
@@ -180,7 +196,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 10.0,
         "vmax": 45.0,
-        "anomaly_max": 30.0
+        "anomaly_max": 30.0,
+        "description": "Share of annual rainfall that falls on very wet days (days above the 95th percentile of the 1985–2014 baseline). Higher values mean rain is more concentrated in intense events."
       },
       {
         "id": "r99ptot",
@@ -190,7 +207,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 1.5,
         "vmax": 20.0,
-        "anomaly_max": 20.0
+        "anomaly_max": 20.0,
+        "description": "Share of annual rainfall that falls on extremely wet days (days above the 99th percentile of the 1985–2014 baseline)."
       },
       {
         "id": "r1mm",
@@ -200,7 +218,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 65.0,
         "vmax": 350.0,
-        "anomaly_max": 30.0
+        "anomaly_max": 30.0,
+        "description": "Wet days per year (daily rainfall of at least 1 mm). Closest available match to Rama Rao's rainy days (≥ 2.5 mm)."
       },
       {
         "id": "r10mm",
@@ -210,7 +229,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 0,
         "vmax": 150.0,
-        "anomaly_max": 35.0
+        "anomaly_max": 35.0,
+        "description": "Days per year with at least 10 mm of rain."
       },
       {
         "id": "r20mm",
@@ -220,7 +240,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 0,
         "vmax": 85.0,
-        "anomaly_max": 20.0
+        "anomaly_max": 20.0,
+        "description": "Days per year with at least 20 mm of rain."
       },
       {
         "id": "kharif_precip",
@@ -230,7 +251,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 200.0,
         "vmax": 6000.0,
-        "anomaly_max": 1500.0
+        "anomaly_max": 1500.0,
+        "description": "Total rainfall during the kharif (south-west monsoon) season, June–September."
       },
       {
         "id": "monsoon_onset",
@@ -240,7 +262,8 @@
         "anomaly_cmap": "BrBG_r",
         "vmin": 100.0,
         "vmax": 350.0,
-        "anomaly_max": 45.0
+        "anomaly_max": 45.0,
+        "description": "Estimated day of year when the monsoon sets in. Later onset delays kharif sowing."
       },
       {
         "id": "june_precip",
@@ -250,7 +273,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 15.0,
         "vmax": 850.0,
-        "anomaly_max": 80.0
+        "anomaly_max": 80.0,
+        "description": "Total rainfall in June, the month of monsoon onset and kharif sowing (Rama Rao indicator)."
       },
       {
         "id": "july_precip",
@@ -260,7 +284,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 35.0,
         "vmax": 1500.0,
-        "anomaly_max": 150.0
+        "anomaly_max": 150.0,
+        "description": "Total rainfall in July, the main crop-establishment month (Rama Rao indicator)."
       },
       {
         "id": "rx3day",
@@ -270,7 +295,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 7.0,
         "vmax": 200.0,
-        "anomaly_max": 25.0
+        "anomaly_max": 25.0,
+        "description": "Wettest 3-day period of the year: the highest 3-day rainfall total, averaged over years."
       },
       {
         "id": "r100mm3d",
@@ -280,7 +306,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 0,
         "vmax": 4.5,
-        "anomaly_max": 1.0
+        "anomaly_max": 1.0,
+        "description": "Number of distinct events per year in which rainfall over 3 consecutive days exceeds 100 mm — a flood and crop-damage hazard (Rama Rao indicator)."
       }
     ]
   },
@@ -295,7 +322,8 @@
         "anomaly_cmap": "BrBG_r",
         "vmin": 9.5,
         "vmax": 150.0,
-        "anomaly_max": 20.0
+        "anomaly_max": 20.0,
+        "description": "Consecutive dry days: the longest run of days with less than 1 mm of rain each year. A measure of dry-spell length (Rama Rao indicator)."
       },
       {
         "id": "cwd",
@@ -305,7 +333,8 @@
         "anomaly_cmap": "BrBG",
         "vmin": 10.0,
         "vmax": 250.0,
-        "anomaly_max": 45.0
+        "anomaly_max": 45.0,
+        "description": "Consecutive wet days: the longest run of days with at least 1 mm of rain each year."
       },
       {
         "id": "spi3",
@@ -315,7 +344,8 @@
         "anomaly_cmap": "BrBG_r",
         "vmin": 0.8,
         "vmax": 20.0,
-        "anomaly_max": 20.0
+        "anomaly_max": 20.0,
+        "description": "Percentage of months in moderate or worse meteorological drought, i.e. 3-month Standardised Precipitation Index below −1 relative to the 1985–2014 baseline. Based on rainfall only."
       },
       {
         "id": "spei3",
@@ -325,7 +355,8 @@
         "anomaly_cmap": "BrBG_r",
         "vmin": 8.0,
         "vmax": 65.0,
-        "anomaly_max": 55.0
+        "anomaly_max": 55.0,
+        "description": "Percentage of months in moderate or worse drought on the 3-month Standardised Precipitation-Evapotranspiration Index (below −1). Unlike SPI, it also counts the drying effect of higher temperatures."
       }
     ]
   },
@@ -340,7 +371,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
         "vmax": 8000.0,
-        "anomaly_max": 1500.0
+        "anomaly_max": 1500.0,
+        "description": "Growing degree days above 10°C: the yearly sum of daily mean temperature above 10°C. Measures heat available for crop growth; more GDD speeds crop development."
       },
       {
         "id": "gdd_38",
@@ -350,7 +382,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
         "vmax": 500.0,
-        "anomaly_max": 400.0
+        "anomaly_max": 400.0,
+        "description": "Killing degree days: the yearly sum of how far daily temperature exceeds 38°C. Heat above this threshold damages most crops."
       },
       {
         "id": "gsl",
@@ -360,7 +393,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 75.0,
         "vmax": 365,
-        "anomaly_max": 55.0
+        "anomaly_max": 55.0,
+        "description": "Growing season length: days per year between the first and last spells warm enough for plant growth (mean temperature above 5°C). Saturates at 365 across most of India."
       },
       {
         "id": "rabi_tmax",
@@ -368,9 +402,10 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": -9.0,
-        "vmax": 35.0,
-        "anomaly_max": 4.5
+        "vmin": 18,
+        "vmax": 35,
+        "anomaly_max": 4.5,
+        "description": "Average daily maximum temperature in the rabi season (November–March). Warmer rabi seasons, especially terminal heat, cut wheat yields."
       },
       {
         "id": "etr",
@@ -380,7 +415,8 @@
         "anomaly_cmap": "RdBu_r",
         "vmin": 10.0,
         "vmax": 45.0,
-        "anomaly_max": 1.5
+        "anomaly_max": 1.5,
+        "description": "Extreme temperature range: the difference between the year's highest maximum and lowest minimum temperature."
       }
     ]
   }

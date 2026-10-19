@@ -275,3 +275,18 @@
   padding: 8px 6px 0;
   border-top: 1px solid var(--border);
 }
+
+.tooltip {
+  position: fixed;
+  z-index: 1000;
+  width: 260px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}

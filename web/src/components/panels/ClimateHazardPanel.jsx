@@ -9,6 +9,11 @@ export default function ClimateHazardPanel() {
     hazardSsp, setHazardSsp,
     hazardViewMode, setHazardViewMode,
   } = useCRVAStore()
+  const [tip, setTip] = React.useState(null)
+  const showTip = (e, ind) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    setTip({ text: ind.description, left: r.right + 10, top: r.top })
+  }
 
   return (
     <div className={styles.root}>
@@ -36,6 +41,11 @@ export default function ClimateHazardPanel() {
               key={ind.id}
               className={`${styles.indicator} ${hazardIndicatorId === ind.id ? styles.indicatorActive : ''}`}
               onClick={() => setHazardIndicator(ind.id)}
+              onMouseEnter={e => showTip(e, ind)}
+              onMouseLeave={() => setTip(null)}
+              onFocus={e => showTip(e, ind)}
+              onBlur={() => setTip(null)}
+              aria-describedby={tip ? 'hazard-tip' : undefined}
             >
               <span className={styles.indicatorLabel}>{ind.label}</span>
               <span className={styles.indicatorUnit}>{ind.unit}</span>
@@ -45,6 +55,13 @@ export default function ClimateHazardPanel() {
       ))}
 
       <div className={styles.footer}>INDRA-CMIP6 · 0.1° · 14-model ensemble</div>
+
+      {tip?.text && (
+        <div id="hazard-tip" role="tooltip" className={styles.tooltip}
+          style={{ left: tip.left, top: Math.min(tip.top, window.innerHeight - 140) }}>
+          {tip.text}
+        </div>
+      )}
     </div>
   )
 }

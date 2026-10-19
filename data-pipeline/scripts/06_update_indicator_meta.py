@@ -19,6 +19,19 @@ from hazard_common import PERIODS, SSPS, load_2d
 META = Path(__file__).parents[2] / "web" / "src" / "data" / "climate_hazard_indicators.json"
 tiles = importlib.import_module("05_build_tiles")
 
+# Himalayan cells stretch percentile ranges and flatten the plains; pin these
+# to the agriculturally relevant span (values outside clamp to the end colours).
+MANUAL_RANGES = {
+    "cdd_energy":   (1500, 5500),
+    "tmean":        (18, 33),
+    "tmax_mean":    (24, 38),
+    "tmin_mean":    (12, 29),
+    "summer_tmean": (24, 39),
+    "rabi_tmax":    (18, 35),
+    "gdd_10":       (0, 8000),
+    "gsl":          (75, 365),
+}
+
 
 def nice(x, up):
     if x == 0:
@@ -45,6 +58,8 @@ def main():
             v = np.concatenate(vals)
             ind["vmin"] = nice(float(np.nanpercentile(v, 2)), up=False)
             ind["vmax"] = nice(float(np.nanpercentile(v, 98)), up=True)
+            if iid in MANUAL_RANGES:
+                ind["vmin"], ind["vmax"] = MANUAL_RANGES[iid]
             ind["anomaly_max"] = nice(float(np.nanpercentile(np.abs(np.concatenate(deltas)), 98)), up=True) or 1
             print(f"{iid:15} {ind['vmin']:>10} {ind['vmax']:>10}  ±{ind['anomaly_max']}")
     META.write_text(json.dumps(groups, indent=2, ensure_ascii=False) + "\n")
