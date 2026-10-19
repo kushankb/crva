@@ -27,13 +27,13 @@ TMAX_DIR = Path("/Volumes/Extreme SSD/FAO_India/Data/CMIP6_Indri/tmax")
 TMIN_DIR = Path("/Volumes/Extreme SSD/FAO_India/Data/CMIP6_Indri/tmin")
 OUT_ROOT  = Path("/Volumes/Extreme SSD/FAO_India/ClimateHazards/output")
 
-BASELINE_START = 1976
-BASELINE_END   = 2005
+BASELINE_START = 1985
+BASELINE_END   = 2014
 
 PERIOD_WINDOWS = {
-    "2047": (2032, 2061),
-    "2050": (2035, 2064),
-    "2100": (2085, 2100),
+    "2047": (2033, 2062),
+    "2050": (2036, 2065),
+    "2100": (2071, 2100),
 }
 
 SSPS = ["SSP126", "SSP245", "SSP370", "SSP585"]

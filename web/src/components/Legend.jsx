@@ -1,7 +1,7 @@
 import React from 'react'
 import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
 import dimensions from '../data/dimensions.json'
-import hazardIndicators from '../data/climate_hazard_indicators.json'
+import { getHazardMeta, hazardScale, cssGradient, fmt } from '../lib/hazardScale.js'
 import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import styles from './Legend.module.css'
 
@@ -25,19 +25,21 @@ export default function Legend() {
   const dim = dimensions.find(d => d.id === dimensionId)
 
   if (dimensionId === 'climate_hazard') {
-    const all = hazardIndicators.flatMap(g => g.indicators)
-    const ind = all.find(i => i.id === hazardIndicatorId)
+    const ind = getHazardMeta(hazardIndicatorId)
     if (!ind) return null
-    const cmap = hazardViewMode === 'anomaly' ? (ind.anomaly_cmap ?? 'RdBu') : (ind.cmap ?? 'YlOrRd')
-    const label = ind.label
-    const gradient = GRADIENT[cmap] ?? GRADIENT.YlOrRd
-    const range = hazardViewMode === 'anomaly' ? ['Decrease', 'Increase'] : ['Low', 'High']
+    const anomaly = hazardViewMode === 'anomaly'
+    const scale = hazardScale(ind, hazardViewMode)
+    const sign = v => (anomaly && v > 0 ? '+' : '') + fmt(v)
     return (
       <div className={styles.box}>
-        <div className={styles.title}>{label}</div>
-        <div className={styles.subLabel}>INDRA-CMIP6 · {hazardViewMode === 'anomaly' ? 'Change from baseline' : 'Absolute value'} · {ind.unit}</div>
-        <div className={styles.band} style={{ background: gradient }} />
-        <div className={styles.rangeRow}><span>{range[0]}</span><span>{range[1]}</span></div>
+        <div className={styles.title}>{ind.label}</div>
+        <div className={styles.subLabel}>INDRA-CMIP6 · {anomaly ? 'Change vs 1985–2014' : 'Absolute value'} · {ind.unit}</div>
+        <div className={styles.band} style={{ background: cssGradient(scale.cmap) }} />
+        <div className={styles.rangeRow}>
+          <span>≤ {sign(scale.vmin)}</span>
+          {anomaly && <span>0</span>}
+          <span>≥ {sign(scale.vmax)}</span>
+        </div>
       </div>
     )
   }

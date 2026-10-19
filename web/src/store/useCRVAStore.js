@@ -36,9 +36,9 @@ export const useCRVAStore = create((set, get) => ({
   hazardSsp: 'SSP245',
   setHazardSsp: (s) => set({ hazardSsp: s }),
   hazardPeriod: 'historical',
-  setHazardPeriod: (p) => set({ hazardPeriod: p }),
+  setHazardPeriod: (p) => set(s => ({ hazardPeriod: p, hazardViewMode: p === 'historical' ? 'values' : s.hazardViewMode })),
   hazardViewMode: 'values',
-  setHazardViewMode: (m) => set({ hazardViewMode: m }),
+  setHazardViewMode: (m) => set(s => ({ hazardViewMode: m, hazardPeriod: m === 'anomaly' && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),
 
   // Exposure
   exposureIndicatorId: 'net_sown_area_pct',
@@ -61,7 +61,7 @@ export const useCRVAStore = create((set, get) => ({
   // Helpers
   getHazardTileUrl: () => {
     const { hazardIndicatorId } = get()
-    return `${TILES_BASE}/vector/${hazardIndicatorId}.pmtiles`
+    return `${TILES_BASE}/vector_v2/${hazardIndicatorId}.pmtiles`
   },
   getHazardPropertyKey: () => {
     const { hazardSsp, hazardPeriod, hazardViewMode } = get()

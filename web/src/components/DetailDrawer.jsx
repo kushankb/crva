@@ -2,6 +2,7 @@ import React from 'react'
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from 'recharts'
 import { useCRVAStore, RISK_CLASSES, SSPS, SSP_LABELS, HAZARD_PERIODS } from '../store/useCRVAStore.js'
 import hazardIndicators from '../data/climate_hazard_indicators.json'
+import { fmt } from '../lib/hazardScale.js'
 import styles from './DetailDrawer.module.css'
 
 let crvaStats = null
@@ -159,10 +160,10 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
             {summaryRows.map(r => (
               <tr key={r.id}>
                 <td style={{ fontSize: 10.5 }}>{r.label}</td>
-                <td style={{ textAlign: 'right' }}>{r.hist != null ? r.hist.toFixed(1) : '—'}</td>
-                <td style={{ textAlign: 'right' }}>{r.fut585 != null ? r.fut585.toFixed(1) : '—'}</td>
-                <td style={{ textAlign: 'right', color: r.delta > 0 ? '#D73027' : r.delta < 0 ? '#1A9850' : 'var(--text-muted)', fontWeight: 600 }}>
-                  {r.delta != null ? `${r.delta > 0 ? '+' : ''}${r.delta.toFixed(1)}` : '—'}
+                <td style={{ textAlign: 'right' }}>{r.hist != null ? fmt(r.hist) : '—'}</td>
+                <td style={{ textAlign: 'right' }}>{r.fut585 != null ? fmt(r.fut585) : '—'}</td>
+                <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                  {r.delta != null ? `${r.delta > 0 ? '+' : ''}${fmt(r.delta)}` : '—'}
                 </td>
               </tr>
             ))}
@@ -237,11 +238,14 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
 }
 
 function HazardTab({ stats }) {
-  const { hazardIndicatorId } = useCRVAStore()
+  const { hazardIndicatorId, setHazardIndicator, hazardViewMode } = useCRVAStore()
+  const [showPicker, setShowPicker] = React.useState(false)
   const indicators = stats?.climate_hazard?.indicators
+  const anomaly = hazardViewMode === 'anomaly'
 
-  // All available indicator IDs from the data
-  const availableIds = indicators ? Object.keys(indicators) : []
+  const availableIds = indicators
+    ? hazardIndicators.flatMap(g => g.indicators.map(i => i.id)).filter(id => indicators[id])
+    : []
 
   // Use the store's selected indicator if available, else first available
   const activeId = (indicators && indicators[hazardIndicatorId]) ? hazardIndicatorId : availableIds[0]
@@ -260,20 +264,19 @@ function HazardTab({ stats }) {
   const histP10  = indData?.historical?.p10  ?? null
   const histP90  = indData?.historical?.p90  ?? null
 
-  // Build bar chart data: one row per future period, columns per SSP (mean values)
+  // Change view: future − historical of the regional mean, matching the map's Change view.
+  const value = (s, p) => {
+    const v = indData?.[s]?.[p]?.mean
+    if (v == null) return null
+    return anomaly ? (histMean == null ? null : v - histMean) : v
+  }
+  const show = v => v == null ? '—' : (anomaly && v > 0 ? '+' : '') + fmt(v)
+
   const chartData = HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => {
     const row = { period: p.label }
-    SSPS.forEach(s => {
-      row[s]         = indData?.[s]?.[p.id]?.mean  ?? null
-      row[`${s}_p10`] = indData?.[s]?.[p.id]?.p10  ?? null
-      row[`${s}_p90`] = indData?.[s]?.[p.id]?.p90  ?? null
-    })
+    SSPS.forEach(s => { row[s] = value(s, p.id) })
     return row
   })
-
-  // Indicator selector — list all available indicators grouped
-  const [showPicker, setShowPicker] = React.useState(false)
-  const { setHazardIndicator } = useCRVAStore()
 
   return (
     <>
@@ -312,29 +315,31 @@ function HazardTab({ stats }) {
       )}
 
       {/* Historical baseline */}
-      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1976–2005)</div>
+      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1985–2014)</div>
       <div className={styles.baselineRow}>
         <span>Mean</span>
-        <span className={styles.baselineVal}>{histMean != null ? histMean.toFixed(1) : '—'}</span>
+        <span className={styles.baselineVal}>{histMean != null ? fmt(histMean) : '—'}</span>
       </div>
       {histP10 != null && (
         <div className={styles.baselineRow} style={{ fontSize: 11, opacity: 0.7 }}>
           <span>P10 – P90 range</span>
-          <span className={styles.baselineVal}>{histP10.toFixed(1)} – {histP90.toFixed(1)}</span>
+          <span className={styles.baselineVal}>{fmt(histP10)} – {fmt(histP90)}</span>
         </div>
       )}
 
       {/* Future projections bar chart */}
-      <div className={styles.sectionTitle} style={{ marginTop: 10 }}>Future projections by scenario</div>
+      <div className={styles.sectionTitle} style={{ marginTop: 10 }}>{anomaly ? 'Change from baseline by scenario' : 'Future projections by scenario'}</div>
       <div className={styles.chartWrap}>
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={chartData} barSize={7} barGap={1} barCategoryGap="25%" margin={{ top: 4, right: 8, bottom: 0, left: -22 }}>
             <XAxis dataKey="period" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 9, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
-            {histMean != null && <ReferenceLine y={histMean} stroke="#888" strokeDasharray="4 2" />}
+            {anomaly
+              ? <ReferenceLine y={0} stroke="#888" />
+              : histMean != null && <ReferenceLine y={histMean} stroke="#888" strokeDasharray="4 2" />}
             <Tooltip
               contentStyle={{ background: 'var(--bg-overlay)', border: '1px solid var(--border)', fontSize: 11, borderRadius: 6 }}
-              formatter={(v, name) => [v != null ? v.toFixed(1) : '—', SSP_LABELS[name] ?? name]}
+              formatter={(v, name) => [show(v), SSP_LABELS[name] ?? name]}
             />
             {SSPS.map(s => <Bar key={s} dataKey={s} name={s} fill={SSP_COLORS[s]} radius={[2,2,0,0]} />)}
           </BarChart>
@@ -354,7 +359,7 @@ function HazardTab({ stats }) {
       </div>
 
       {/* SSP × Period table */}
-      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Mean values by scenario &amp; period</div>
+      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>{anomaly ? 'Change from baseline' : 'Mean values'} by scenario &amp; period</div>
       <table className={styles.table}>
         <thead>
           <tr>
@@ -366,7 +371,7 @@ function HazardTab({ stats }) {
           <tr>
             <td>Historical</td>
             <td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)', fontFamily: 'var(--font-mono)', fontSize: 11 }}>
-              {histMean != null ? histMean.toFixed(1) : '—'}
+              {histMean != null ? fmt(histMean) : '—'}
             </td>
           </tr>
           {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => (
@@ -374,7 +379,7 @@ function HazardTab({ stats }) {
               <td>{p.label}</td>
               {SSPS.map(s => (
                 <td key={s} style={{ textAlign: 'right' }}>
-                  {indData?.[s]?.[p.id]?.mean != null ? indData[s][p.id].mean.toFixed(1) : '—'}
+                  {show(value(s, p.id))}
                 </td>
               ))}
             </tr>

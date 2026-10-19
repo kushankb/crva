@@ -27,14 +27,14 @@ PR_DIR = Path("/Volumes/Extreme SSD/FAO_India/Data/CMIP6_Indri/pr")
 OUT_ROOT = Path("/Volumes/Extreme SSD/FAO_India/ClimateHazards/output")
 
 # Baseline period for delta computation (match existing pipeline)
-BASELINE_START = 1976
-BASELINE_END   = 2005
+BASELINE_START = 1985
+BASELINE_END   = 2014
 
-# Future period windows (30-year centred)
+# Windows match the existing ClimateHazards output files
 PERIOD_WINDOWS = {
-    "2047": (2032, 2061),
-    "2050": (2035, 2064),
-    "2100": (2085, 2100),   # limited by data end
+    "2047": (2033, 2062),
+    "2050": (2036, 2065),
+    "2100": (2071, 2100),
 }
 
 SSP_FILES = {
@@ -110,10 +110,13 @@ def compute_indicators(ds, dates, year_start, year_end):
             # Rolling 3-day sum using stride trick
             rx3_year = np.zeros((ny, nx), dtype=np.float64)
             r100_year = np.zeros((ny, nx), dtype=np.float64)
+            prev_wet = np.zeros((ny, nx), dtype=bool)
             for d in range(n_days - 2):
                 roll3 = pr_year[d:d+3].sum(axis=0)
                 rx3_year = np.maximum(rx3_year, roll3)
-                r100_year += (roll3 > 100).astype(np.float64)
+                wet = roll3 > 100
+                r100_year += (wet & ~prev_wet)  # count event starts, not overlapping windows
+                prev_wet = wet
             acc["rx3day"]   += rx3_year
             acc["r100mm3d"] += r100_year
             counts["rx3day"]   += 1
@@ -158,7 +161,7 @@ def main():
         "june_precip": "Mean total June precipitation (mm), annual average",
         "july_precip": "Mean total July precipitation (mm), annual average",
         "rx3day":      "Mean annual maximum 3-day accumulated precipitation (mm)",
-        "r100mm3d":    "Mean annual count of 3-day events with total > 100 mm",
+        "r100mm3d":    "Mean annual count of distinct events with 3-day total > 100 mm",
     }
 
     for ind in NEW_INDICATORS:

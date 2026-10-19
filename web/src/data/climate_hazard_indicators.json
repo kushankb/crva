@@ -9,7 +9,8 @@
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 310
+        "vmax": 250.0,
+        "anomaly_max": 100.0
       },
       {
         "id": "heat_stress_40",
@@ -18,7 +19,8 @@
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 205
+        "vmax": 90.0,
+        "anomaly_max": 65.0
       },
       {
         "id": "tropical_nights",
@@ -27,25 +29,18 @@
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 365
+        "vmax": 300.0,
+        "anomaly_max": 150.0
       },
       {
         "id": "heatwave_days",
-        "label": "Heatwave days (≥3 d above 40°C)",
+        "label": "Heatwave days (≥ 3 consecutive days > 40°C)",
         "unit": "days yr⁻¹",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 205
-      },
-      {
-        "id": "wsdi",
-        "label": "Warm spell duration index",
-        "unit": "days yr⁻¹",
-        "cmap": "YlOrRd",
-        "anomaly_cmap": "RdBu_r",
-        "vmin": 0,
-        "vmax": 30
+        "vmax": 90.0,
+        "anomaly_max": 65.0
       },
       {
         "id": "heat_fatal_45",
@@ -54,7 +49,8 @@
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 70
+        "vmax": 15.0,
+        "anomaly_max": 20.0
       },
       {
         "id": "cdd_energy",
@@ -63,7 +59,8 @@
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 5700
+        "vmax": 5000.0,
+        "anomaly_max": 1500.0
       },
       {
         "id": "tmean",
@@ -71,8 +68,9 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": -15,
-        "vmax": 34
+        "vmin": -5.0,
+        "vmax": 35.0,
+        "anomaly_max": 4.5
       },
       {
         "id": "dtr",
@@ -80,8 +78,9 @@
         "unit": "°C",
         "cmap": "YlOrBr",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 0,
-        "vmax": 16
+        "vmin": 5.0,
+        "vmax": 15.0,
+        "anomaly_max": 0.8
       },
       {
         "id": "tmax_mean",
@@ -89,8 +88,9 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 10,
-        "vmax": 42
+        "vmin": 0.5,
+        "vmax": 40.0,
+        "anomaly_max": 4.5
       },
       {
         "id": "tmin_mean",
@@ -98,8 +98,9 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 0,
-        "vmax": 30
+        "vmin": -15.0,
+        "vmax": 30.0,
+        "anomaly_max": 5.0
       },
       {
         "id": "summer_tmean",
@@ -107,8 +108,9 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 15,
-        "vmax": 42
+        "vmin": -1.5,
+        "vmax": 40.0,
+        "anomaly_max": 5.0
       }
     ]
   },
@@ -122,16 +124,8 @@
         "cmap": "PuBu",
         "anomaly_cmap": "RdBu",
         "vmin": 0,
-        "vmax": 365
-      },
-      {
-        "id": "csdi",
-        "label": "Cold spell duration index",
-        "unit": "days yr⁻¹",
-        "cmap": "PuBu",
-        "anomaly_cmap": "RdBu",
-        "vmin": 0,
-        "vmax": 30
+        "vmax": 300.0,
+        "anomaly_max": 45.0
       },
       {
         "id": "hdd",
@@ -140,25 +134,8 @@
         "cmap": "PuBu",
         "anomaly_cmap": "RdBu",
         "vmin": 0,
-        "vmax": 12000
-      },
-      {
-        "id": "tn90p",
-        "label": "Warm nights (Tmin > 90th pct)",
-        "unit": "days yr⁻¹",
-        "cmap": "YlOrRd",
-        "anomaly_cmap": "RdBu_r",
-        "vmin": 0,
-        "vmax": 100
-      },
-      {
-        "id": "tx10p",
-        "label": "Cool days (Tmax < 10th pct)",
-        "unit": "days yr⁻¹",
-        "cmap": "PuBu",
-        "anomaly_cmap": "RdBu",
-        "vmin": 0,
-        "vmax": 100
+        "vmax": 8500.0,
+        "anomaly_max": 1000.0
       }
     ]
   },
@@ -171,8 +148,9 @@
         "unit": "mm yr⁻¹",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 11200
+        "vmin": 200.0,
+        "vmax": 4000.0,
+        "anomaly_max": 650.0
       },
       {
         "id": "rx1day",
@@ -180,8 +158,9 @@
         "unit": "mm",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 400
+        "vmin": 3.0,
+        "vmax": 70.0,
+        "anomaly_max": 10.0
       },
       {
         "id": "rx5day",
@@ -189,26 +168,29 @@
         "unit": "mm",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 600
+        "vmin": 10.0,
+        "vmax": 300.0,
+        "anomaly_max": 40.0
       },
       {
         "id": "r95ptot",
-        "label": "Very heavy precipitation days (> 95th pct)",
-        "unit": "mm yr⁻¹",
+        "label": "Rain share from very wet days (> 95th pct)",
+        "unit": "% of annual",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 0.75
+        "vmin": 10.0,
+        "vmax": 45.0,
+        "anomaly_max": 30.0
       },
       {
         "id": "r99ptot",
-        "label": "Extremely heavy precipitation (> 99th pct)",
-        "unit": "mm yr⁻¹",
+        "label": "Rain share from extremely wet days (> 99th pct)",
+        "unit": "% of annual",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 1
+        "vmin": 1.5,
+        "vmax": 20.0,
+        "anomaly_max": 20.0
       },
       {
         "id": "r1mm",
@@ -216,8 +198,9 @@
         "unit": "days yr⁻¹",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 365
+        "vmin": 65.0,
+        "vmax": 350.0,
+        "anomaly_max": 30.0
       },
       {
         "id": "r10mm",
@@ -226,7 +209,8 @@
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
         "vmin": 0,
-        "vmax": 220
+        "vmax": 150.0,
+        "anomaly_max": 35.0
       },
       {
         "id": "r20mm",
@@ -235,7 +219,8 @@
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
         "vmin": 0,
-        "vmax": 190
+        "vmax": 85.0,
+        "anomaly_max": 20.0
       },
       {
         "id": "kharif_precip",
@@ -243,17 +228,19 @@
         "unit": "mm",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 15000
+        "vmin": 200.0,
+        "vmax": 6000.0,
+        "anomaly_max": 1500.0
       },
       {
         "id": "monsoon_onset",
         "label": "Monsoon onset day",
         "unit": "day of year",
         "cmap": "Blues",
-        "anomaly_cmap": "BrBG",
-        "vmin": 121,
-        "vmax": 365
+        "anomaly_cmap": "BrBG_r",
+        "vmin": 100.0,
+        "vmax": 350.0,
+        "anomaly_max": 45.0
       },
       {
         "id": "june_precip",
@@ -261,8 +248,9 @@
         "unit": "mm",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 1200
+        "vmin": 15.0,
+        "vmax": 850.0,
+        "anomaly_max": 80.0
       },
       {
         "id": "july_precip",
@@ -270,8 +258,9 @@
         "unit": "mm",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 1500
+        "vmin": 35.0,
+        "vmax": 1500.0,
+        "anomaly_max": 150.0
       },
       {
         "id": "rx3day",
@@ -279,17 +268,19 @@
         "unit": "mm",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 700
+        "vmin": 7.0,
+        "vmax": 200.0,
+        "anomaly_max": 25.0
       },
       {
         "id": "r100mm3d",
-        "label": "3-day events > 100 mm",
+        "label": "Extreme rain events (3-day total > 100 mm)",
         "unit": "events yr⁻¹",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
         "vmin": 0,
-        "vmax": 20
+        "vmax": 4.5,
+        "anomaly_max": 1.0
       }
     ]
   },
@@ -302,8 +293,9 @@
         "unit": "days",
         "cmap": "YlOrBr",
         "anomaly_cmap": "BrBG_r",
-        "vmin": 0,
-        "vmax": 180
+        "vmin": 9.5,
+        "vmax": 150.0,
+        "anomaly_max": 20.0
       },
       {
         "id": "cwd",
@@ -311,8 +303,9 @@
         "unit": "days",
         "cmap": "Blues",
         "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 340
+        "vmin": 10.0,
+        "vmax": 250.0,
+        "anomaly_max": 45.0
       },
       {
         "id": "spi3",
@@ -320,8 +313,9 @@
         "unit": "% of months",
         "cmap": "YlOrBr",
         "anomaly_cmap": "BrBG_r",
-        "vmin": 0,
-        "vmax": 25
+        "vmin": 0.8,
+        "vmax": 20.0,
+        "anomaly_max": 20.0
       },
       {
         "id": "spei3",
@@ -329,8 +323,9 @@
         "unit": "% of months",
         "cmap": "YlOrBr",
         "anomaly_cmap": "BrBG_r",
-        "vmin": 0,
-        "vmax": 100
+        "vmin": 8.0,
+        "vmax": 65.0,
+        "anomaly_max": 55.0
       }
     ]
   },
@@ -344,7 +339,8 @@
         "cmap": "RdYlGn",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 8600
+        "vmax": 8000.0,
+        "anomaly_max": 1500.0
       },
       {
         "id": "gdd_38",
@@ -353,7 +349,8 @@
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 1200
+        "vmax": 500.0,
+        "anomaly_max": 400.0
       },
       {
         "id": "gsl",
@@ -361,8 +358,9 @@
         "unit": "days",
         "cmap": "RdYlGn",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 0,
-        "vmax": 365
+        "vmin": 75.0,
+        "vmax": 365,
+        "anomaly_max": 55.0
       },
       {
         "id": "rabi_tmax",
@@ -370,8 +368,9 @@
         "unit": "°C",
         "cmap": "YlOrRd",
         "anomaly_cmap": "RdBu_r",
-        "vmin": -22,
-        "vmax": 37
+        "vmin": -9.0,
+        "vmax": 35.0,
+        "anomaly_max": 4.5
       },
       {
         "id": "etr",
@@ -379,8 +378,9 @@
         "unit": "°C",
         "cmap": "YlOrBr",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 0,
-        "vmax": 50
+        "vmin": 10.0,
+        "vmax": 45.0,
+        "anomaly_max": 1.5
       }
     ]
   }

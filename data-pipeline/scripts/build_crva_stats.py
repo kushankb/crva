@@ -16,12 +16,14 @@ SRC  = str(_HERE / "web" / "public" / "data" / "admin_stats.json")
 DEST = str(_HERE / "web" / "public" / "data" / "crva_stats.json")
 
 INDICATOR_IDS = [
-    'heat_stress_35','heat_stress_40','tropical_nights','heatwave_days','wsdi',
-    'heat_fatal_45','cdd_energy','tmean','rabi_tmax','frost_days','csdi','hdd',
+    'heat_stress_35','heat_stress_40','tropical_nights','heatwave_days',
+    'heat_fatal_45','cdd_energy','tmean','rabi_tmax','frost_days','hdd',
     'prcptot','rx1day','rx5day','r20mm','r10mm','r1mm','cwd','kharif_precip',
     'cdd','spi3','spei3','gdd_10','gdd_38','monsoon_onset','dtr','etr',
     # Previously computed but excluded
-    'r99ptot','r95ptot','tn90p','tx10p','gsl',
+    # wsdi, csdi, tn90p, tx10p excluded: percentile indices on ensemble-mean
+    # daily data saturate (~330+ days under every SSP), so they are not reliable.
+    'r99ptot','r95ptot','gsl',
     # New Rama Rao indicators (precipitation)
     'june_precip','july_precip','rx3day','r100mm3d',
     # New Rama Rao indicators (temperature)

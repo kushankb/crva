@@ -2,17 +2,9 @@ import React, { useEffect, useRef, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
-import hazardIndicators from '../data/climate_hazard_indicators.json'
 import Legend from './Legend.jsx'
+import { getHazardMeta, hazardScale, buildColorExpr } from '../lib/hazardScale.js'
 import styles from './Map.module.css'
-
-function getHazardMeta(indicatorId) {
-  for (const g of hazardIndicators) {
-    const ind = g.indicators.find(i => i.id === indicatorId)
-    if (ind) return ind
-  }
-  return { cmap: 'YlOrRd', vmin: 0, vmax: 100 }
-}
 
 let pmRegistered = false
 function ensurePmtiles() {
@@ -21,24 +13,6 @@ function ensurePmtiles() {
     maplibregl.addProtocol('pmtiles', p.tile.bind(p))
     pmRegistered = true
   }
-}
-
-const CMAPS = {
-  YlOrRd:  ['#ffffcc','#ffeda0','#fed976','#feb24c','#fd8d3c','#fc4e2a','#e31a1c','#bd0026','#800026'],
-  YlOrBr:  ['#ffffe5','#fff7bc','#fee391','#fec44f','#fe9929','#ec7014','#cc4c02','#993404','#662506'],
-  PuBu:    ['#fff7fb','#ece7f2','#d0d1e6','#a6bddb','#74a9cf','#3690c0','#0570b0','#045a8d','#023858'],
-  Blues:   ['#f7fbff','#deebf7','#c6dbef','#9ecae1','#6baed6','#4292c6','#2171b5','#08519c','#08306b'],
-  RdBu:    ['#67001f','#b2182b','#d6604d','#f4a582','#f7f7f7','#92c5de','#4393c3','#2166ac','#053061'],
-  RdYlGn:  ['#d73027','#f46d43','#fdae61','#fee08b','#ffffbf','#d9ef8b','#a6d96a','#66bd63','#1a9850'],
-}
-
-function buildColorExpr(propKey, cmap, vmin, vmax) {
-  const stops = CMAPS[cmap] ?? CMAPS.YlOrRd
-  const n = stops.length
-  const step = (vmax - vmin) / (n - 1)
-  const interp = ['interpolate', ['linear'], ['coalesce', ['get', propKey], vmin]]
-  for (let i = 0; i < n; i++) interp.push(vmin + i * step, stops[i])
-  return interp
 }
 
 function buildRiskColorExpr() {
@@ -127,9 +101,8 @@ export default function Map() {
     const s = useCRVAStore.getState()
     if (s.dimensionId !== 'climate_hazard') return
     const propKey = s.getHazardPropertyKey()
-    const meta = getHazardMeta(s.hazardIndicatorId)
-    const cmap = s.hazardViewMode === 'anomaly' ? (meta.anomaly_cmap ?? 'RdBu') : (meta.cmap ?? 'YlOrRd')
-    m.setPaintProperty(VEC_LAYER, 'circle-color', buildColorExpr(propKey, cmap, meta.vmin ?? 0, meta.vmax ?? 100))
+    const scale = hazardScale(getHazardMeta(s.hazardIndicatorId), s.hazardViewMode)
+    m.setPaintProperty(VEC_LAYER, 'circle-color', buildColorExpr(propKey, scale))
   }, [hazardSsp, hazardPeriod, hazardViewMode])
 
   useEffect(() => {
@@ -264,11 +237,8 @@ async function syncMapToState(m, store, setTilesStatus) {
   if (dimensionId === 'climate_hazard') {
     const url     = store.getHazardTileUrl()
     const propKey = store.getHazardPropertyKey()
-    const meta    = getHazardMeta(store.hazardIndicatorId)
-    const cmap    = store.hazardViewMode === 'anomaly' ? (meta.anomaly_cmap ?? 'RdBu') : (meta.cmap ?? 'YlOrRd')
-    const vmin    = meta.vmin ?? 0
-    const vmax    = meta.vmax ?? 100
-    await loadVectorTiles(m, url, propKey, cmap, vmin, vmax, VEC_ID, VEC_LAYER, 'state-fill', setTilesStatus)
+    const scale   = hazardScale(getHazardMeta(store.hazardIndicatorId), store.hazardViewMode)
+    await loadVectorTiles(m, url, propKey, scale, VEC_ID, VEC_LAYER, 'state-fill', setTilesStatus)
 
   } else if (dimensionId === 'vulnerability' && vulnerabilityIndicatorId?.startsWith('crop_')) {
     const propKey = store.getCropPropKey()
@@ -282,7 +252,7 @@ async function syncMapToState(m, store, setTilesStatus) {
   }
 }
 
-async function loadVectorTiles(m, url, propKey, cmap, vmin, vmax, sourceId, layerId, insertBefore, setTilesStatus) {
+async function loadVectorTiles(m, url, propKey, scale, sourceId, layerId, insertBefore, setTilesStatus) {
   setTilesStatus('loading')
   const exists = await tileExists(url)
   if (m.getLayer(layerId)) m.removeLayer(layerId)
@@ -295,7 +265,7 @@ async function loadVectorTiles(m, url, propKey, cmap, vmin, vmax, sourceId, laye
     id: layerId, type: 'circle', source: sourceId, 'source-layer': indicatorId,
     paint: {
       'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 4, 1.8, 5, 2.5, 6, 4.5, 7, 8.0, 8, 14.0, 9, 22.0],
-      'circle-color': buildColorExpr(propKey, cmap, vmin, vmax),
+      'circle-color': buildColorExpr(propKey, scale),
       'circle-opacity': 0.92,
       'circle-stroke-width': 0,
     },
@@ -349,7 +319,7 @@ async function loadCropGrid(m, propKey, setTilesStatus) {
     paint: {
       'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 4, 1.8, 5, 2.5, 6, 4.5, 7, 8.0, 8, 14.0, 9, 22.0],
       'circle-color': propKey
-        ? buildColorExpr(propKey, 'RdYlGn', -50, 50)
+        ? buildColorExpr(propKey, { cmap: 'RdYlGn', vmin: -50, vmax: 50 })
         : '#cccccc',
       // Hide circles where this crop has no data (null = crop not grown here)
       'circle-opacity': propKey

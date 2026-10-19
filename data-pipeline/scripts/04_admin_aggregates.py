@@ -20,13 +20,13 @@ from pathlib import Path
 import geopandas as gpd
 import numpy as np
 import regionmask
-import xarray as xr
 from tqdm import tqdm
 
 warnings.filterwarnings("ignore")
 
+from hazard_common import INDICATORS, PERIODS, SSPS, load_2d
+
 # ── Paths ────────────────────────────────────────────────────────────────────
-NC_ROOT  = Path("/Volumes/Extreme SSD/FAO_India/ClimateHazards/output")
 WEB_DATA = Path(__file__).parents[2] / "web" / "public" / "data"
 
 BOUNDARY_DIR = Path(
@@ -38,28 +38,6 @@ BOUNDARY_DIR = Path(
 STATES_SHP    = BOUNDARY_DIR / "STATE_BOUNDARY.shp"
 DISTRICTS_SHP = BOUNDARY_DIR / "DISTRICT_BOUNDARY.shp"
 OUT_JSON      = WEB_DATA / "admin_stats.json"
-
-SSPS    = ["SSP126", "SSP245", "SSP370", "SSP585"]
-PERIODS = ["2047", "2050", "2100"]
-
-SPI_INDICATORS     = {"spi3", "spei3"}
-SPI_DROUGHT_THRESH = -1.0
-KELVIN_INDICATORS  = {"tmean", "rabi_tmax"}
-
-INDICATORS = [
-    "heat_stress_35", "heat_stress_40", "tropical_nights", "heatwave_days",
-    "wsdi", "heat_fatal_45", "cdd_energy", "tmean", "rabi_tmax",
-    "frost_days", "csdi", "hdd",
-    "prcptot", "rx1day", "rx5day", "r20mm", "r10mm", "r1mm", "cwd", "kharif_precip",
-    "cdd", "spi3", "spei3",
-    "gdd_10", "gdd_38", "monsoon_onset", "dtr", "etr",
-    # Previously computed but excluded — now included
-    "r99ptot", "r95ptot", "tn90p", "tx10p", "gsl",
-    # New Rama Rao indicators computed from raw daily pr
-    "june_precip", "july_precip", "rx3day", "r100mm3d",
-    # New Rama Rao indicators computed from raw daily tasmax/tasmin
-    "tmax_mean", "tmin_mean", "summer_tmean",
-]
 
 # ── Boundary loading ──────────────────────────────────────────────────────────
 
@@ -82,42 +60,6 @@ def load_districts():
     gdf["_name"]       = gdf["DISTRICT"].str.title()
     gdf["_state_name"] = gdf["STATE_UT"].str.title()
     return gdf
-
-# ── NC normalisation ──────────────────────────────────────────────────────────
-
-def nc_to_2d(nc_path: Path, indicator: str):
-    """Load NC → 2D numpy array (lat × lon), or None if file missing."""
-    if not nc_path.exists():
-        return None, None, None
-
-    ds = xr.open_dataset(nc_path, mask_and_scale=True)
-    coord_names = {"time", "lat", "lon", "percentiles",
-                   "number_of_zeros", "number_of_notnull", "prob_of_zero"}
-    candidates = [v for v in ds.data_vars if v not in coord_names]
-    var = indicator if indicator in ds.data_vars else (candidates[0] if candidates else None)
-    if var is None:
-        return None, None, None
-
-    data = ds[var].values.astype(np.float32)
-    lats = ds["lat"].values
-    lons = ds["lon"].values
-
-    # Normalise to 2D — mirrors 01_nc_to_geojson.py
-    if data.ndim == 4:
-        data = np.nanmean(data, axis=0)
-    if data.ndim == 3:
-        if data.shape[0] == len(lats) and data.shape[1] == len(lons):
-            # (lat, lon, percentiles) — pick middle slice
-            data = data[:, :, data.shape[2] // 2]
-        elif indicator in SPI_INDICATORS:
-            data = (data < SPI_DROUGHT_THRESH).mean(axis=0) * 100.0
-        else:
-            data = np.nanmean(data, axis=0)
-
-    if indicator in KELVIN_INDICATORS:
-        data = data - 273.15
-
-    return data.astype(np.float32), lats, lons
 
 # ── Aggregation ───────────────────────────────────────────────────────────────
 
@@ -179,10 +121,7 @@ def main():
     print(f"  States: {len(states)}  Districts: {len(districts)}")
 
     # Get lat/lon grid from reference NC
-    ref_nc = NC_ROOT / "historical" / "heat_stress_35_historical.nc"
-    ds_ref = xr.open_dataset(ref_nc, mask_and_scale=True)
-    lons = ds_ref["lon"].values
-    lats = ds_ref["lat"].values
+    _, lats, lons = load_2d("heat_stress_35", "historical")
 
     # Build masks once
     print("Building regionmask masks...")
@@ -199,24 +138,22 @@ def main():
     print("\nProcessing indicators...")
     for ind in tqdm(INDICATORS, desc="Indicators"):
         # Historical
-        hist_path = NC_ROOT / "historical" / f"{ind}_historical.nc"
-        data, lats_nc, lons_nc = nc_to_2d(hist_path, ind)
+        data, _, _ = load_2d(ind, "historical")
         if data is not None:
             fill_all_regions(state_out,    states,    "state",    "_id", state_mask,    data, ind, "historical", None)
             fill_all_regions(district_out, districts, "district", "_id", district_mask, data, ind, "historical", None)
         else:
-            missing.append(str(hist_path))
+            missing.append(f"{ind} historical")
 
         # Future
         for ssp in SSPS:
             for period in PERIODS:
-                nc_path = NC_ROOT / ssp / f"{ind}_{ssp}_{period}.nc"
-                data, _, _ = nc_to_2d(nc_path, ind)
+                data, _, _ = load_2d(ind, ssp, period)
                 if data is not None:
                     fill_all_regions(state_out,    states,    "state",    "_id", state_mask,    data, ind, ssp, period)
                     fill_all_regions(district_out, districts, "district", "_id", district_mask, data, ind, ssp, period)
                 else:
-                    missing.append(str(nc_path))
+                    missing.append(f"{ind} {ssp} {period}")
 
     merged = {**state_out, **district_out}
 
