@@ -3,7 +3,7 @@ Aggregate future hazard index following Rama Rao et al. (2020), Atlas §3.3 and 
 
 Per district and scenario/period:
   1. change from the 1985–2014 baseline (% for rainfall and rainy days, absolute otherwise)
-  2. truncate at the 1st/99th percentile
+  2. no truncation: extremes are kept (the Atlas clips at the 1st/99th percentile)
   3. sign-preserving normalisation:
        Z = ±X / (Xmax − Xmin)   if the range spans 0
        Z = ±X / |X|max          otherwise            (− for inversely related indicators)
@@ -11,7 +11,7 @@ Per district and scenario/period:
   5. category from ±0.5 SD / ±1.5 SD (Atlas Table 7), using the SD of the
      district index within each SSP × period, as the Atlas does for its scenario
 
-Truncation bounds, normalisers and SD are computed from the districts within
+Normalisers and SD are computed from the districts within
 each SSP × period, as the Atlas does for its single scenario, so index values
 rank districts within a scenario but are not comparable across scenarios.
 States use the constants of their scenario. Reads/writes web/public/data/crva_stats.json.
@@ -82,14 +82,13 @@ def main():
     for cid, _, _, _, sign in COMPONENTS:
         for c in combos:
             pool = np.array([raw[cid][k][c] for k in districts])
-            lo, hi = np.nanpercentile(pool, [1, 99])
-            clipped = np.clip(pool, lo, hi)
-            denom = (hi - lo) if lo < 0 < hi else np.nanmax(np.abs(clipped))
+            lo, hi = np.nanmin(pool), np.nanmax(pool)
+            denom = (hi - lo) if lo < 0 < hi else np.nanmax(np.abs(pool))
             norm[(cid, c)] = (lo, hi, denom if denom > 0 else 1.0, sign)
 
     def z(cid, c, x):
         lo, hi, denom, sign = norm[(cid, c)]
-        return np.nan if np.isnan(x) else sign * float(np.clip(x, lo, hi)) / denom
+        return np.nan if np.isnan(x) else sign * float(x) / denom
 
     index = {k: {} for k in keys}
     for k in keys:
