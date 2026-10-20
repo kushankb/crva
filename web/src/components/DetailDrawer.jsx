@@ -4,7 +4,7 @@ import { useCRVAStore, RISK_CLASSES, SSPS, SSP_LABELS, HAZARD_PERIODS } from '..
 import hazardIndicators from '../data/climate_hazard_indicators.json'
 import { fmt } from '../lib/hazardScale.js'
 import { loadStats } from '../lib/stats.js'
-import { FHI_ID, FHI_COMPONENTS, fhiClass } from '../lib/hazardIndex.js'
+import { FHI_ID, FHI_COMPONENTS, fhiClassOf } from '../lib/hazardIndex.js'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -138,7 +138,7 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
       <>
         {stats.climate_hazard.future_hazard_index?.[hazardSsp]?.[period] && (() => {
           const cur = stats.climate_hazard.future_hazard_index[hazardSsp][period]
-          const c = fhiClass(cur.value)
+          const c = fhiClassOf(cur.category)
           return (
             <>
               <div className={styles.sectionTitle}>Future hazard index · {futLabel}</div>
@@ -407,9 +407,10 @@ const COMPONENT_LABELS = {
   events_100mm: '>100 mm in 3 days', rx1_pct: 'Max 1-day % of normal', rx3_pct: 'Max 3-day % of normal',
 }
 
-function ClassChip({ value }) {
-  if (value == null) return <span>—</span>
-  const c = fhiClass(value)
+function ClassChip({ entry }) {
+  if (!entry) return <span>—</span>
+  const value = entry.value
+  const c = fhiClassOf(entry.category)
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
       <span style={{ width: 9, height: 9, borderRadius: 2, background: c.color, border: '1px solid var(--border)' }} />
@@ -429,8 +430,8 @@ function IndexView({ fhi }) {
         {SSP_LABELS[hazardSsp]} · {HAZARD_PERIODS.find(p => p.id === period)?.label}
       </div>
       {cur && (
-        <div className={styles.riskSummary} style={{ borderColor: fhiClass(cur.value).color, marginTop: 0 }}>
-          <span className={styles.riskDot} style={{ background: fhiClass(cur.value).color }} />
+        <div className={styles.riskSummary} style={{ borderColor: fhiClassOf(cur.category).color, marginTop: 0 }}>
+          <span className={styles.riskDot} style={{ background: fhiClassOf(cur.category).color }} />
           <span style={{ fontWeight: 700 }}>{cur.category}</span>
           <span className={styles.riskScore}>index {cur.value > 0 ? '+' : ''}{cur.value.toFixed(3)}</span>
         </div>
@@ -443,7 +444,7 @@ function IndexView({ fhi }) {
           {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => (
             <tr key={p.id}>
               <td>{p.label}</td>
-              {SSPS.map(s => <td key={s} style={{ textAlign: 'right' }}><ClassChip value={fhi?.[s]?.[p.id]?.value} /></td>)}
+              {SSPS.map(s => <td key={s} style={{ textAlign: 'right' }}><ClassChip entry={fhi?.[s]?.[p.id]} /></td>)}
             </tr>
           ))}
         </tbody>

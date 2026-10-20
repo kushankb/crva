@@ -11,21 +11,17 @@ export const FHI_CLASSES = [
   { label: 'More favourable',         min: -Infinity, color: '#2166ac' },
 ]
 
-export const FHI_SD = meta.sd
 export const FHI_COMPONENTS = meta.components
 
-export function fhiClass(value) {
-  return FHI_CLASSES.find(c => value / FHI_SD > c.min)
+// Categories are computed in the pipeline with the SD of each SSP × period.
+export function fhiClassOf(category) {
+  return FHI_CLASSES.find(c => c.label === category) ?? FHI_CLASSES[2]
 }
 
 export function fhiColorExpr() {
   const v = ['feature-state', 'fhi']
   return ['case', ['==', ['typeof', v], 'number'],
-    ['step', v,
-      FHI_CLASSES[4].color, -1.5 * FHI_SD,
-      FHI_CLASSES[3].color, -0.5 * FHI_SD,
-      FHI_CLASSES[2].color, 0.5 * FHI_SD,
-      FHI_CLASSES[1].color, 1.5 * FHI_SD,
-      FHI_CLASSES[0].color],
+    ['match', v, 0, FHI_CLASSES[0].color, 1, FHI_CLASSES[1].color, 2, FHI_CLASSES[2].color,
+      3, FHI_CLASSES[3].color, 4, FHI_CLASSES[4].color, 'rgba(0,0,0,0)'],
     'rgba(0,0,0,0)']
 }

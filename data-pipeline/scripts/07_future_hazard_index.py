@@ -8,11 +8,12 @@ Per district and scenario/period:
        Z = ±X / (Xmax − Xmin)   if the range spans 0
        Z = ±X / |X|max          otherwise            (− for inversely related indicators)
   4. index = Σ (weight/100) · Z
-  5. category from ±0.5 SD / ±1.5 SD (Atlas Table 7)
+  5. category from ±0.5 SD / ±1.5 SD (Atlas Table 7), using the SD of the
+     district index within each SSP × period, as the Atlas does for its scenario
 
-Truncation bounds, normalisers and SD are pooled over all districts and all
+Truncation bounds and normalisers are pooled over all districts and all
 SSP × period combinations, so index values are comparable across scenarios.
-States use the same constants. Reads/writes web/public/data/crva_stats.json.
+States use the same constants and the district SD of their scenario. Reads/writes web/public/data/crva_stats.json.
 
 Run after 04_admin_aggregates.py and build_crva_stats.py:
   conda run -n ml_trade python 07_future_hazard_index.py
@@ -95,10 +96,10 @@ def main():
             vals = [v for v in parts.values() if not np.isnan(v)]
             index[k][c] = (sum(vals) if len(vals) == len(parts) else np.nan, parts)
 
-    sd = float(np.nanstd([index[k][c][0] for k in districts for c in combos]))
+    sd = {c: float(np.nanstd([index[k][c][0] for k in districts])) for c in combos}
 
-    def category(v):
-        return next(label for t, label in CATEGORIES if v / sd > t)
+    def category(v, c):
+        return next(label for t, label in CATEGORIES if v / sd[c] > t)
 
     for k in keys:
         out = {}
@@ -107,7 +108,7 @@ def main():
                 continue
             out.setdefault(s, {})[p] = {
                 "value": round(v, 4),
-                "category": category(v),
+                "category": category(v, (s, p)),
                 "components": {cid: round(x, 4) for cid, x in parts.items()},
                 "changes": {cid: round(raw[cid][k][(s, p)], 3) for cid, *_ in COMPONENTS},
             }
@@ -115,17 +116,16 @@ def main():
 
     META.write_text(json.dumps({
         "method": "Rama Rao et al. 2020 Atlas, Table 5c weights, sign-preserving normalisation",
-        "sd": round(sd, 4),
+        "sd": {f"{s}_{p}": round(v, 4) for (s, p), v in sd.items()},
         "components": [{"id": c[0], "source": c[1], "weight": c[2], "change": c[3], "sign": c[4]} for c in COMPONENTS],
     }, indent=1))
     STATS.write_text(json.dumps(stats, separators=(",", ":")))
 
     for c in combos:
         v = np.array([index[k][c][0] for k in districts])
-        cats = [category(x) for x in v if not np.isnan(x)]
-        print(f"{c[0]} {c[1]}: median {np.nanmedian(v):+.3f}  "
+        cats = [category(x, c) for x in v if not np.isnan(x)]
+        print(f"{c[0]} {c[1]}: median {np.nanmedian(v):+.3f} SD {sd[c]:.3f}  "
               + "  ".join(f"{lab.split()[0][:4]}{lab.split()[-1][:5]}={cats.count(lab)}" for _, lab in CATEGORIES))
-    print(f"SD = {sd:.4f}")
 
 
 if __name__ == "__main__":

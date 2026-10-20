@@ -4,7 +4,7 @@ import { Protocol } from 'pmtiles'
 import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
 import Legend from './Legend.jsx'
 import { getHazardMeta, hazardScale, buildColorExpr } from '../lib/hazardScale.js'
-import { FHI_ID, fhiColorExpr } from '../lib/hazardIndex.js'
+import { FHI_ID, FHI_CLASSES, fhiColorExpr } from '../lib/hazardIndex.js'
 import { loadStats } from '../lib/stats.js'
 import styles from './Map.module.css'
 
@@ -348,8 +348,9 @@ async function applyFhiState(m, ssp, period) {
   const stats = await loadStats()
   for (const [key, feat] of Object.entries(stats)) {
     if (!key.startsWith('district:')) continue
-    const v = feat.climate_hazard?.future_hazard_index?.[ssp]?.[period]?.value
-    m.setFeatureState({ source: 'districts', id: key.slice(9) }, { fhi: v ?? null })
+    const cat = feat.climate_hazard?.future_hazard_index?.[ssp]?.[period]?.category
+    const i = FHI_CLASSES.findIndex(c => c.label === cat)
+    m.setFeatureState({ source: 'districts', id: key.slice(9) }, { fhi: i >= 0 ? i : null })
   }
 }
 
