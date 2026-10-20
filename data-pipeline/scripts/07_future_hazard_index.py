@@ -11,9 +11,10 @@ Per district and scenario/period:
   5. category from ±0.5 SD / ±1.5 SD (Atlas Table 7), using the SD of the
      district index within each SSP × period, as the Atlas does for its scenario
 
-Truncation bounds and normalisers are pooled over all districts and all
-SSP × period combinations, so index values are comparable across scenarios.
-States use the same constants and the district SD of their scenario. Reads/writes web/public/data/crva_stats.json.
+Truncation bounds, normalisers and SD are computed from the districts within
+each SSP × period, as the Atlas does for its single scenario, so index values
+rank districts within a scenario but are not comparable across scenarios.
+States use the constants of their scenario. Reads/writes web/public/data/crva_stats.json.
 
 Run after 04_admin_aggregates.py and build_crva_stats.py:
   conda run -n ml_trade python 07_future_hazard_index.py
@@ -79,20 +80,21 @@ def main():
 
     norm = {}
     for cid, _, _, _, sign in COMPONENTS:
-        pool = np.array([raw[cid][k][c] for k in districts for c in combos])
-        lo, hi = np.nanpercentile(pool, [1, 99])
-        clipped = np.clip(pool, lo, hi)
-        denom = (hi - lo) if lo < 0 < hi else np.nanmax(np.abs(clipped))
-        norm[cid] = (lo, hi, denom if denom > 0 else 1.0, sign)
+        for c in combos:
+            pool = np.array([raw[cid][k][c] for k in districts])
+            lo, hi = np.nanpercentile(pool, [1, 99])
+            clipped = np.clip(pool, lo, hi)
+            denom = (hi - lo) if lo < 0 < hi else np.nanmax(np.abs(clipped))
+            norm[(cid, c)] = (lo, hi, denom if denom > 0 else 1.0, sign)
 
-    def z(cid, x):
-        lo, hi, denom, sign = norm[cid]
+    def z(cid, c, x):
+        lo, hi, denom, sign = norm[(cid, c)]
         return np.nan if np.isnan(x) else sign * float(np.clip(x, lo, hi)) / denom
 
     index = {k: {} for k in keys}
     for k in keys:
         for c in combos:
-            parts = {cid: z(cid, raw[cid][k][c]) * w / 100 for cid, _, w, _, _ in COMPONENTS}
+            parts = {cid: z(cid, c, raw[cid][k][c]) * w / 100 for cid, _, w, _, _ in COMPONENTS}
             vals = [v for v in parts.values() if not np.isnan(v)]
             index[k][c] = (sum(vals) if len(vals) == len(parts) else np.nan, parts)
 
