@@ -28,6 +28,8 @@ INDICATOR_IDS = [
     'june_precip','july_precip','rx3day','r100mm3d',
     # New Rama Rao indicators (temperature)
     'tmax_mean','tmin_mean','summer_tmean',
+    # Rama Rao daily-derived indicators (compute_rr_extremes.py)
+    'rr_rainy_days','rr_dryspell','rr_p99','rr_rx1_pct','rr_rx3_pct','rr_hot_days','rr_cold_days',
 ]
 
 with open(SRC) as f:

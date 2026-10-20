@@ -48,7 +48,9 @@ export default function ClimateHazardPanel() {
               aria-describedby={tip ? 'hazard-tip' : undefined}
             >
               <span className={styles.indicatorLabel}>{ind.label}</span>
-              <span className={styles.indicatorUnit}>{ind.unit}</span>
+              <span className={styles.indicatorUnit}>
+                {ind.rr_weight != null ? `weight ${ind.rr_weight}% · ` : ''}{ind.unit}
+              </span>
             </button>
           ))}
         </div>

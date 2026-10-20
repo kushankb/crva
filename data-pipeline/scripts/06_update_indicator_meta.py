@@ -48,6 +48,8 @@ def main():
     for g in groups:
         for ind in g["indicators"]:
             iid = ind["id"]
+            if ind.get("kind") == "index":
+                continue
             h = load_2d(iid, "historical")[0][mask]
             vals, deltas = [h], []
             for s in SSPS:

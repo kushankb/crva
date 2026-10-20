@@ -24,6 +24,7 @@ INDICATORS = [
     "r99ptot", "r95ptot", "tn90p", "tx10p", "gsl",
     "june_precip", "july_precip", "rx3day", "r100mm3d",
     "tmax_mean", "tmin_mean", "summer_tmean",
+    "rr_rainy_days", "rr_dryspell", "rr_p99", "rr_rx1_pct", "rr_rx3_pct", "rr_hot_days", "rr_cold_days",
 ]
 
 KELVIN = {"tmean", "rabi_tmax"}

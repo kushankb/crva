@@ -4,6 +4,8 @@ import { Protocol } from 'pmtiles'
 import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
 import Legend from './Legend.jsx'
 import { getHazardMeta, hazardScale, buildColorExpr } from '../lib/hazardScale.js'
+import { FHI_ID, fhiColorExpr } from '../lib/hazardIndex.js'
+import { loadStats } from '../lib/stats.js'
 import styles from './Map.module.css'
 
 let pmRegistered = false
@@ -97,9 +99,10 @@ export default function Map() {
   useEffect(() => {
     if (!styleReady.current || !map.current) return
     const m = map.current
-    if (!m.getLayer(VEC_LAYER)) return
     const s = useCRVAStore.getState()
+    if (!m.getLayer(VEC_LAYER) && s.hazardIndicatorId !== FHI_ID) return
     if (s.dimensionId !== 'climate_hazard') return
+    if (s.hazardIndicatorId === FHI_ID) { applyFhiState(m, s.hazardSsp, s.hazardPeriod); return }
     const propKey = s.getHazardPropertyKey()
     const scale = hazardScale(getHazardMeta(s.hazardIndicatorId), s.hazardViewMode)
     m.setPaintProperty(VEC_LAYER, 'circle-color', buildColorExpr(propKey, scale))
@@ -234,7 +237,16 @@ async function syncMapToState(m, store, setTilesStatus) {
   const safeHide = (id) => { try { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', 'none') } catch (_) {} }
   safeHide(VEC_LAYER); safeHide(CROP_LAYER); safeHide(CHORO_LAYER)
 
-  if (dimensionId === 'climate_hazard') {
+  if (dimensionId === 'climate_hazard' && store.hazardIndicatorId === FHI_ID) {
+    if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
+    if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
+    m.setPaintProperty(CHORO_LAYER, 'fill-color', fhiColorExpr())
+    m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.85)
+    m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
+    await applyFhiState(m, store.hazardSsp, store.hazardPeriod)
+    setTilesStatus('ok')
+
+  } else if (dimensionId === 'climate_hazard') {
     const url     = store.getHazardTileUrl()
     const propKey = store.getHazardPropertyKey()
     const scale   = hazardScale(getHazardMeta(store.hazardIndicatorId), store.hazardViewMode)
@@ -330,6 +342,15 @@ async function loadCropGrid(m, propKey, setTilesStatus) {
   }, 'state-fill')
   m.setLayoutProperty(CROP_LAYER, 'visibility', 'visible')
   setTilesStatus('ok')
+}
+
+async function applyFhiState(m, ssp, period) {
+  const stats = await loadStats()
+  for (const [key, feat] of Object.entries(stats)) {
+    if (!key.startsWith('district:')) continue
+    const v = feat.climate_hazard?.future_hazard_index?.[ssp]?.[period]?.value
+    m.setFeatureState({ source: 'districts', id: key.slice(9) }, { fhi: v ?? null })
+  }
 }
 
 function showChoropleth(m, dimensionId, setTilesStatus) {

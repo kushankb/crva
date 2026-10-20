@@ -35,11 +35,11 @@ export const useCRVAStore = create((set, get) => ({
   setDrawerTab: (t) => set({ drawerTab: t }),
 
   hazardIndicatorId: 'cdd',
-  setHazardIndicator: (id) => set({ hazardIndicatorId: id }),
+  setHazardIndicator: (id) => set(s => ({ hazardIndicatorId: id, hazardPeriod: id === 'future_hazard_index' && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),
   hazardSsp: 'SSP245',
   setHazardSsp: (s) => set({ hazardSsp: s }),
   hazardPeriod: 'historical',
-  setHazardPeriod: (p) => set(s => ({ hazardPeriod: p, hazardViewMode: p === 'historical' ? 'values' : s.hazardViewMode })),
+  setHazardPeriod: (p) => set(s => ({ hazardPeriod: p === 'historical' && s.hazardIndicatorId === 'future_hazard_index' ? s.hazardPeriod : p, hazardViewMode: p === 'historical' ? 'values' : s.hazardViewMode })),
   hazardViewMode: 'values',
   setHazardViewMode: (m) => set(s => ({ hazardViewMode: m, hazardPeriod: m === 'anomaly' && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),
 

@@ -1,6 +1,203 @@
 [
   {
-    "group": "Heat",
+    "group": "Aggregate",
+    "indicators": [
+      {
+        "id": "future_hazard_index",
+        "label": "Future hazard index",
+        "unit": "index",
+        "kind": "index",
+        "description": "Aggregate future climate hazard for agriculture, following Rama Rao et al. (2020): the 15 indicators below, each as a change from 1985–2014, normalised with sign kept and combined with the Atlas Table 5c weights. Positive = climate becoming less favourable, negative = more favourable. Shown by district for a future period."
+      }
+    ]
+  },
+  {
+    "group": "Rama Rao future hazard indicators",
+    "indicators": [
+      {
+        "id": "prcptot",
+        "label": "Annual rainfall",
+        "unit": "mm yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 200.0,
+        "vmax": 4000.0,
+        "anomaly_max": 650.0,
+        "description": "Total precipitation over the year (Rama Rao indicator).",
+        "rr_weight": 10
+      },
+      {
+        "id": "june_precip",
+        "label": "June rainfall",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 15.0,
+        "vmax": 850.0,
+        "anomaly_max": 80.0,
+        "description": "Total rainfall in June, the month of monsoon onset and kharif sowing (Rama Rao indicator).",
+        "rr_weight": 5
+      },
+      {
+        "id": "july_precip",
+        "label": "July rainfall",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 35.0,
+        "vmax": 1500.0,
+        "anomaly_max": 150.0,
+        "description": "Total rainfall in July, the main crop-establishment month (Rama Rao indicator).",
+        "rr_weight": 15
+      },
+      {
+        "id": "rr_rainy_days",
+        "label": "Rainy days (≥ 2.5 mm)",
+        "unit": "days yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 2.5,
+        "vmax": 250.0,
+        "anomaly_max": 35.0,
+        "description": "Days per year with at least 2.5 mm of rain (IMD rainy-day definition). Note: averaging 14 models gives light rain on more days than any single model, so absolute counts run high; the change is what enters the index.",
+        "rr_weight": 5
+      },
+      {
+        "id": "tmax_mean",
+        "label": "Maximum temperature",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 24,
+        "vmax": 38,
+        "anomaly_max": 4.5,
+        "description": "Average of daily maximum temperatures over the year (Rama Rao indicator).",
+        "rr_weight": 6
+      },
+      {
+        "id": "tmin_mean",
+        "label": "Minimum temperature",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 12,
+        "vmax": 29,
+        "anomaly_max": 5.0,
+        "description": "Average of daily minimum temperatures over the year (Rama Rao indicator).",
+        "rr_weight": 6
+      },
+      {
+        "id": "rr_hot_days",
+        "label": "Unusually hot days (Mar–May)",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 2.5,
+        "vmax": 95.0,
+        "anomaly_max": 90.0,
+        "description": "Days in March–May when maximum temperature is at least 2 standard deviations above the 1985–2014 normal for that date. The Atlas uses +4 °C; the threshold is scaled because the ensemble-mean data varies far less from day to day than real weather.",
+        "rr_weight": 5
+      },
+      {
+        "id": "rr_cold_days",
+        "label": "Unusually cold days (Dec–Feb)",
+        "unit": "days yr⁻¹",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 3.5,
+        "anomaly_max": 3.5,
+        "description": "Days in December–February when minimum temperature is at least 2 standard deviations below the 1985–2014 normal for that date. The Atlas uses −4 °C; the threshold is scaled for the same reason as hot days.",
+        "rr_weight": 3
+      },
+      {
+        "id": "frost_days",
+        "label": "Frost days",
+        "unit": "days yr⁻¹",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu",
+        "vmin": 0,
+        "vmax": 300.0,
+        "anomaly_max": 45.0,
+        "description": "Days per year when the minimum temperature falls below 0°C. Frost damages rabi crops such as mustard, chickpea and potato; mostly relevant in the hills.",
+        "rr_weight": 2
+      },
+      {
+        "id": "spi3",
+        "label": "Drought proneness (proxy: SPI-3 drought frequency)",
+        "unit": "% of months",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "BrBG_r",
+        "vmin": 0.8,
+        "vmax": 20.0,
+        "anomaly_max": 20.0,
+        "description": "Proxy for the Atlas's drought proneness (severe and moderate drought, weighted 2:1): percentage of months with 3-month Standardised Precipitation Index below −1. The Atlas's rainfall-deficit definition gives near-zero droughts on ensemble-mean data, while SPI rescales by the data's own variability.",
+        "rr_weight": 12
+      },
+      {
+        "id": "rr_dryspell",
+        "label": "Dry-spell score (Jun–Oct, ≥ 14 days)",
+        "unit": "score yr⁻¹",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "BrBG_r",
+        "vmin": 0,
+        "vmax": 15.0,
+        "anomaly_max": 3.5,
+        "description": "Atlas dry-spell score: for each June–October dry spell (rain < 2.5 mm) of 14 days or more, add exp(length/14 − 1), with length capped at 42 days. Longer spells score much more.",
+        "rr_weight": 11
+      },
+      {
+        "id": "rr_p99",
+        "label": "99th-percentile daily rainfall",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 2.0,
+        "vmax": 55.0,
+        "anomaly_max": 7.5,
+        "description": "Rainfall on the wettest 1% of days in a year (annual 99th percentile, averaged over years). Indicates the intensity of extreme rain.",
+        "rr_weight": 5
+      },
+      {
+        "id": "r100mm3d",
+        "label": "Events with > 100 mm in 3 days",
+        "unit": "events yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0,
+        "vmax": 4.5,
+        "anomaly_max": 1.0,
+        "description": "Number of distinct events per year in which rainfall over 3 consecutive days exceeds 100 mm — a flood and crop-damage hazard (Rama Rao indicator).",
+        "rr_weight": 5
+      },
+      {
+        "id": "rr_rx1_pct",
+        "label": "Max 1-day rain as % of annual normal",
+        "unit": "%",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 1.0,
+        "vmax": 5.0,
+        "anomaly_max": 1.5,
+        "description": "Wettest single day of the year as a percentage of the 1985–2014 annual normal rainfall. Higher values mean rain is concentrated in fewer, heavier events.",
+        "rr_weight": 5
+      },
+      {
+        "id": "rr_rx3_pct",
+        "label": "Max 3-day rain as % of annual normal",
+        "unit": "%",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 2.5,
+        "vmax": 15.0,
+        "anomaly_max": 3.0,
+        "description": "Wettest 3-day period of the year as a percentage of the 1985–2014 annual normal rainfall.",
+        "rr_weight": 5
+      }
+    ]
+  },
+  {
+    "group": "Additional · Heat",
     "indicators": [
       {
         "id": "heat_stress_35",
@@ -91,28 +288,6 @@
         "description": "Diurnal temperature range: average difference between daily maximum and minimum temperature."
       },
       {
-        "id": "tmax_mean",
-        "label": "Annual mean Tmax",
-        "unit": "°C",
-        "cmap": "YlOrRd",
-        "anomaly_cmap": "RdBu_r",
-        "vmin": 24,
-        "vmax": 38,
-        "anomaly_max": 4.5,
-        "description": "Average of daily maximum temperatures over the year (Rama Rao indicator)."
-      },
-      {
-        "id": "tmin_mean",
-        "label": "Annual mean Tmin",
-        "unit": "°C",
-        "cmap": "YlOrRd",
-        "anomaly_cmap": "RdBu_r",
-        "vmin": 12,
-        "vmax": 29,
-        "anomaly_max": 5.0,
-        "description": "Average of daily minimum temperatures over the year (Rama Rao indicator)."
-      },
-      {
         "id": "summer_tmean",
         "label": "Summer mean temperature (Apr–Jun)",
         "unit": "°C",
@@ -126,19 +301,8 @@
     ]
   },
   {
-    "group": "Cold",
+    "group": "Additional · Cold",
     "indicators": [
-      {
-        "id": "frost_days",
-        "label": "Frost days (Tmin < 0°C)",
-        "unit": "days yr⁻¹",
-        "cmap": "PuBu",
-        "anomaly_cmap": "RdBu",
-        "vmin": 0,
-        "vmax": 300.0,
-        "anomaly_max": 45.0,
-        "description": "Days per year when the minimum temperature falls below 0°C. Frost damages rabi crops such as mustard, chickpea and potato; mostly relevant in the hills."
-      },
       {
         "id": "hdd",
         "label": "Heating degree days (base 18°C)",
@@ -153,19 +317,8 @@
     ]
   },
   {
-    "group": "Precipitation",
+    "group": "Additional · Precipitation",
     "indicators": [
-      {
-        "id": "prcptot",
-        "label": "Annual total precipitation",
-        "unit": "mm yr⁻¹",
-        "cmap": "Blues",
-        "anomaly_cmap": "BrBG",
-        "vmin": 200.0,
-        "vmax": 4000.0,
-        "anomaly_max": 650.0,
-        "description": "Total precipitation over the year (Rama Rao indicator)."
-      },
       {
         "id": "rx1day",
         "label": "Max 1-day precipitation",
@@ -266,28 +419,6 @@
         "description": "Estimated day of year when the monsoon sets in. Later onset delays kharif sowing."
       },
       {
-        "id": "june_precip",
-        "label": "June total precipitation",
-        "unit": "mm",
-        "cmap": "Blues",
-        "anomaly_cmap": "BrBG",
-        "vmin": 15.0,
-        "vmax": 850.0,
-        "anomaly_max": 80.0,
-        "description": "Total rainfall in June, the month of monsoon onset and kharif sowing (Rama Rao indicator)."
-      },
-      {
-        "id": "july_precip",
-        "label": "July total precipitation",
-        "unit": "mm",
-        "cmap": "Blues",
-        "anomaly_cmap": "BrBG",
-        "vmin": 35.0,
-        "vmax": 1500.0,
-        "anomaly_max": 150.0,
-        "description": "Total rainfall in July, the main crop-establishment month (Rama Rao indicator)."
-      },
-      {
         "id": "rx3day",
         "label": "Max 3-day precipitation",
         "unit": "mm",
@@ -297,22 +428,11 @@
         "vmax": 200.0,
         "anomaly_max": 25.0,
         "description": "Wettest 3-day period of the year: the highest 3-day rainfall total, averaged over years."
-      },
-      {
-        "id": "r100mm3d",
-        "label": "Extreme rain events (3-day total > 100 mm)",
-        "unit": "events yr⁻¹",
-        "cmap": "Blues",
-        "anomaly_cmap": "BrBG",
-        "vmin": 0,
-        "vmax": 4.5,
-        "anomaly_max": 1.0,
-        "description": "Number of distinct events per year in which rainfall over 3 consecutive days exceeds 100 mm — a flood and crop-damage hazard (Rama Rao indicator)."
       }
     ]
   },
   {
-    "group": "Drought & Dry",
+    "group": "Additional · Drought & Dry",
     "indicators": [
       {
         "id": "cdd",
@@ -337,17 +457,6 @@
         "description": "Consecutive wet days: the longest run of days with at least 1 mm of rain each year."
       },
       {
-        "id": "spi3",
-        "label": "SPI-3 drought frequency (SPI < −1)",
-        "unit": "% of months",
-        "cmap": "YlOrBr",
-        "anomaly_cmap": "BrBG_r",
-        "vmin": 0.8,
-        "vmax": 20.0,
-        "anomaly_max": 20.0,
-        "description": "Percentage of months in moderate or worse meteorological drought, i.e. 3-month Standardised Precipitation Index below −1 relative to the 1985–2014 baseline. Based on rainfall only."
-      },
-      {
         "id": "spei3",
         "label": "SPEI-3 drought frequency (SPEI < −1)",
         "unit": "% of months",
@@ -361,7 +470,7 @@
     ]
   },
   {
-    "group": "Agriculture",
+    "group": "Additional · Agriculture",
     "indicators": [
       {
         "id": "gdd_10",
@@ -370,7 +479,7 @@
         "cmap": "RdYlGn",
         "anomaly_cmap": "RdBu_r",
         "vmin": 0,
-        "vmax": 8000.0,
+        "vmax": 8000,
         "anomaly_max": 1500.0,
         "description": "Growing degree days above 10°C: the yearly sum of daily mean temperature above 10°C. Measures heat available for crop growth; more GDD speeds crop development."
       },
@@ -391,7 +500,7 @@
         "unit": "days",
         "cmap": "RdYlGn",
         "anomaly_cmap": "RdBu_r",
-        "vmin": 75.0,
+        "vmin": 75,
         "vmax": 365,
         "anomaly_max": 55.0,
         "description": "Growing season length: days per year between the first and last spells warm enough for plant growth (mean temperature above 5°C). Saturates at 365 across most of India."

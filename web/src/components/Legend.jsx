@@ -2,6 +2,7 @@ import React from 'react'
 import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
 import dimensions from '../data/dimensions.json'
 import { getHazardMeta, hazardScale, cssGradient, fmt } from '../lib/hazardScale.js'
+import { FHI_ID, FHI_CLASSES } from '../lib/hazardIndex.js'
 import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import styles from './Legend.module.css'
 
@@ -27,6 +28,20 @@ export default function Legend() {
   if (dimensionId === 'climate_hazard') {
     const ind = getHazardMeta(hazardIndicatorId)
     if (!ind) return null
+    if (hazardIndicatorId === FHI_ID) {
+      return (
+        <div className={styles.box}>
+          <div className={styles.title}>{ind.label}</div>
+          <div className={styles.subLabel}>Rama Rao et al. (2020) weights · change vs 1985–2014 · by district</div>
+          {FHI_CLASSES.map(c => (
+            <div key={c.label} className={styles.rangeRow} style={{ justifyContent: 'flex-start', gap: 6 }}>
+              <span style={{ width: 12, height: 12, background: c.color, border: '1px solid var(--border)', display: 'inline-block' }} />
+              <span>{c.label}</span>
+            </div>
+          ))}
+        </div>
+      )
+    }
     const anomaly = hazardViewMode === 'anomaly'
     const scale = hazardScale(ind, hazardViewMode)
     const sign = v => (anomaly && v > 0 ? '+' : '') + fmt(v)

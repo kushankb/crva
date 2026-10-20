@@ -1,0 +1,111 @@
+{
+ "method": "Rama Rao et al. 2020 Atlas, Table 5c weights, sign-preserving normalisation",
+ "sd": 0.06,
+ "components": [
+  {
+   "id": "annual_rain",
+   "source": "prcptot",
+   "weight": 10,
+   "change": "pct",
+   "sign": -1
+  },
+  {
+   "id": "june_rain",
+   "source": "june_precip",
+   "weight": 5,
+   "change": "pct",
+   "sign": -1
+  },
+  {
+   "id": "july_rain",
+   "source": "july_precip",
+   "weight": 15,
+   "change": "pct",
+   "sign": -1
+  },
+  {
+   "id": "rainy_days",
+   "source": "rr_rainy_days",
+   "weight": 5,
+   "change": "pct",
+   "sign": -1
+  },
+  {
+   "id": "tmax",
+   "source": "tmax_mean",
+   "weight": 6,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "tmin",
+   "source": "tmin_mean",
+   "weight": 6,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "hot_days",
+   "source": "rr_hot_days",
+   "weight": 5,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "cold_days",
+   "source": "rr_cold_days",
+   "weight": 3,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "frost",
+   "source": "frost_days",
+   "weight": 2,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "drought",
+   "source": "spi3",
+   "weight": 12,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "dry_spells",
+   "source": "rr_dryspell",
+   "weight": 11,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "p99_rain",
+   "source": "rr_p99",
+   "weight": 5,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "events_100mm",
+   "source": "r100mm3d",
+   "weight": 5,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "rx1_pct",
+   "source": "rr_rx1_pct",
+   "weight": 5,
+   "change": "abs",
+   "sign": 1
+  },
+  {
+   "id": "rx3_pct",
+   "source": "rr_rx3_pct",
+   "weight": 5,
+   "change": "abs",
+   "sign": 1
+  }
+ ]
+}

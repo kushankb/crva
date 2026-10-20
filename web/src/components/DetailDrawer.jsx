@@ -3,17 +3,9 @@ import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarC
 import { useCRVAStore, RISK_CLASSES, SSPS, SSP_LABELS, HAZARD_PERIODS } from '../store/useCRVAStore.js'
 import hazardIndicators from '../data/climate_hazard_indicators.json'
 import { fmt } from '../lib/hazardScale.js'
+import { loadStats } from '../lib/stats.js'
+import { FHI_ID, FHI_COMPONENTS, fhiClass } from '../lib/hazardIndex.js'
 import styles from './DetailDrawer.module.css'
-
-let crvaStats = null
-async function loadStats() {
-  if (crvaStats) return crvaStats
-  try {
-    const res = await fetch(`${import.meta.env.BASE_URL}data/crva_stats.json`)
-    crvaStats = await res.json()
-  } catch { crvaStats = {} }
-  return crvaStats
-}
 
 function getIndicatorMeta(id) {
   for (const g of hazardIndicators) {
@@ -144,6 +136,20 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
 
     return (
       <>
+        {stats.climate_hazard.future_hazard_index?.[hazardSsp]?.[period] && (() => {
+          const cur = stats.climate_hazard.future_hazard_index[hazardSsp][period]
+          const c = fhiClass(cur.value)
+          return (
+            <>
+              <div className={styles.sectionTitle}>Future hazard index · {futLabel}</div>
+              <div className={styles.riskSummary} style={{ borderColor: c.color, marginTop: 0, marginBottom: 14 }}>
+                <span className={styles.riskDot} style={{ background: c.color }} />
+                <span style={{ fontWeight: 700 }}>{cur.category}</span>
+                <span className={styles.riskScore}>index {cur.value > 0 ? '+' : ''}{cur.value.toFixed(3)}</span>
+              </div>
+            </>
+          )
+        })()}
         <div className={styles.sectionTitle}>Key Climate Hazard Indicators</div>
         <div className={styles.summaryNote}>Historical baseline (1985–2014) vs {futLabel} · set scenario and period on the left</div>
         <table className={styles.table}>
@@ -243,13 +249,15 @@ function HazardTab({ stats }) {
   const anomaly = hazardViewMode === 'anomaly'
 
   const availableIds = indicators
-    ? hazardIndicators.flatMap(g => g.indicators.map(i => i.id)).filter(id => indicators[id])
+    ? hazardIndicators.flatMap(g => g.indicators.map(i => i.id))
+        .filter(id => indicators[id] || (id === FHI_ID && stats?.climate_hazard?.future_hazard_index))
     : []
 
   // Use the store's selected indicator if available, else first available
-  const activeId = (indicators && indicators[hazardIndicatorId]) ? hazardIndicatorId : availableIds[0]
+  const activeId = availableIds.includes(hazardIndicatorId) ? hazardIndicatorId : availableIds[0]
   const meta = getIndicatorMeta(activeId)
   const indData = indicators?.[activeId]
+  const fhi = stats?.climate_hazard?.future_hazard_index
 
   if (!indicators || availableIds.length === 0) {
     return (
@@ -313,6 +321,7 @@ function HazardTab({ stats }) {
         </div>
       )}
 
+      {activeId === FHI_ID ? <IndexView fhi={fhi} /> : <>
       {/* Historical baseline */}
       <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1985–2014)</div>
       <div className={styles.baselineRow}>
@@ -385,6 +394,88 @@ function HazardTab({ stats }) {
           ))}
         </tbody>
       </table>
+      </>}
+    </>
+  )
+}
+
+const COMPONENT_LABELS = {
+  annual_rain: 'Annual rainfall', june_rain: 'June rainfall', july_rain: 'July rainfall',
+  rainy_days: 'Rainy days', tmax: 'Max temperature', tmin: 'Min temperature',
+  hot_days: 'Unusually hot days', cold_days: 'Unusually cold days', frost: 'Frost days',
+  drought: 'Drought (SPI-3 proxy)', dry_spells: 'Dry-spell score', p99_rain: '99th pct daily rain',
+  events_100mm: '>100 mm in 3 days', rx1_pct: 'Max 1-day % of normal', rx3_pct: 'Max 3-day % of normal',
+}
+
+function ClassChip({ value }) {
+  if (value == null) return <span>—</span>
+  const c = fhiClass(value)
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+      <span style={{ width: 9, height: 9, borderRadius: 2, background: c.color, border: '1px solid var(--border)' }} />
+      {value > 0 ? '+' : ''}{value.toFixed(3)}
+    </span>
+  )
+}
+
+function IndexView({ fhi }) {
+  const { hazardSsp, hazardPeriod } = useCRVAStore()
+  const period = hazardPeriod === 'historical' ? '2050' : hazardPeriod
+  const cur = fhi?.[hazardSsp]?.[period]
+  if (!fhi) return <div className={styles.cropNote}>No index for this area.</div>
+  return (
+    <>
+      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>
+        {SSP_LABELS[hazardSsp]} · {HAZARD_PERIODS.find(p => p.id === period)?.label}
+      </div>
+      {cur && (
+        <div className={styles.riskSummary} style={{ borderColor: fhiClass(cur.value).color, marginTop: 0 }}>
+          <span className={styles.riskDot} style={{ background: fhiClass(cur.value).color }} />
+          <span style={{ fontWeight: 700 }}>{cur.category}</span>
+          <span className={styles.riskScore}>index {cur.value > 0 ? '+' : ''}{cur.value.toFixed(3)}</span>
+        </div>
+      )}
+
+      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Index by scenario &amp; period</div>
+      <table className={styles.table}>
+        <thead><tr><th>Period</th>{SSPS.map(s => <th key={s} style={{ textAlign: 'right' }}>{SSP_LABELS[s]}</th>)}</tr></thead>
+        <tbody>
+          {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => (
+            <tr key={p.id}>
+              <td>{p.label}</td>
+              {SSPS.map(s => <td key={s} style={{ textAlign: 'right' }}><ClassChip value={fhi?.[s]?.[p.id]?.value} /></td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {cur && (
+        <>
+          <div className={styles.sectionTitle} style={{ marginTop: 12 }}>What drives it</div>
+          <div className={styles.cropNote}>Change from 1985–2014 and weighted contribution to the index (+ = less favourable).</div>
+          <table className={styles.table}>
+            <thead><tr><th>Indicator</th><th style={{ textAlign: 'right' }}>Wt</th><th style={{ textAlign: 'right' }}>Change</th><th style={{ textAlign: 'right' }}>Contrib.</th></tr></thead>
+            <tbody>
+              {FHI_COMPONENTS.map(c => {
+                const ch = cur.changes[c.id], ct = cur.components[c.id]
+                return (
+                  <tr key={c.id}>
+                    <td style={{ fontSize: 10.5 }}>{COMPONENT_LABELS[c.id]}</td>
+                    <td style={{ textAlign: 'right' }}>{c.weight}</td>
+                    <td style={{ textAlign: 'right' }}>{ch == null ? '—' : `${ch > 0 ? '+' : ''}${fmt(ch)}${c.change === 'pct' ? '%' : ''}`}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600, color: ct > 0.005 ? '#b2182b' : ct < -0.005 ? '#2166ac' : 'var(--text-muted)' }}>
+                      {ct == null ? '—' : `${ct > 0 ? '+' : ''}${ct.toFixed(3)}`}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+          <div className={styles.summaryNote}>
+            Method: Rama Rao et al. (2020) Atlas, Table 5c weights and sign-preserving normalisation. Hot/cold-day thresholds scaled to ±2 SD and drought proxied by SPI-3, because the ensemble-mean data smooths out day-to-day extremes.
+          </div>
+        </>
+      )}
     </>
   )
 }
