@@ -1,5 +1,10 @@
 import React from 'react'
-import indicators from '../../data/climate_hazard_indicators.json'
+import allIndicators from '../../data/climate_hazard_indicators.json'
+import { FHI_ID, FHI_ENABLED } from '../../lib/hazardIndex.js'
+
+const indicators = allIndicators
+  .map(g => ({ ...g, indicators: g.indicators.filter(i => FHI_ENABLED || i.id !== FHI_ID) }))
+  .filter(g => g.indicators.length)
 import { useCRVAStore, SSPS, SSP_LABELS } from '../../store/useCRVAStore.js'
 import styles from './Panel.module.css'
 

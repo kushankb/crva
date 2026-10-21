@@ -4,7 +4,7 @@ import { useCRVAStore, RISK_CLASSES, SSPS, SSP_LABELS, HAZARD_PERIODS } from '..
 import hazardIndicators from '../data/climate_hazard_indicators.json'
 import { fmt } from '../lib/hazardScale.js'
 import { loadStats } from '../lib/stats.js'
-import { FHI_ID, FHI_COMPONENTS, fhiClassOf } from '../lib/hazardIndex.js'
+import { FHI_ID, FHI_ENABLED, FHI_COMPONENTS, fhiClassOf } from '../lib/hazardIndex.js'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -136,7 +136,7 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
 
     return (
       <>
-        {stats.climate_hazard.future_hazard_index?.[hazardSsp]?.[period] && (() => {
+        {FHI_ENABLED && stats.climate_hazard.future_hazard_index?.[hazardSsp]?.[period] && (() => {
           const cur = stats.climate_hazard.future_hazard_index[hazardSsp][period]
           const c = fhiClassOf(cur.category)
           return (
@@ -250,7 +250,7 @@ function HazardTab({ stats }) {
 
   const availableIds = indicators
     ? hazardIndicators.flatMap(g => g.indicators.map(i => i.id))
-        .filter(id => indicators[id] || (id === FHI_ID && stats?.climate_hazard?.future_hazard_index))
+        .filter(id => indicators[id] || (FHI_ENABLED && id === FHI_ID && stats?.climate_hazard?.future_hazard_index))
     : []
 
   // Use the store's selected indicator if available, else first available

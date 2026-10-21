@@ -1,6 +1,8 @@
 import meta from '../data/future_hazard_meta.json'
 
 export const FHI_ID = 'future_hazard_index'
+// Hidden until the aggregation approach is settled; the data stays in crva_stats.json.
+export const FHI_ENABLED = false
 
 // Atlas Table 7: thresholds in SD of the index, centred on zero.
 export const FHI_CLASSES = [
