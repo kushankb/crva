@@ -6,6 +6,7 @@ import Legend from './Legend.jsx'
 import { getHazardMeta, hazardScale, buildColorExpr } from '../lib/hazardScale.js'
 import { FHI_ID, FHI_CLASSES, fhiColorExpr } from '../lib/hazardIndex.js'
 import { loadStats } from '../lib/stats.js'
+import { isAggregate, aggColorExpr, aggCategory, AGG_CLASSES } from '../lib/aggregate.js'
 import styles from './Map.module.css'
 
 let pmRegistered = false
@@ -100,9 +101,10 @@ export default function Map() {
     if (!styleReady.current || !map.current) return
     const m = map.current
     const s = useCRVAStore.getState()
-    if (!m.getLayer(VEC_LAYER) && s.hazardIndicatorId !== FHI_ID) return
+    if (!m.getLayer(VEC_LAYER) && s.hazardIndicatorId !== FHI_ID && !isAggregate(s.hazardIndicatorId)) return
     if (s.dimensionId !== 'climate_hazard') return
     if (s.hazardIndicatorId === FHI_ID) { applyFhiState(m, s.hazardSsp, s.hazardPeriod); return }
+    if (isAggregate(s.hazardIndicatorId)) { applyAggState(m, s.hazardIndicatorId, s.hazardSsp, s.hazardPeriod); return }
     const propKey = s.getHazardPropertyKey()
     const scale = hazardScale(getHazardMeta(s.hazardIndicatorId), s.hazardViewMode)
     m.setPaintProperty(VEC_LAYER, 'circle-color', buildColorExpr(propKey, scale))
@@ -237,7 +239,16 @@ async function syncMapToState(m, store, setTilesStatus) {
   const safeHide = (id) => { try { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', 'none') } catch (_) {} }
   safeHide(VEC_LAYER); safeHide(CROP_LAYER); safeHide(CHORO_LAYER)
 
-  if (dimensionId === 'climate_hazard' && store.hazardIndicatorId === FHI_ID) {
+  if (dimensionId === 'climate_hazard' && isAggregate(store.hazardIndicatorId)) {
+    if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
+    if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
+    m.setPaintProperty(CHORO_LAYER, 'fill-color', aggColorExpr(store.hazardIndicatorId))
+    m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.85)
+    m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
+    await applyAggState(m, store.hazardIndicatorId, store.hazardSsp, store.hazardPeriod)
+    setTilesStatus('ok')
+
+  } else if (dimensionId === 'climate_hazard' && store.hazardIndicatorId === FHI_ID) {
     if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
     if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
     m.setPaintProperty(CHORO_LAYER, 'fill-color', fhiColorExpr())
@@ -342,6 +353,17 @@ async function loadCropGrid(m, propKey, setTilesStatus) {
   }, 'state-fill')
   m.setLayoutProperty(CROP_LAYER, 'visibility', 'visible')
   setTilesStatus('ok')
+}
+
+async function applyAggState(m, id, ssp, period) {
+  const stats = await loadStats()
+  m.setPaintProperty(CHORO_LAYER, 'fill-color', aggColorExpr(id))
+  for (const [key, feat] of Object.entries(stats)) {
+    if (!key.startsWith('district:')) continue
+    const cat = aggCategory(id, feat.climate_hazard?.aggregate_hazard?.[ssp]?.[period])
+    const i = AGG_CLASSES[id].findIndex(c => c.label === cat)
+    m.setFeatureState({ source: 'districts', id: key.slice(9) }, { agg: i >= 0 ? i : null })
+  }
 }
 
 async function applyFhiState(m, ssp, period) {

@@ -5,6 +5,7 @@ import hazardIndicators from '../data/climate_hazard_indicators.json'
 import { fmt } from '../lib/hazardScale.js'
 import { loadStats } from '../lib/stats.js'
 import { FHI_ID, FHI_ENABLED, FHI_COMPONENTS, fhiClassOf } from '../lib/hazardIndex.js'
+import { AGG_ABS, AGG_REL, isAggregate, aggCategory, aggClass, COMPONENT_LABELS as AGG_LABELS } from '../lib/aggregate.js'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -136,6 +137,25 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
 
     return (
       <>
+        {stats.climate_hazard.aggregate_hazard?.[hazardSsp]?.[period] && (() => {
+          const cur = stats.climate_hazard.aggregate_hazard[hazardSsp][period]
+          return (
+            <>
+              <div className={styles.sectionTitle}>Aggregate future hazard · {futLabel}</div>
+              {[AGG_ABS, AGG_REL].map(id => {
+                const cat = aggCategory(id, cur), c = aggClass(id, cat)
+                return (
+                  <div key={id} className={styles.riskSummary} style={{ borderColor: c?.color, marginTop: 6 }}>
+                    <span className={styles.riskDot} style={{ background: c?.color }} />
+                    <span style={{ fontWeight: 600 }}>{id === AGG_ABS ? 'Is climate getting worse here?' : 'Where should we act first?'}</span>
+                    <span className={styles.riskScore} style={{ fontWeight: 700 }}>{cat}</span>
+                  </div>
+                )
+              })}
+              <div style={{ marginBottom: 14 }} />
+            </>
+          )
+        })()}
         {FHI_ENABLED && stats.climate_hazard.future_hazard_index?.[hazardSsp]?.[period] && (() => {
           const cur = stats.climate_hazard.future_hazard_index[hazardSsp][period]
           const c = fhiClassOf(cur.category)
@@ -250,7 +270,9 @@ function HazardTab({ stats }) {
 
   const availableIds = indicators
     ? hazardIndicators.flatMap(g => g.indicators.map(i => i.id))
-        .filter(id => indicators[id] || (FHI_ENABLED && id === FHI_ID && stats?.climate_hazard?.future_hazard_index))
+        .filter(id => indicators[id]
+          || (FHI_ENABLED && id === FHI_ID && stats?.climate_hazard?.future_hazard_index)
+          || (isAggregate(id) && stats?.climate_hazard?.aggregate_hazard))
     : []
 
   // Use the store's selected indicator if available, else first available
@@ -321,7 +343,8 @@ function HazardTab({ stats }) {
         </div>
       )}
 
-      {activeId === FHI_ID ? <IndexView fhi={fhi} /> : <>
+      {isAggregate(activeId) ? <AggView id={activeId} agg={stats?.climate_hazard?.aggregate_hazard} />
+        : activeId === FHI_ID ? <IndexView fhi={fhi} /> : <>
       {/* Historical baseline */}
       <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1985–2014)</div>
       <div className={styles.baselineRow}>
@@ -395,6 +418,89 @@ function HazardTab({ stats }) {
         </tbody>
       </table>
       </>}
+    </>
+  )
+}
+
+function AggChip({ id, entry }) {
+  if (!entry) return <span>—</span>
+  const cat = aggCategory(id, entry), c = aggClass(id, cat)
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
+      <span style={{ width: 9, height: 9, borderRadius: 2, background: c?.color, border: '1px solid var(--border)' }} />
+      {id === AGG_ABS ? `${entry.absolute.share.toFixed(0)}%` : cat}
+    </span>
+  )
+}
+
+function AggView({ id, agg }) {
+  const { hazardSsp, hazardPeriod } = useCRVAStore()
+  const period = hazardPeriod === 'historical' ? '2050' : hazardPeriod
+  const cur = agg?.[hazardSsp]?.[period]
+  if (!agg) return <div className={styles.cropNote}>No aggregate for this area.</div>
+  const abs = id === AGG_ABS
+  const cat = cur && aggCategory(id, cur)
+  return (
+    <>
+      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>
+        {SSP_LABELS[hazardSsp]} · {HAZARD_PERIODS.find(p => p.id === period)?.label}
+      </div>
+      {cur && (
+        <div className={styles.riskSummary} style={{ borderColor: aggClass(id, cat)?.color, marginTop: 0 }}>
+          <span className={styles.riskDot} style={{ background: aggClass(id, cat)?.color }} />
+          <span style={{ fontWeight: 700 }}>{cat}</span>
+          <span className={styles.riskScore}>
+            {abs ? `${cur.absolute.share.toFixed(1)}% of weight 10% worse` : `rank score ${cur.relative.score.toFixed(0)} / 100 · ${cur.relative.sd_class} by SD`}
+          </span>
+        </div>
+      )}
+      <div className={styles.cropNote} style={{ marginTop: 6 }}>
+        {abs
+          ? 'Absolute: compares this district with its own 1985–2014 mean, so scenarios can be compared.'
+          : 'Relative: ranks this district against all others in the same scenario. It shows priority, not whether climate gets worse.'}
+        {cur?.wet_baseline ? ' Baseline rainfall is at least 1,500 mm here, so more rain counts as neutral.' : ''}
+      </div>
+
+      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>By scenario &amp; period</div>
+      <table className={styles.table}>
+        <thead><tr><th>Period</th>{SSPS.map(s => <th key={s} style={{ textAlign: 'right' }}>{SSP_LABELS[s]}</th>)}</tr></thead>
+        <tbody>
+          {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => (
+            <tr key={p.id}>
+              <td>{p.label}</td>
+              {SSPS.map(s => <td key={s} style={{ textAlign: 'right' }}><AggChip id={id} entry={agg?.[s]?.[p.id]} /></td>)}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {cur && (
+        <>
+          <div className={styles.sectionTitle} style={{ marginTop: 12 }}>What drives it</div>
+          <table className={styles.table}>
+            <thead><tr>
+              <th>Indicator</th><th style={{ textAlign: 'right' }}>Wt</th>
+              <th style={{ textAlign: 'right' }}>{abs ? '≥10% worse' : 'Rank'}</th>
+            </tr></thead>
+            <tbody>
+              {Object.entries(cur.components).map(([cid, c]) => (
+                <tr key={cid} style={{ opacity: c.weight ? 1 : 0.45 }}>
+                  <td style={{ fontSize: 10.5 }}>{AGG_LABELS[cid]}</td>
+                  <td style={{ textAlign: 'right' }}>{c.weight ? c.weight.toFixed(1) : '0'}</td>
+                  <td style={{ textAlign: 'right', fontWeight: 600 }}>
+                    {abs
+                      ? (c.worse10 == null ? 'n/a' : c.worse10 ? 'yes' : '—')
+                      : (c.rank == null ? '—' : c.rank.toFixed(0))}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className={styles.summaryNote}>
+            Weights: Rama Rao et al. (2020) Table 5c, with unusually hot and cold days and drought set to 0 (ensemble-mean data cannot represent them) and their weight shared among the rest. n/a = zero baseline, so no relative change.
+          </div>
+        </>
+      )}
     </>
   )
 }

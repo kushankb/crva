@@ -1,7 +1,21 @@
 [
   {
-    "group": "Aggregate",
+    "group": "Aggregate future hazard",
     "indicators": [
+      {
+        "id": "agg_abs",
+        "label": "Is climate getting worse here?",
+        "unit": "share of weight",
+        "kind": "aggregate",
+        "description": "For each district, the weighted share of the Rama Rao indicators that end up at least 10% worse than the district's own 1985–2014 mean. An absolute measure: it can be compared across scenarios. More rain counts as better only where baseline rainfall is below 1,500 mm; unusually hot and cold days and drought have weight 0 because the ensemble-mean data cannot represent them."
+      },
+      {
+        "id": "agg_rel",
+        "label": "Where should we act first?",
+        "unit": "rank among districts",
+        "kind": "aggregate",
+        "description": "Districts ranked against each other within the selected scenario: each indicator ranks districts from least to most adverse change, and the weighted average rank (0–100) is split into fifths. A relative measure: it shows where hazard is highest, not whether climate is getting worse."
+      },
       {
         "id": "future_hazard_index",
         "label": "Future hazard index",

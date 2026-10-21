@@ -1,5 +1,8 @@
 import { create } from 'zustand'
 
+// Indicators defined only as change from baseline have no historical map.
+const futureOnly = id => id === 'future_hazard_index' || id === 'agg_abs' || id === 'agg_rel'
+
 const TILES_BASE = import.meta.env.VITE_TILES_BASE ?? 'https://kushankbajaj.com/crva-tiles'
 
 export const SSPS = ['SSP126', 'SSP245', 'SSP370', 'SSP585']
@@ -35,11 +38,11 @@ export const useCRVAStore = create((set, get) => ({
   setDrawerTab: (t) => set({ drawerTab: t }),
 
   hazardIndicatorId: 'cdd',
-  setHazardIndicator: (id) => set(s => ({ hazardIndicatorId: id, hazardPeriod: id === 'future_hazard_index' && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),
+  setHazardIndicator: (id) => set(s => ({ hazardIndicatorId: id, hazardPeriod: futureOnly(id) && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),
   hazardSsp: 'SSP245',
   setHazardSsp: (s) => set({ hazardSsp: s }),
   hazardPeriod: 'historical',
-  setHazardPeriod: (p) => set(s => ({ hazardPeriod: p === 'historical' && s.hazardIndicatorId === 'future_hazard_index' ? s.hazardPeriod : p, hazardViewMode: p === 'historical' ? 'values' : s.hazardViewMode })),
+  setHazardPeriod: (p) => set(s => ({ hazardPeriod: p === 'historical' && futureOnly(s.hazardIndicatorId) ? s.hazardPeriod : p, hazardViewMode: p === 'historical' ? 'values' : s.hazardViewMode })),
   hazardViewMode: 'values',
   setHazardViewMode: (m) => set(s => ({ hazardViewMode: m, hazardPeriod: m === 'anomaly' && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),
 

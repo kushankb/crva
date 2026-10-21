@@ -3,6 +3,7 @@ import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
 import dimensions from '../data/dimensions.json'
 import { getHazardMeta, hazardScale, cssGradient, fmt } from '../lib/hazardScale.js'
 import { FHI_ID, FHI_CLASSES } from '../lib/hazardIndex.js'
+import { isAggregate, AGG_CLASSES, AGG_ABS } from '../lib/aggregate.js'
 import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import styles from './Legend.module.css'
 
@@ -28,6 +29,24 @@ export default function Legend() {
   if (dimensionId === 'climate_hazard') {
     const ind = getHazardMeta(hazardIndicatorId)
     if (!ind) return null
+    if (isAggregate(hazardIndicatorId)) {
+      return (
+        <div className={styles.box}>
+          <div className={styles.title}>{ind.label}</div>
+          <div className={styles.subLabel}>
+            {hazardIndicatorId === AGG_ABS
+              ? 'Share of indicator weight at least 10% worse than 1985–2014 · by district'
+              : 'Rank among districts in this scenario · fifths of districts'}
+          </div>
+          {AGG_CLASSES[hazardIndicatorId].map(c => (
+            <div key={c.label} className={styles.rangeRow} style={{ justifyContent: 'flex-start', gap: 6 }}>
+              <span style={{ width: 12, height: 12, background: c.color, border: '1px solid var(--border)', display: 'inline-block' }} />
+              <span>{c.label}{c.note ? ` · ${c.note}` : ''}</span>
+            </div>
+          ))}
+        </div>
+      )
+    }
     if (hazardIndicatorId === FHI_ID) {
       return (
         <div className={styles.box}>
