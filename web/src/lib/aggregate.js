@@ -5,12 +5,18 @@ export const AGG_REL = 'agg_rel'
 export const isAggregate = id => id === AGG_ABS || id === AGG_REL
 export const AGG_META = meta
 
+export const THRESHOLD_TEXT = {
+  annual_rain: '−10%', june_rain: '−10%', july_rain: '−10%', rainy_days: '−10%',
+  tmax: '+1.0 °C', tmin: '+1.0 °C', hot_days: '+5 d', cold_days: '+2 d', frost: '+5 d',
+  drought: '+5 pts', dry_spells: '+1', p99_rain: '+5 mm', events_100mm: '+0.5', rx1_pct: '+10%', rx3_pct: '+10%',
+}
+
 export const AGG_CLASSES = {
   [AGG_ABS]: [
-    { label: 'High',     note: 'over 40% of weight 10% worse', color: '#b2182b' },
+    { label: 'High',     note: 'over 40% of weight past threshold', color: '#b2182b' },
     { label: 'Moderate', note: '20–40%',                       color: '#ef8a62' },
     { label: 'Low',      note: 'under 20%',                    color: '#fddbc7' },
-    { label: 'None',     note: 'no indicator 10% worse',       color: '#d1e5f0' },
+    { label: 'None',     note: 'no indicator past threshold',       color: '#d1e5f0' },
   ],
   [AGG_REL]: [
     { label: 'Very high', color: '#b2182b' },

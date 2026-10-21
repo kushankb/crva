@@ -35,7 +35,7 @@ export default function Legend() {
           <div className={styles.title}>{ind.label}</div>
           <div className={styles.subLabel}>
             {hazardIndicatorId === AGG_ABS
-              ? 'Share of indicator weight at least 10% worse than 1985–2014 · by district'
+              ? 'Share of indicator weight past its worsening threshold vs 1985–2014 · by district'
               : 'Rank among districts in this scenario · fifths of districts'}
           </div>
           {AGG_CLASSES[hazardIndicatorId].map(c => (

@@ -5,7 +5,7 @@ import hazardIndicators from '../data/climate_hazard_indicators.json'
 import { fmt } from '../lib/hazardScale.js'
 import { loadStats } from '../lib/stats.js'
 import { FHI_ID, FHI_ENABLED, FHI_COMPONENTS, fhiClassOf } from '../lib/hazardIndex.js'
-import { AGG_ABS, AGG_REL, isAggregate, aggCategory, aggClass, COMPONENT_LABELS as AGG_LABELS } from '../lib/aggregate.js'
+import { AGG_ABS, AGG_REL, isAggregate, aggCategory, aggClass, COMPONENT_LABELS as AGG_LABELS, THRESHOLD_TEXT } from '../lib/aggregate.js'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -450,13 +450,13 @@ function AggView({ id, agg }) {
           <span className={styles.riskDot} style={{ background: aggClass(id, cat)?.color }} />
           <span style={{ fontWeight: 700 }}>{cat}</span>
           <span className={styles.riskScore}>
-            {abs ? `${cur.absolute.share.toFixed(1)}% of weight 10% worse` : `rank score ${cur.relative.score.toFixed(0)} / 100 · ${cur.relative.sd_class} by SD`}
+            {abs ? `${cur.absolute.share.toFixed(1)}% of weight past threshold` : `rank score ${cur.relative.score.toFixed(0)} / 100 · ${cur.relative.sd_class} by SD`}
           </span>
         </div>
       )}
       <div className={styles.cropNote} style={{ marginTop: 6 }}>
         {abs
-          ? 'Absolute: compares this district with its own 1985–2014 mean, so scenarios can be compared.'
+          ? 'Absolute: compares this district with its own 1985–2014 mean, using a worsening threshold for each indicator, so scenarios can be compared.'
           : 'Relative: ranks this district against all others in the same scenario. It shows priority, not whether climate gets worse.'}
         {cur?.wet_baseline ? ' Baseline rainfall is at least 1,500 mm here, so more rain counts as neutral.' : ''}
       </div>
@@ -480,16 +480,18 @@ function AggView({ id, agg }) {
           <table className={styles.table}>
             <thead><tr>
               <th>Indicator</th><th style={{ textAlign: 'right' }}>Wt</th>
-              <th style={{ textAlign: 'right' }}>{abs ? '≥10% worse' : 'Rank'}</th>
+              {abs && <th style={{ textAlign: 'right' }}>Threshold</th>}
+              <th style={{ textAlign: 'right' }}>{abs ? 'Past it?' : 'Rank'}</th>
             </tr></thead>
             <tbody>
               {Object.entries(cur.components).map(([cid, c]) => (
                 <tr key={cid} style={{ opacity: c.weight ? 1 : 0.45 }}>
                   <td style={{ fontSize: 10.5 }}>{AGG_LABELS[cid]}</td>
                   <td style={{ textAlign: 'right' }}>{c.weight ? c.weight.toFixed(1) : '0'}</td>
+                  {abs && <td style={{ textAlign: 'right' }}>{THRESHOLD_TEXT[cid]}</td>}
                   <td style={{ textAlign: 'right', fontWeight: 600 }}>
                     {abs
-                      ? (c.worse10 == null ? 'n/a' : c.worse10 ? 'yes' : '—')
+                      ? (c.worse == null ? 'n/a' : c.worse ? 'yes' : '—')
                       : (c.rank == null ? '—' : c.rank.toFixed(0))}
                   </td>
                 </tr>
@@ -497,7 +499,7 @@ function AggView({ id, agg }) {
             </tbody>
           </table>
           <div className={styles.summaryNote}>
-            Weights: Rama Rao et al. (2020) Table 5c, with unusually hot and cold days and drought set to 0 (ensemble-mean data cannot represent them) and their weight shared among the rest. n/a = zero baseline, so no relative change.
+            Weights: Rama Rao et al. (2020) Table 5c, with unusually hot and cold days and drought set to 0 (ensemble-mean data cannot represent them) and their weight shared among the rest. Thresholds are set for agricultural relevance, not taken from the Atlas.
           </div>
         </>
       )}

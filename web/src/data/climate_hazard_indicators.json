@@ -7,7 +7,7 @@
         "label": "Is climate getting worse here?",
         "unit": "share of weight",
         "kind": "aggregate",
-        "description": "For each district, the weighted share of the Rama Rao indicators that end up at least 10% worse than the district's own 1985–2014 mean. An absolute measure: it can be compared across scenarios. More rain counts as better only where baseline rainfall is below 1,500 mm; unusually hot and cold days and drought have weight 0 because the ensemble-mean data cannot represent them."
+        "description": "For each district, the weighted share of the Rama Rao indicators whose change from the district's own 1985–2014 mean passes an indicator-specific threshold in the harmful direction: rainfall or rainy days down 10%, Tmax or Tmin up 1 °C, 99th-percentile rain up 5 mm, 0.5 more 100 mm events a year, dry-spell score up 1, 5 more frost days, max 1- or 3-day rain share up 10%. An absolute measure, so scenarios can be compared. More rain counts as better only where baseline rainfall is below 1,500 mm; unusually hot and cold days and drought have weight 0."
       },
       {
         "id": "agg_rel",

@@ -12,10 +12,10 @@ Built on the 15 Rama Rao (2020) indicators, with two adjustments:
      in proportion to the Atlas Table 5c weights.
 
 Outputs, written to crva_stats.json under climate_hazard.aggregate_hazard:
-  absolute  weighted share (%) of indicators at least 10% worse than the
-            district's own 1985–2014 mean; districts with a zero baseline for an
-            indicator drop that indicator and the weights are rescaled.
-            Categories: None (0), Low (<20), Moderate (20–40), High (>40).
+  absolute  weighted share (%) of indicators whose change from the district's
+            1985–2014 mean reaches an indicator-specific threshold in the harmful
+            direction (THRESHOLDS below). Categories: None (0), Low (<20),
+            Moderate (20–40), High (>40).
   relative  weighted mean of per-indicator percentile ranks of the adverse
             change among districts in the scenario (100 = worst).
             Categories by quintile, and by ±0.5/±1.5 SD around the mean.
@@ -36,7 +36,20 @@ SSPS = ["SSP126", "SSP245", "SSP370", "SSP585"]
 PERIODS = ["2047", "2050", "2100"]
 
 WET_MM = 1500
-WORSE_PCT = 10
+# Change (in the harmful direction) that counts as a meaningful worsening.
+# Rainfall and rainy days in % change; rx1/rx3 as relative change (%) of the
+# share-of-normal value; the rest in their own units.
+THRESHOLDS = {
+    "annual_rain": 10, "june_rain": 10, "july_rain": 10, "rainy_days": 10,   # % fall
+    "tmax": 1.0, "tmin": 1.0,                                               # °C rise
+    "hot_days": 5, "cold_days": 2, "frost": 5,                              # days
+    "drought": 5,                                                           # % of months
+    "dry_spells": 1.0,                                                      # score
+    "p99_rain": 5.0,                                                        # mm
+    "events_100mm": 0.5,                                                    # events per year
+    "rx1_pct": 10, "rx3_pct": 10,                                           # % relative rise
+}
+RELATIVE = {"rx1_pct", "rx3_pct"}
 ZEROED = {"hot_days", "cold_days", "drought"}
 RAIN = {"annual_rain", "june_rain", "july_rain", "rainy_days"}
 
@@ -139,12 +152,12 @@ def main():
             for cid, *_ in COMPONENTS:
                 w = WEIGHT[cid]
                 rk = ranks.get(cid, {}).get(k, np.nan)
-                rc = rel[cid][k]
-                is_worse = (not np.isnan(rc)) and rc >= WORSE_PCT
+                x = rel[cid][k] if cid in RELATIVE else adv[cid][k]
+                is_worse = (not np.isnan(x)) and x >= THRESHOLDS[cid]
                 comp[cid] = {
                     "change": None if np.isnan(adv[cid][k]) else round(float(adv[cid][k]), 3),
                     "rank": None if np.isnan(rk) else round(float(rk), 1),
-                    "worse10": None if np.isnan(rc) else bool(is_worse),
+                    "worse": None if np.isnan(x) else bool(is_worse),
                     "weight": round(w, 2),
                 }
                 if w == 0:
@@ -152,7 +165,7 @@ def main():
                 if not np.isnan(rk):
                     num += w * rk
                     den += w
-                if not np.isnan(rc):
+                if not np.isnan(x):
                     valid_w += w
                     worse_w += w if is_worse else 0
             rel_score[k] = num / den if den else np.nan
@@ -183,7 +196,7 @@ def main():
         stats[k]["climate_hazard"]["aggregate_hazard"] = out[k]
     STATS.write_text(json.dumps(stats, separators=(",", ":")))
     META.write_text(json.dumps({
-        "wet_threshold_mm": WET_MM, "worse_threshold_pct": WORSE_PCT,
+        "wet_threshold_mm": WET_MM, "thresholds": THRESHOLDS, "relative_thresholds": sorted(RELATIVE),
         "zeroed": sorted(ZEROED),
         "weights": {cid: round(WEIGHT[cid], 2) for cid, *_ in COMPONENTS},
         "atlas_weights": {cid: w for cid, _, w, _, _ in COMPONENTS},

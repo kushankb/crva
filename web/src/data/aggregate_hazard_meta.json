@@ -1,6 +1,26 @@
 {
  "wet_threshold_mm": 1500,
- "worse_threshold_pct": 10,
+ "thresholds": {
+  "annual_rain": 10,
+  "june_rain": 10,
+  "july_rain": 10,
+  "rainy_days": 10,
+  "tmax": 1.0,
+  "tmin": 1.0,
+  "hot_days": 5,
+  "cold_days": 2,
+  "frost": 5,
+  "drought": 5,
+  "dry_spells": 1.0,
+  "p99_rain": 5.0,
+  "events_100mm": 0.5,
+  "rx1_pct": 10,
+  "rx3_pct": 10
+ },
+ "relative_thresholds": [
+  "rx1_pct",
+  "rx3_pct"
+ ],
  "zeroed": [
   "cold_days",
   "drought",
