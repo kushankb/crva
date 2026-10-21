@@ -1,0 +1,165 @@
+{
+ "wet_threshold_mm": 1500,
+ "worse_threshold_pct": 10,
+ "zeroed": [
+  "cold_days",
+  "drought",
+  "hot_days"
+ ],
+ "weights": {
+  "annual_rain": 12.5,
+  "june_rain": 6.25,
+  "july_rain": 18.75,
+  "rainy_days": 6.25,
+  "tmax": 7.5,
+  "tmin": 7.5,
+  "hot_days": 0.0,
+  "cold_days": 0.0,
+  "frost": 2.5,
+  "drought": 0.0,
+  "dry_spells": 13.75,
+  "p99_rain": 6.25,
+  "events_100mm": 6.25,
+  "rx1_pct": 6.25,
+  "rx3_pct": 6.25
+ },
+ "atlas_weights": {
+  "annual_rain": 10,
+  "june_rain": 5,
+  "july_rain": 15,
+  "rainy_days": 5,
+  "tmax": 6,
+  "tmin": 6,
+  "hot_days": 5,
+  "cold_days": 3,
+  "frost": 2,
+  "drought": 12,
+  "dry_spells": 11,
+  "p99_rain": 5,
+  "events_100mm": 5,
+  "rx1_pct": 5,
+  "rx3_pct": 5
+ },
+ "scenarios": {
+  "SSP126_2047": {
+   "mean": 50.0,
+   "sd": 13.21,
+   "quintile_cuts": [
+    37.9,
+    43.0,
+    53.1,
+    63.1
+   ]
+  },
+  "SSP126_2050": {
+   "mean": 50.0,
+   "sd": 13.0,
+   "quintile_cuts": [
+    38.0,
+    43.6,
+    52.3,
+    62.8
+   ]
+  },
+  "SSP126_2100": {
+   "mean": 50.0,
+   "sd": 13.44,
+   "quintile_cuts": [
+    37.7,
+    44.2,
+    51.8,
+    63.5
+   ]
+  },
+  "SSP245_2047": {
+   "mean": 50.0,
+   "sd": 13.34,
+   "quintile_cuts": [
+    37.8,
+    44.5,
+    50.6,
+    62.0
+   ]
+  },
+  "SSP245_2050": {
+   "mean": 50.0,
+   "sd": 13.45,
+   "quintile_cuts": [
+    37.5,
+    44.5,
+    50.6,
+    61.9
+   ]
+  },
+  "SSP245_2100": {
+   "mean": 50.0,
+   "sd": 12.82,
+   "quintile_cuts": [
+    38.5,
+    43.8,
+    51.6,
+    62.1
+   ]
+  },
+  "SSP370_2047": {
+   "mean": 50.0,
+   "sd": 13.55,
+   "quintile_cuts": [
+    37.8,
+    43.5,
+    51.7,
+    62.1
+   ]
+  },
+  "SSP370_2050": {
+   "mean": 50.0,
+   "sd": 13.46,
+   "quintile_cuts": [
+    37.4,
+    44.0,
+    51.5,
+    61.8
+   ]
+  },
+  "SSP370_2100": {
+   "mean": 50.0,
+   "sd": 13.7,
+   "quintile_cuts": [
+    37.6,
+    44.4,
+    50.6,
+    62.6
+   ]
+  },
+  "SSP585_2047": {
+   "mean": 50.0,
+   "sd": 12.56,
+   "quintile_cuts": [
+    37.7,
+    44.9,
+    51.2,
+    61.6
+   ]
+  },
+  "SSP585_2050": {
+   "mean": 50.0,
+   "sd": 12.88,
+   "quintile_cuts": [
+    37.6,
+    44.6,
+    51.1,
+    62.5
+   ]
+  },
+  "SSP585_2100": {
+   "mean": 50.0,
+   "sd": 13.57,
+   "quintile_cuts": [
+    37.3,
+    45.2,
+    50.6,
+    63.4
+   ]
+  }
+ }
+}
