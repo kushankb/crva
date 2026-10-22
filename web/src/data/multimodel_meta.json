@@ -1,0 +1,104 @@
+{
+ "models": [
+  "BCC-CSM2-MR",
+  "GFDL-ESM4",
+  "INM-CM5-0",
+  "MIROC6",
+  "MPI-ESM1-2-LR",
+  "NorESM2-MM"
+ ],
+ "scenario": "SSP2-4.5",
+ "wet_threshold_mm": 1500,
+ "spec": {
+  "annual_rain": {
+   "weight": 10,
+   "change": "pct",
+   "sign": -1,
+   "threshold": 10
+  },
+  "june_rain": {
+   "weight": 5,
+   "change": "pct",
+   "sign": -1,
+   "threshold": 10
+  },
+  "july_rain": {
+   "weight": 15,
+   "change": "pct",
+   "sign": -1,
+   "threshold": 10
+  },
+  "rainy_days": {
+   "weight": 5,
+   "change": "pct",
+   "sign": -1,
+   "threshold": 10
+  },
+  "tmax": {
+   "weight": 6,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 1.0
+  },
+  "tmin": {
+   "weight": 6,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 1.0
+  },
+  "hot_days": {
+   "weight": 5,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 5
+  },
+  "cold_days": {
+   "weight": 3,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 2
+  },
+  "frost": {
+   "weight": 2,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 5
+  },
+  "drought": {
+   "weight": 12,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 5
+  },
+  "dry_spells": {
+   "weight": 11,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 1.0
+  },
+  "p99_rain": {
+   "weight": 5,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 5.0
+  },
+  "events_100mm": {
+   "weight": 5,
+   "change": "abs",
+   "sign": 1,
+   "threshold": 0.5
+  },
+  "rx1_pct": {
+   "weight": 5,
+   "change": "rel",
+   "sign": 1,
+   "threshold": 10
+  },
+  "rx3_pct": {
+   "weight": 5,
+   "change": "rel",
+   "sign": 1,
+   "threshold": 10
+  }
+ }
+}
