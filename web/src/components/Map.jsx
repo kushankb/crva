@@ -6,7 +6,8 @@ import Legend from './Legend.jsx'
 import { getHazardMeta, hazardScale, buildColorExpr } from '../lib/hazardScale.js'
 import { FHI_ID, FHI_CLASSES, fhiColorExpr } from '../lib/hazardIndex.js'
 import { loadStats } from '../lib/stats.js'
-import { isAggregate, aggColorExpr, aggCategory, AGG_CLASSES } from '../lib/aggregate.js'
+import { isAggregate, aggColorExpr, mapCategory, AGG_CLASSES } from '../lib/aggregate.js'
+import { loadMM, isMM, mmComp } from '../lib/multimodel.js'
 import styles from './Map.module.css'
 
 let pmRegistered = false
@@ -55,7 +56,7 @@ export default function Map() {
   const store = useCRVAStore()
   const {
     dimensionId,
-    hazardIndicatorId, hazardSsp, hazardPeriod, hazardViewMode,
+    hazardIndicatorId, hazardSsp, hazardPeriod, hazardViewMode, mmSource,
     vulnerabilityIndicatorId, cropSensitivityPeriod,
     theme,
     setSelectedFeature,
@@ -101,14 +102,15 @@ export default function Map() {
     if (!styleReady.current || !map.current) return
     const m = map.current
     const s = useCRVAStore.getState()
-    if (!m.getLayer(VEC_LAYER) && s.hazardIndicatorId !== FHI_ID && !isAggregate(s.hazardIndicatorId)) return
     if (s.dimensionId !== 'climate_hazard') return
     if (s.hazardIndicatorId === FHI_ID) { applyFhiState(m, s.hazardSsp, s.hazardPeriod); return }
-    if (isAggregate(s.hazardIndicatorId)) { applyAggState(m, s.hazardIndicatorId, s.hazardSsp, s.hazardPeriod); return }
+    if (isAggregate(s.hazardIndicatorId)) { applyAggState(m, s.hazardIndicatorId, s.mmSource, s.hazardPeriod); return }
+    if (isMM(s.hazardIndicatorId)) { applyMMState(m, s); return }
+    if (!m.getLayer(VEC_LAYER)) return
     const propKey = s.getHazardPropertyKey()
     const scale = hazardScale(getHazardMeta(s.hazardIndicatorId), s.hazardViewMode)
     m.setPaintProperty(VEC_LAYER, 'circle-color', buildColorExpr(propKey, scale))
-  }, [hazardSsp, hazardPeriod, hazardViewMode])
+  }, [hazardSsp, hazardPeriod, hazardViewMode, mmSource])
 
   useEffect(() => {
     if (!styleReady.current || !map.current) return
@@ -239,13 +241,13 @@ async function syncMapToState(m, store, setTilesStatus) {
   const safeHide = (id) => { try { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', 'none') } catch (_) {} }
   safeHide(VEC_LAYER); safeHide(CROP_LAYER); safeHide(CHORO_LAYER)
 
-  if (dimensionId === 'climate_hazard' && isAggregate(store.hazardIndicatorId)) {
+  if (dimensionId === 'climate_hazard' && (isAggregate(store.hazardIndicatorId) || isMM(store.hazardIndicatorId))) {
     if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
     if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
-    m.setPaintProperty(CHORO_LAYER, 'fill-color', aggColorExpr(store.hazardIndicatorId))
     m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.85)
     m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
-    await applyAggState(m, store.hazardIndicatorId, store.hazardSsp, store.hazardPeriod)
+    if (isAggregate(store.hazardIndicatorId)) await applyAggState(m, store.hazardIndicatorId, store.mmSource, store.hazardPeriod)
+    else await applyMMState(m, store)
     setTilesStatus('ok')
 
   } else if (dimensionId === 'climate_hazard' && store.hazardIndicatorId === FHI_ID) {
@@ -355,15 +357,39 @@ async function loadCropGrid(m, propKey, setTilesStatus) {
   setTilesStatus('ok')
 }
 
-async function applyAggState(m, id, ssp, period) {
-  const stats = await loadStats()
+async function applyAggState(m, id, source, period) {
+  const mm = await loadMM()
+  const p = period === 'historical' ? '2050' : period
   m.setPaintProperty(CHORO_LAYER, 'fill-color', aggColorExpr(id))
-  for (const [key, feat] of Object.entries(stats)) {
-    if (!key.startsWith('district:')) continue
-    const cat = aggCategory(id, feat.climate_hazard?.aggregate_hazard?.[ssp]?.[period])
-    const i = AGG_CLASSES[id].findIndex(c => c.label === cat)
-    m.setFeatureState({ source: 'districts', id: key.slice(9) }, { agg: i >= 0 ? i : null })
-  }
+  const rows = mm.agg[source]?.[p] ?? []
+  mm.admins.forEach((a, i) => {
+    const k = AGG_CLASSES[id].findIndex(c => c.label === mapCategory(id, rows[i]))
+    m.setFeatureState({ source: 'districts', id: a }, { agg: k >= 0 ? k : null })
+  })
+}
+
+// Rama Rao indicators from individual models, as a district choropleth.
+async function applyMMState(m, s) {
+  const mm = await loadMM()
+  const comp = mmComp(s.hazardIndicatorId)
+  const anomaly = s.hazardViewMode === 'anomaly' && s.hazardPeriod !== 'historical'
+  const arr = anomaly
+    ? mm.chg[comp]?.[s.mmSource]?.[s.hazardPeriod]
+    : mm.ind[comp]?.[s.mmSource]?.[s.hazardPeriod === 'historical' ? 'base' : s.hazardPeriod]
+  const scale = hazardScale(getHazardMeta(s.hazardIndicatorId), anomaly ? 'anomaly' : 'values')
+  m.setPaintProperty(CHORO_LAYER, 'fill-color', mmColorExpr(scale))
+  mm.admins.forEach((a, i) => {
+    const v = arr?.[i]
+    m.setFeatureState({ source: 'districts', id: a }, { mmv: typeof v === 'number' ? v : null })
+  })
+}
+
+function mmColorExpr(scale) {
+  const v = ['feature-state', 'mmv']
+  const expr = buildColorExpr('__unused__', scale)
+  const interp = expr[2]
+  interp[2] = ['to-number', v]
+  return ['case', ['==', ['typeof', v], 'number'], interp, 'rgba(0,0,0,0)']
 }
 
 async function applyFhiState(m, ssp, period) {

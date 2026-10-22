@@ -6,6 +6,8 @@ const indicators = allIndicators
   .map(g => ({ ...g, indicators: g.indicators.filter(i => FHI_ENABLED || i.id !== FHI_ID) }))
   .filter(g => g.indicators.length)
 import { useCRVAStore, SSPS, SSP_LABELS } from '../../store/useCRVAStore.js'
+import { isAggregate } from '../../lib/aggregate.js'
+import { isMM, MODELS, sourceLabel } from '../../lib/multimodel.js'
 import styles from './Panel.module.css'
 
 export default function ClimateHazardPanel() {
@@ -13,7 +15,9 @@ export default function ClimateHazardPanel() {
     hazardIndicatorId, setHazardIndicator,
     hazardSsp, setHazardSsp,
     hazardViewMode, setHazardViewMode,
+    mmSource, setMmSource,
   } = useCRVAStore()
+  const modelView = isAggregate(hazardIndicatorId) || isMM(hazardIndicatorId)
   const [tip, setTip] = React.useState(null)
   const showTip = (e, ind) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -31,11 +35,20 @@ export default function ClimateHazardPanel() {
       <div className={styles.sectionLabel} style={{ marginTop: 12 }}>SCENARIO</div>
       <div className={styles.sspRow}>
         {SSPS.map(s => (
-          <button key={s} className={`${styles.sspBtn} ${hazardSsp === s ? styles.sspActive : ''}`} onClick={() => setHazardSsp(s)}>
+          <button key={s} className={`${styles.sspBtn} ${hazardSsp === s ? styles.sspActive : ''}`} onClick={() => setHazardSsp(s)}
+            disabled={modelView && s !== 'SSP245'} title={modelView && s !== 'SSP245' ? 'Individual models are available for SSP2-4.5 only' : undefined}>
             {SSP_LABELS[s]}
           </button>
         ))}
       </div>
+      {modelView && <div className={styles.note}>Individual-model views use SSP2-4.5.</div>}
+
+      <label className={styles.sectionLabel} style={{ marginTop: 12, display: 'block' }} htmlFor="mm-source">CLIMATE MODELS</label>
+      <select id="mm-source" className={styles.select} value={mmSource} onChange={e => setMmSource(e.target.value)} disabled={!modelView}>
+        <option value="median">{sourceLabel('median')}</option>
+        {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
+      </select>
+      {!modelView && <div className={styles.note}>This indicator uses the 14-model ensemble-mean grid.</div>}
 
       <div className={styles.sectionLabel} style={{ marginTop: 12 }}>INDICATOR</div>
       {indicators.map(group => (
@@ -61,7 +74,7 @@ export default function ClimateHazardPanel() {
         </div>
       ))}
 
-      <div className={styles.footer}>INDRA-CMIP6 · 0.1° · 14-model ensemble</div>
+      <div className={styles.footer}>INDRA-CMIP6 · Rama Rao views: 6 individual models, district level · additional: 14-model ensemble mean, 0.1°</div>
 
       {tip?.text && (
         <div id="hazard-tip" role="tooltip" className={styles.tooltip}

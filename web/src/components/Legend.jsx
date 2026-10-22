@@ -3,7 +3,8 @@ import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
 import dimensions from '../data/dimensions.json'
 import { getHazardMeta, hazardScale, cssGradient, fmt } from '../lib/hazardScale.js'
 import { FHI_ID, FHI_CLASSES } from '../lib/hazardIndex.js'
-import { isAggregate, AGG_CLASSES, AGG_ABS } from '../lib/aggregate.js'
+import { isAggregate, AGG_CLASSES, AGG_ABS, AGG_RR } from '../lib/aggregate.js'
+import { isMM, sourceLabel } from '../lib/multimodel.js'
 import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import styles from './Legend.module.css'
 
@@ -23,7 +24,7 @@ const DIM_COLORS = {
 }
 
 export default function Legend() {
-  const { dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode } = useCRVAStore()
+  const { dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode, hazardPeriod, mmSource } = useCRVAStore()
   const dim = dimensions.find(d => d.id === dimensionId)
 
   if (dimensionId === 'climate_hazard') {
@@ -34,9 +35,11 @@ export default function Legend() {
         <div className={styles.box}>
           <div className={styles.title}>{ind.label}</div>
           <div className={styles.subLabel}>
-            {hazardIndicatorId === AGG_ABS
-              ? 'Share of indicator weight past its worsening threshold vs 1985–2014 · by district'
-              : 'Rank among districts in this scenario · fifths of districts'}
+            {hazardIndicatorId === AGG_RR
+              ? `Rama Rao et al. (2020) method · ${sourceLabel(mmSource)} · SSP2-4.5`
+              : hazardIndicatorId === AGG_ABS
+                ? `Share of indicator weight past its worsening threshold · ${sourceLabel(mmSource)}`
+                : `Rank among districts · fifths · ${sourceLabel(mmSource)}`}
           </div>
           {AGG_CLASSES[hazardIndicatorId].map(c => (
             <div key={c.label} className={styles.rangeRow} style={{ justifyContent: 'flex-start', gap: 6 }}>
@@ -67,7 +70,9 @@ export default function Legend() {
     return (
       <div className={styles.box}>
         <div className={styles.title}>{ind.label}</div>
-        <div className={styles.subLabel}>INDRA-CMIP6 · {anomaly ? 'Change vs 1985–2014' : 'Absolute value'} · {ind.unit}</div>
+        <div className={styles.subLabel}>
+          {isMM(hazardIndicatorId) ? `${sourceLabel(mmSource)} · SSP2-4.5 · by district` : 'INDRA-CMIP6 ensemble mean · 0.1°'} · {anomaly ? 'Change vs 1985–2014' : 'Absolute value'} · {anomaly && isMM(hazardIndicatorId) && ['mm_annual_rain', 'mm_june_rain', 'mm_july_rain', 'mm_rainy_days'].includes(hazardIndicatorId) ? '%' : ind.unit}
+        </div>
         <div className={styles.band} style={{ background: cssGradient(scale.cmap) }} />
         <div className={styles.rangeRow}>
           <span>≤ {sign(scale.vmin)}</span>

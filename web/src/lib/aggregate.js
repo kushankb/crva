@@ -1,9 +1,14 @@
-import meta from '../data/aggregate_hazard_meta.json'
-
+// Aggregate future hazard views, computed per model and summarised across models.
+export const AGG_RR = 'rr_index'
 export const AGG_ABS = 'agg_abs'
 export const AGG_REL = 'agg_rel'
-export const isAggregate = id => id === AGG_ABS || id === AGG_REL
-export const AGG_META = meta
+export const isAggregate = id => id === AGG_RR || id === AGG_ABS || id === AGG_REL
+
+export const AGG_TITLES = {
+  [AGG_RR]: 'Rama Rao index',
+  [AGG_ABS]: 'Is climate getting worse here?',
+  [AGG_REL]: 'Where should we act first?',
+}
 
 export const THRESHOLD_TEXT = {
   annual_rain: '−10%', june_rain: '−10%', july_rain: '−10%', rainy_days: '−10%',
@@ -12,10 +17,17 @@ export const THRESHOLD_TEXT = {
 }
 
 export const AGG_CLASSES = {
+  [AGG_RR]: [
+    { label: 'More unfavourable',       color: '#b2182b' },
+    { label: 'Moderately unfavourable', color: '#ef8a62' },
+    { label: 'No hazard',               color: '#f2efe9' },
+    { label: 'Moderately favourable',   color: '#92c5de' },
+    { label: 'More favourable',         color: '#2166ac' },
+  ],
   [AGG_ABS]: [
     { label: 'High',     note: 'over 40% of weight past threshold', color: '#b2182b' },
-    { label: 'Moderate', note: '20–40%',                       color: '#ef8a62' },
-    { label: 'Low',      note: 'under 20%',                    color: '#fddbc7' },
+    { label: 'Moderate', note: '20–40%',                            color: '#ef8a62' },
+    { label: 'Low',      note: 'under 20%',                         color: '#fddbc7' },
     { label: 'None',     note: 'no indicator past threshold',       color: '#d1e5f0' },
   ],
   [AGG_REL]: [
@@ -27,9 +39,16 @@ export const AGG_CLASSES = {
   ],
 }
 
-export function aggCategory(id, entry) {
-  if (!entry) return null
-  return id === AGG_ABS ? entry.absolute.category : entry.relative.quintile
+// Entry from multimodel.json (districts, any model or the median).
+export function mapCategory(id, e) {
+  if (!e) return null
+  return id === AGG_RR ? e.ac : id === AGG_ABS ? e.tc : e.rq
+}
+
+// Entry from crva_stats.json climate_hazard.multimodel.aggregate[period] (median).
+export function statsCategory(id, e) {
+  if (!e) return null
+  return id === AGG_RR ? e.atlas?.category : id === AGG_ABS ? e.absolute?.category : e.relative?.quintile
 }
 
 export function aggClass(id, label) {
@@ -44,8 +63,8 @@ export function aggColorExpr(id) {
 
 export const COMPONENT_LABELS = {
   annual_rain: 'Annual rainfall', june_rain: 'June rainfall', july_rain: 'July rainfall',
-  rainy_days: 'Rainy days', tmax: 'Max temperature', tmin: 'Min temperature',
+  rainy_days: 'Rainy days (≥ 2.5 mm)', tmax: 'Max temperature', tmin: 'Min temperature',
   hot_days: 'Unusually hot days', cold_days: 'Unusually cold days', frost: 'Frost days',
-  drought: 'Drought (SPI-3 proxy)', dry_spells: 'Dry-spell score', p99_rain: '99th pct daily rain',
+  drought: 'Drought proneness', dry_spells: 'Dry-spell score', p99_rain: '99th pct daily rain',
   events_100mm: '>100 mm in 3 days', rx1_pct: 'Max 1-day % of normal', rx3_pct: 'Max 3-day % of normal',
 }

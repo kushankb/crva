@@ -290,3 +290,17 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
   pointer-events: none;
 }
+
+.select {
+  width: 100%;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+.select:disabled { opacity: 0.55; }
+.note { font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.4; }
+.sspBtn:disabled { opacity: 0.4; cursor: not-allowed; }

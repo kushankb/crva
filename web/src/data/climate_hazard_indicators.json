@@ -3,18 +3,25 @@
     "group": "Aggregate future hazard",
     "indicators": [
       {
+        "id": "rr_index",
+        "label": "Rama Rao index",
+        "unit": "Atlas future hazard",
+        "kind": "aggregate",
+        "description": "Main view. Future hazard index exactly as in Rama Rao et al. (2020): change in the 15 indicators, truncated at the 1st and 99th percentile, normalised with the sign kept, weighted by Atlas Table 5c and classed by ±0.5 and ±1.5 SD around zero. Computed in each of six INDRA-CMIP6 models under SSP2-4.5; the median model is shown with how many models agree."
+      },
+      {
         "id": "agg_abs",
         "label": "Is climate getting worse here?",
         "unit": "share of weight",
         "kind": "aggregate",
-        "description": "For each district, the weighted share of the Rama Rao indicators whose change from the district's own 1985–2014 mean passes an indicator-specific threshold in the harmful direction: rainfall or rainy days down 10%, Tmax or Tmin up 1 °C, 99th-percentile rain up 5 mm, 0.5 more 100 mm events a year, dry-spell score up 1, 5 more frost days, max 1- or 3-day rain share up 10%. An absolute measure, so scenarios can be compared. More rain counts as better only where baseline rainfall is below 1,500 mm; unusually hot and cold days and drought have weight 0."
+        "description": "Companion view. For each district, the weighted share of the 15 Rama Rao indicators whose change from the district's own 1985–2014 mean passes a worsening threshold: rainfall or rainy days −10%, Tmax or Tmin +1 °C, hot days +5, drought +5 points, dry-spell score +1, 99th-percentile rain +5 mm, 0.5 more 100 mm events a year, max 1- or 3-day rain share +10%. Comparable across periods; more rain is neutral where baseline rainfall is at least 1,500 mm. Computed in each of six INDRA-CMIP6 models, SSP2-4.5."
       },
       {
         "id": "agg_rel",
         "label": "Where should we act first?",
         "unit": "rank among districts",
         "kind": "aggregate",
-        "description": "Districts ranked against each other within the selected scenario: each indicator ranks districts from least to most adverse change, and the weighted average rank (0–100) is split into fifths. A relative measure: it shows where hazard is highest, not whether climate is getting worse."
+        "description": "Districts ranked against each other: each indicator ranks districts from least to most adverse change, and the weighted average rank (0–100) is split into fifths. Shows priority, not whether climate is getting worse. Computed in each of six INDRA-CMIP6 models, SSP2-4.5."
       },
       {
         "id": "future_hazard_index",
@@ -26,7 +33,192 @@
     ]
   },
   {
-    "group": "Rama Rao future hazard indicators",
+    "group": "Rama Rao indicators · 6 models",
+    "indicators": [
+      {
+        "id": "mm_annual_rain",
+        "label": "Annual rainfall",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 429.0,
+        "vmax": 3770.0,
+        "anomaly_max": 44.6,
+        "rr_weight": 10,
+        "description": "Total rainfall over the year. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_june_rain",
+        "label": "June rainfall",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 35.3,
+        "vmax": 851.0,
+        "anomaly_max": 60.9,
+        "rr_weight": 5,
+        "description": "Total rainfall in June, the month of monsoon onset and kharif sowing. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_july_rain",
+        "label": "July rainfall",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 64.5,
+        "vmax": 953.0,
+        "anomaly_max": 46.4,
+        "rr_weight": 15,
+        "description": "Total rainfall in July, the main crop-establishment month. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_rainy_days",
+        "label": "Rainy days (≥ 2.5 mm)",
+        "unit": "days yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 34.3,
+        "vmax": 179.0,
+        "anomaly_max": 26.5,
+        "rr_weight": 5,
+        "description": "Days per year with at least 2.5 mm of rain. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_tmax",
+        "label": "Maximum temperature",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 13.0,
+        "vmax": 34.2,
+        "anomaly_max": 2.28,
+        "rr_weight": 6,
+        "description": "Annual mean of daily maximum temperature. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_tmin",
+        "label": "Minimum temperature",
+        "unit": "°C",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 4.51,
+        "vmax": 26.6,
+        "anomaly_max": 2.33,
+        "rr_weight": 6,
+        "description": "Annual mean of daily minimum temperature. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_hot_days",
+        "label": "Unusually hot days (Mar–May)",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0.444,
+        "vmax": 35.1,
+        "anomaly_max": 27.7,
+        "rr_weight": 5,
+        "description": "Days in March–May with maximum temperature at least 4 °C above the 1985–2014 normal for that date (Atlas definition). Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_cold_days",
+        "label": "Unusually cold days (Dec–Feb)",
+        "unit": "days yr⁻¹",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0.0,
+        "vmax": 7.34,
+        "anomaly_max": 7.26,
+        "rr_weight": 3,
+        "description": "Days in December–February with minimum temperature at least 4 °C below the 1985–2014 normal for that date (Atlas definition). Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_frost",
+        "label": "Frost days",
+        "unit": "days yr⁻¹",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu",
+        "vmin": 0.0,
+        "vmax": 115.0,
+        "anomaly_max": 21.1,
+        "rr_weight": 2,
+        "description": "Days per year with minimum temperature below 0 °C. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_drought",
+        "label": "Drought proneness",
+        "unit": "index",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "BrBG_r",
+        "vmin": 0.0,
+        "vmax": 42.2,
+        "anomaly_max": 30.0,
+        "rr_weight": 12,
+        "description": "Atlas drought index: 2 × the share of years with a severe rainfall deficit (over 50%) plus the share with a moderate deficit (26–50%), against the 1985–2014 normal. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_dry_spells",
+        "label": "Dry-spell score (Jun–Oct, ≥ 14 days)",
+        "unit": "score yr⁻¹",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "BrBG_r",
+        "vmin": 0.118,
+        "vmax": 8.35,
+        "anomaly_max": 1.92,
+        "rr_weight": 11,
+        "description": "Atlas dry-spell score: for each June–October spell of 14 days or more with under 2.5 mm a day, add exp(length/14 − 1), length capped at 42 days. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_p99_rain",
+        "label": "99th-percentile daily rainfall",
+        "unit": "mm",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 18.5,
+        "vmax": 107.0,
+        "anomaly_max": 15.1,
+        "rr_weight": 5,
+        "description": "Rainfall on the wettest 1% of days in a year. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_events_100mm",
+        "label": "Events with > 100 mm in 3 days",
+        "unit": "events yr⁻¹",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 0.177,
+        "vmax": 7.84,
+        "anomaly_max": 1.27,
+        "rr_weight": 5,
+        "description": "Distinct events per year in which rainfall over 3 consecutive days exceeds 100 mm. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_rx1_pct",
+        "label": "Max 1-day rain as % of annual normal",
+        "unit": "%",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 3.13,
+        "vmax": 14.2,
+        "anomaly_max": 2.98,
+        "rr_weight": 5,
+        "description": "Wettest single day of the year as a percentage of the 1985–2014 annual normal rainfall. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      },
+      {
+        "id": "mm_rx3_pct",
+        "label": "Max 3-day rain as % of annual normal",
+        "unit": "%",
+        "cmap": "Blues",
+        "anomaly_cmap": "BrBG",
+        "vmin": 6.35,
+        "vmax": 26.2,
+        "anomaly_max": 6.14,
+        "rr_weight": 5,
+        "description": "Wettest 3-day period as a percentage of the 1985–2014 annual normal rainfall. Computed from six individual INDRA-CMIP6 models under SSP2-4.5; Change is % for rainfall and rainy days."
+      }
+    ]
+  },
+  {
+    "group": "Additional · ensemble-mean grids",
     "indicators": [
       {
         "id": "prcptot",
@@ -37,8 +229,7 @@
         "vmin": 200.0,
         "vmax": 4000.0,
         "anomaly_max": 650.0,
-        "description": "Total precipitation over the year (Rama Rao indicator).",
-        "rr_weight": 10
+        "description": "Total precipitation over the year (Rama Rao indicator)."
       },
       {
         "id": "june_precip",
@@ -49,8 +240,7 @@
         "vmin": 15.0,
         "vmax": 850.0,
         "anomaly_max": 80.0,
-        "description": "Total rainfall in June, the month of monsoon onset and kharif sowing (Rama Rao indicator).",
-        "rr_weight": 5
+        "description": "Total rainfall in June, the month of monsoon onset and kharif sowing (Rama Rao indicator)."
       },
       {
         "id": "july_precip",
@@ -61,8 +251,7 @@
         "vmin": 35.0,
         "vmax": 1500.0,
         "anomaly_max": 150.0,
-        "description": "Total rainfall in July, the main crop-establishment month (Rama Rao indicator).",
-        "rr_weight": 15
+        "description": "Total rainfall in July, the main crop-establishment month (Rama Rao indicator)."
       },
       {
         "id": "rr_rainy_days",
@@ -73,8 +262,7 @@
         "vmin": 2.5,
         "vmax": 250.0,
         "anomaly_max": 35.0,
-        "description": "Days per year with at least 2.5 mm of rain (IMD rainy-day definition). Note: averaging 14 models gives light rain on more days than any single model, so absolute counts run high; the change is what enters the index.",
-        "rr_weight": 5
+        "description": "Days per year with at least 2.5 mm of rain (IMD rainy-day definition). Note: averaging 14 models gives light rain on more days than any single model, so absolute counts run high; the change is what enters the index."
       },
       {
         "id": "tmax_mean",
@@ -85,8 +273,7 @@
         "vmin": 24,
         "vmax": 38,
         "anomaly_max": 4.5,
-        "description": "Average of daily maximum temperatures over the year (Rama Rao indicator).",
-        "rr_weight": 6
+        "description": "Average of daily maximum temperatures over the year (Rama Rao indicator)."
       },
       {
         "id": "tmin_mean",
@@ -97,32 +284,7 @@
         "vmin": 12,
         "vmax": 29,
         "anomaly_max": 5.0,
-        "description": "Average of daily minimum temperatures over the year (Rama Rao indicator).",
-        "rr_weight": 6
-      },
-      {
-        "id": "rr_hot_days",
-        "label": "Unusually hot days (Mar–May)",
-        "unit": "days yr⁻¹",
-        "cmap": "YlOrRd",
-        "anomaly_cmap": "RdBu_r",
-        "vmin": 2.5,
-        "vmax": 95.0,
-        "anomaly_max": 90.0,
-        "description": "Days in March–May when maximum temperature is at least 2 standard deviations above the 1985–2014 normal for that date. The Atlas uses +4 °C; the threshold is scaled because the ensemble-mean data varies far less from day to day than real weather.",
-        "rr_weight": 5
-      },
-      {
-        "id": "rr_cold_days",
-        "label": "Unusually cold days (Dec–Feb)",
-        "unit": "days yr⁻¹",
-        "cmap": "PuBu",
-        "anomaly_cmap": "RdBu_r",
-        "vmin": 0,
-        "vmax": 3.5,
-        "anomaly_max": 3.5,
-        "description": "Days in December–February when minimum temperature is at least 2 standard deviations below the 1985–2014 normal for that date. The Atlas uses −4 °C; the threshold is scaled for the same reason as hot days.",
-        "rr_weight": 3
+        "description": "Average of daily minimum temperatures over the year (Rama Rao indicator)."
       },
       {
         "id": "frost_days",
@@ -133,20 +295,18 @@
         "vmin": 0,
         "vmax": 300.0,
         "anomaly_max": 45.0,
-        "description": "Days per year when the minimum temperature falls below 0°C. Frost damages rabi crops such as mustard, chickpea and potato; mostly relevant in the hills.",
-        "rr_weight": 2
+        "description": "Days per year when the minimum temperature falls below 0°C. Frost damages rabi crops such as mustard, chickpea and potato; mostly relevant in the hills."
       },
       {
         "id": "spi3",
-        "label": "Drought proneness (proxy: SPI-3 drought frequency)",
+        "label": "SPI-3 drought frequency (SPI < −1)",
         "unit": "% of months",
         "cmap": "YlOrBr",
         "anomaly_cmap": "BrBG_r",
         "vmin": 0.8,
         "vmax": 20.0,
         "anomaly_max": 20.0,
-        "description": "Proxy for the Atlas's drought proneness (severe and moderate drought, weighted 2:1): percentage of months with 3-month Standardised Precipitation Index below −1. The Atlas's rainfall-deficit definition gives near-zero droughts on ensemble-mean data, while SPI rescales by the data's own variability.",
-        "rr_weight": 12
+        "description": "Percentage of months with 3-month Standardised Precipitation Index below −1 (moderate drought or worse), from the 14-model ensemble mean. Averaging models understates rainfall variability, so this overstates the projected fall in drought; see the Rama Rao drought indicator from individual models."
       },
       {
         "id": "rr_dryspell",
@@ -157,8 +317,7 @@
         "vmin": 0,
         "vmax": 15.0,
         "anomaly_max": 3.5,
-        "description": "Atlas dry-spell score: for each June–October dry spell (rain < 2.5 mm) of 14 days or more, add exp(length/14 − 1), with length capped at 42 days. Longer spells score much more.",
-        "rr_weight": 11
+        "description": "Atlas dry-spell score: for each June–October dry spell (rain < 2.5 mm) of 14 days or more, add exp(length/14 − 1), with length capped at 42 days. Longer spells score much more."
       },
       {
         "id": "rr_p99",
@@ -169,8 +328,7 @@
         "vmin": 2.0,
         "vmax": 55.0,
         "anomaly_max": 7.5,
-        "description": "Rainfall on the wettest 1% of days in a year (annual 99th percentile, averaged over years). Indicates the intensity of extreme rain.",
-        "rr_weight": 5
+        "description": "Rainfall on the wettest 1% of days in a year (annual 99th percentile, averaged over years). Indicates the intensity of extreme rain."
       },
       {
         "id": "r100mm3d",
@@ -181,8 +339,7 @@
         "vmin": 0,
         "vmax": 4.5,
         "anomaly_max": 1.0,
-        "description": "Number of distinct events per year in which rainfall over 3 consecutive days exceeds 100 mm — a flood and crop-damage hazard (Rama Rao indicator).",
-        "rr_weight": 5
+        "description": "Number of distinct events per year in which rainfall over 3 consecutive days exceeds 100 mm — a flood and crop-damage hazard (Rama Rao indicator)."
       },
       {
         "id": "rr_rx1_pct",
@@ -193,8 +350,7 @@
         "vmin": 1.0,
         "vmax": 5.0,
         "anomaly_max": 1.5,
-        "description": "Wettest single day of the year as a percentage of the 1985–2014 annual normal rainfall. Higher values mean rain is concentrated in fewer, heavier events.",
-        "rr_weight": 5
+        "description": "Wettest single day of the year as a percentage of the 1985–2014 annual normal rainfall. Higher values mean rain is concentrated in fewer, heavier events."
       },
       {
         "id": "rr_rx3_pct",
@@ -205,8 +361,7 @@
         "vmin": 2.5,
         "vmax": 15.0,
         "anomaly_max": 3.0,
-        "description": "Wettest 3-day period of the year as a percentage of the 1985–2014 annual normal rainfall.",
-        "rr_weight": 5
+        "description": "Wettest 3-day period of the year as a percentage of the 1985–2014 annual normal rainfall."
       }
     ]
   },

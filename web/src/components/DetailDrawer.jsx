@@ -5,7 +5,8 @@ import hazardIndicators from '../data/climate_hazard_indicators.json'
 import { fmt } from '../lib/hazardScale.js'
 import { loadStats } from '../lib/stats.js'
 import { FHI_ID, FHI_ENABLED, FHI_COMPONENTS, fhiClassOf } from '../lib/hazardIndex.js'
-import { AGG_ABS, AGG_REL, isAggregate, aggCategory, aggClass, COMPONENT_LABELS as AGG_LABELS, THRESHOLD_TEXT } from '../lib/aggregate.js'
+import { AGG_RR, AGG_ABS, AGG_REL, AGG_TITLES, isAggregate, statsCategory, aggClass, COMPONENT_LABELS as AGG_LABELS, THRESHOLD_TEXT } from '../lib/aggregate.js'
+import { isMM, mmComp } from '../lib/multimodel.js'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -137,21 +138,23 @@ function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
 
     return (
       <>
-        {stats.climate_hazard.aggregate_hazard?.[hazardSsp]?.[period] && (() => {
-          const cur = stats.climate_hazard.aggregate_hazard[hazardSsp][period]
+        {stats.climate_hazard.multimodel?.aggregate?.[period] && (() => {
+          const cur = stats.climate_hazard.multimodel.aggregate[period]
+          const n = stats.climate_hazard.multimodel.n_models
           return (
             <>
-              <div className={styles.sectionTitle}>Aggregate future hazard · {futLabel}</div>
-              {[AGG_ABS, AGG_REL].map(id => {
-                const cat = aggCategory(id, cur), c = aggClass(id, cat)
+              <div className={styles.sectionTitle}>Future hazard · SSP2-4.5 {HAZARD_PERIODS.find(p => p.id === period)?.label} · {n} models</div>
+              {[AGG_RR, AGG_ABS, AGG_REL].map(id => {
+                const cat = statsCategory(id, cur), c = aggClass(id, cat)
                 return (
                   <div key={id} className={styles.riskSummary} style={{ borderColor: c?.color, marginTop: 6 }}>
                     <span className={styles.riskDot} style={{ background: c?.color }} />
-                    <span style={{ fontWeight: 600 }}>{id === AGG_ABS ? 'Is climate getting worse here?' : 'Where should we act first?'}</span>
-                    <span className={styles.riskScore} style={{ fontWeight: 700 }}>{cat}</span>
+                    <span style={{ fontWeight: id === AGG_RR ? 700 : 600 }}>{AGG_TITLES[id]}</span>
+                    <span className={styles.riskScore} style={{ fontWeight: 700 }}>{cat ?? '—'}</span>
                   </div>
                 )
               })}
+              {cur.atlas && <div className={styles.summaryNote}>Rama Rao index: {cur.atlas.n_unfav} of {n} models unfavourable, {cur.atlas.n_fav} favourable.</div>}
               <div style={{ marginBottom: 14 }} />
             </>
           )
@@ -272,7 +275,7 @@ function HazardTab({ stats }) {
     ? hazardIndicators.flatMap(g => g.indicators.map(i => i.id))
         .filter(id => indicators[id]
           || (FHI_ENABLED && id === FHI_ID && stats?.climate_hazard?.future_hazard_index)
-          || (isAggregate(id) && stats?.climate_hazard?.aggregate_hazard))
+          || ((isAggregate(id) || isMM(id)) && stats?.climate_hazard?.multimodel))
     : []
 
   // Use the store's selected indicator if available, else first available
@@ -343,7 +346,8 @@ function HazardTab({ stats }) {
         </div>
       )}
 
-      {isAggregate(activeId) ? <AggView id={activeId} agg={stats?.climate_hazard?.aggregate_hazard} />
+      {isAggregate(activeId) ? <AggView id={activeId} mm={stats?.climate_hazard?.multimodel} />
+        : isMM(activeId) ? <MMView id={activeId} mm={stats?.climate_hazard?.multimodel} />
         : activeId === FHI_ID ? <IndexView fhi={fhi} /> : <>
       {/* Historical baseline */}
       <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1985–2014)</div>
@@ -424,85 +428,117 @@ function HazardTab({ stats }) {
 
 function AggChip({ id, entry }) {
   if (!entry) return <span>—</span>
-  const cat = aggCategory(id, entry), c = aggClass(id, cat)
+  const cat = statsCategory(id, entry), c = aggClass(id, cat)
+  const short = { 'More unfavourable': 'More unfav.', 'Moderately unfavourable': 'Mod. unfav.', 'No hazard': 'No hazard', 'Moderately favourable': 'Mod. fav.', 'More favourable': 'More fav.' }
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
       <span style={{ width: 9, height: 9, borderRadius: 2, background: c?.color, border: '1px solid var(--border)' }} />
-      {id === AGG_ABS ? `${entry.absolute.share.toFixed(0)}%` : cat}
+      {id === AGG_ABS ? `${entry.absolute.share.toFixed(0)}%` : short[cat] ?? cat}
     </span>
   )
 }
 
-function AggView({ id, agg }) {
-  const { hazardSsp, hazardPeriod } = useCRVAStore()
+function AggView({ id, mm }) {
+  const { hazardPeriod } = useCRVAStore()
   const period = hazardPeriod === 'historical' ? '2050' : hazardPeriod
-  const cur = agg?.[hazardSsp]?.[period]
-  if (!agg) return <div className={styles.cropNote}>No aggregate for this area.</div>
-  const abs = id === AGG_ABS
-  const cat = cur && aggCategory(id, cur)
+  if (!mm) return <div className={styles.cropNote}>No model results for this area.</div>
+  const n = mm.n_models
+  const cur = mm.aggregate?.[period]
+  const cat = statsCategory(id, cur)
+  const detail = !cur ? '' : id === AGG_RR
+    ? `index ${cur.atlas.index > 0 ? '+' : ''}${cur.atlas.index.toFixed(3)} · ${cur.atlas.n_unfav} of ${n} models unfavourable`
+    : id === AGG_ABS
+      ? `${cur.absolute.share.toFixed(1)}% of weight past threshold · ${cur.absolute.n_moderate} of ${n} models Moderate or worse`
+      : `rank score ${cur.relative.score.toFixed(0)} / 100 (models ${cur.relative.min.toFixed(0)}–${cur.relative.max.toFixed(0)})`
   return (
     <>
-      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>
-        {SSP_LABELS[hazardSsp]} · {HAZARD_PERIODS.find(p => p.id === period)?.label}
-      </div>
+      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>SSP2-4.5 · {HAZARD_PERIODS.find(p => p.id === period)?.label} · median of {n} models</div>
       {cur && (
         <div className={styles.riskSummary} style={{ borderColor: aggClass(id, cat)?.color, marginTop: 0 }}>
           <span className={styles.riskDot} style={{ background: aggClass(id, cat)?.color }} />
           <span style={{ fontWeight: 700 }}>{cat}</span>
-          <span className={styles.riskScore}>
-            {abs ? `${cur.absolute.share.toFixed(1)}% of weight past threshold` : `rank score ${cur.relative.score.toFixed(0)} / 100 · ${cur.relative.sd_class} by SD`}
-          </span>
+          <span className={styles.riskScore}>{detail}</span>
         </div>
       )}
       <div className={styles.cropNote} style={{ marginTop: 6 }}>
-        {abs
-          ? 'Absolute: compares this district with its own 1985–2014 mean, using a worsening threshold for each indicator, so scenarios can be compared.'
-          : 'Relative: ranks this district against all others in the same scenario. It shows priority, not whether climate gets worse.'}
-        {cur?.wet_baseline ? ' Baseline rainfall is at least 1,500 mm here, so more rain counts as neutral.' : ''}
+        {id === AGG_RR
+          ? 'Rama Rao et al. (2020) method: change in 15 indicators, normalised with the sign kept, Atlas weights, classes by SD around zero. Relative to other districts in the same period.'
+          : id === AGG_ABS
+            ? 'Compares this district with its own 1985–2014 mean, using a worsening threshold for each indicator, so periods can be compared.'
+            : 'Ranks this district against all others in the same period. It shows priority, not whether climate gets worse.'}
       </div>
-
-      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>By scenario &amp; period</div>
+      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>By period</div>
       <table className={styles.table}>
-        <thead><tr><th>Period</th>{SSPS.map(s => <th key={s} style={{ textAlign: 'right' }}>{SSP_LABELS[s]}</th>)}</tr></thead>
+        <thead><tr><th>Period</th><th style={{ textAlign: 'right' }}>{AGG_TITLES[id]}</th></tr></thead>
         <tbody>
           {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => (
-            <tr key={p.id}>
-              <td>{p.label}</td>
-              {SSPS.map(s => <td key={s} style={{ textAlign: 'right' }}><AggChip id={id} entry={agg?.[s]?.[p.id]} /></td>)}
-            </tr>
+            <tr key={p.id}><td>{p.label}</td><td style={{ textAlign: 'right' }}><AggChip id={id} entry={mm.aggregate?.[p.id]} /></td></tr>
           ))}
         </tbody>
       </table>
-
       {cur && (
         <>
-          <div className={styles.sectionTitle} style={{ marginTop: 12 }}>What drives it</div>
+          <div className={styles.sectionTitle} style={{ marginTop: 12 }}>The 15 indicators · {HAZARD_PERIODS.find(p => p.id === period)?.label}</div>
           <table className={styles.table}>
             <thead><tr>
-              <th>Indicator</th><th style={{ textAlign: 'right' }}>Wt</th>
-              {abs && <th style={{ textAlign: 'right' }}>Threshold</th>}
-              <th style={{ textAlign: 'right' }}>{abs ? 'Past it?' : 'Rank'}</th>
+              <th>Indicator</th><th style={{ textAlign: 'right' }}>Change</th>
+              <th style={{ textAlign: 'right' }}>Adverse</th>
+              {id === AGG_ABS && <th style={{ textAlign: 'right' }}>Past {''}threshold</th>}
             </tr></thead>
             <tbody>
-              {Object.entries(cur.components).map(([cid, c]) => (
-                <tr key={cid} style={{ opacity: c.weight ? 1 : 0.45 }}>
-                  <td style={{ fontSize: 10.5 }}>{AGG_LABELS[cid]}</td>
-                  <td style={{ textAlign: 'right' }}>{c.weight ? c.weight.toFixed(1) : '0'}</td>
-                  {abs && <td style={{ textAlign: 'right' }}>{THRESHOLD_TEXT[cid]}</td>}
-                  <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                    {abs
-                      ? (c.worse == null ? 'n/a' : c.worse ? 'yes' : '—')
-                      : (c.rank == null ? '—' : c.rank.toFixed(0))}
-                  </td>
-                </tr>
-              ))}
+              {Object.entries(AGG_LABELS).map(([cid, label]) => {
+                const e = mm.indicators?.[cid]?.[period]
+                if (!e) return null
+                const pct = ['annual_rain', 'june_rain', 'july_rain', 'rainy_days'].includes(cid)
+                return (
+                  <tr key={cid}>
+                    <td style={{ fontSize: 10.5 }}>{label}</td>
+                    <td style={{ textAlign: 'right' }}>{e.med > 0 ? '+' : ''}{fmt(e.med)}{pct ? '%' : ''}</td>
+                    <td style={{ textAlign: 'right' }}>{e.n_adverse}/{n}</td>
+                    {id === AGG_ABS && <td style={{ textAlign: 'right' }}>{e.n_worse}/{n} <span style={{ color: 'var(--text-muted)' }}>({THRESHOLD_TEXT[cid]})</span></td>}
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
-          <div className={styles.summaryNote}>
-            Weights: Rama Rao et al. (2020) Table 5c, with unusually hot and cold days and drought set to 0 (ensemble-mean data cannot represent them) and their weight shared among the rest. Thresholds are set for agricultural relevance, not taken from the Atlas.
-          </div>
+          <div className={styles.summaryNote}>Change: median of {n} models vs 1985–2014. Adverse: models whose change is harmful.{id === AGG_ABS ? ' Past threshold: models whose change passes the worsening threshold.' : ''}</div>
         </>
       )}
+    </>
+  )
+}
+
+function MMView({ id, mm }) {
+  const { hazardPeriod } = useCRVAStore()
+  const comp = mmComp(id)
+  const e = mm?.indicators?.[comp]
+  if (!e) return <div className={styles.cropNote}>No model results for this area.</div>
+  const n = mm.n_models
+  const pct = ['annual_rain', 'june_rain', 'july_rain', 'rainy_days'].includes(comp)
+  const meta = getIndicatorMeta(id)
+  const sign = v => `${v > 0 ? '+' : ''}${fmt(v)}${pct ? '%' : ''}`
+  return (
+    <>
+      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1985–2014) · median of {n} models</div>
+      <div className={styles.baselineRow}><span>Mean</span><span className={styles.baselineVal}>{e.base != null ? `${fmt(e.base)} ${meta?.unit ?? ''}` : '—'}</span></div>
+      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Change by period · SSP2-4.5</div>
+      <table className={styles.table}>
+        <thead><tr><th>Period</th><th style={{ textAlign: 'right' }}>Median</th><th style={{ textAlign: 'right' }}>Range of models</th><th style={{ textAlign: 'right' }}>Adverse</th></tr></thead>
+        <tbody>
+          {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => {
+            const x = e[p.id]
+            return (
+              <tr key={p.id} style={{ fontWeight: p.id === hazardPeriod ? 700 : 400 }}>
+                <td>{p.label}</td>
+                <td style={{ textAlign: 'right' }}>{x ? sign(x.med) : '—'}</td>
+                <td style={{ textAlign: 'right' }}>{x ? `${sign(x.min)} to ${sign(x.max)}` : '—'}</td>
+                <td style={{ textAlign: 'right' }}>{x ? `${x.n_adverse}/${n}` : '—'}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <div className={styles.summaryNote}>Computed separately in {n} INDRA-CMIP6 models with the Atlas definition. Adverse: models whose change is harmful for agriculture. Use the model selector on the left to map a single model.</div>
     </>
   )
 }
