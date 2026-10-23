@@ -68,7 +68,7 @@ def abs_class(share):
 
 
 def main():
-    df = pd.concat([pd.read_csv(f) for f in sorted(IND_DIR.glob("*.csv")) if f.stem not in ("multimodel", "model_changes")])
+    df = pd.concat([pd.read_csv(f) for f in sorted(IND_DIR.glob("*.csv")) if f.stem not in ("multimodel", "model_changes", "atlas_index", "atlas_index_per_model")])
     models = sorted(df["model"].unique())
     print("models:", models)
 
