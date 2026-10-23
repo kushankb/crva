@@ -7,6 +7,7 @@ import { loadStats } from '../lib/stats.js'
 import { FHI_ID, FHI_ENABLED, FHI_COMPONENTS, fhiClassOf } from '../lib/hazardIndex.js'
 import { AGG_RR, AGG_ABS, AGG_REL, AGG_TITLES, isAggregate, statsCategory, aggClass, COMPONENT_LABELS as AGG_LABELS, THRESHOLD_TEXT } from '../lib/aggregate.js'
 import { isMM, mmComp } from '../lib/multimodel.js'
+import { isCX, cxKey, SEASONS } from '../lib/compound.js'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -275,7 +276,8 @@ function HazardTab({ stats }) {
     ? hazardIndicators.flatMap(g => g.indicators.map(i => i.id))
         .filter(id => indicators[id]
           || (FHI_ENABLED && id === FHI_ID && stats?.climate_hazard?.future_hazard_index)
-          || ((isAggregate(id) || isMM(id)) && stats?.climate_hazard?.multimodel))
+          || ((isAggregate(id) || isMM(id)) && stats?.climate_hazard?.multimodel)
+          || (isCX(id) && stats?.climate_hazard?.multimodel?.compound))
     : []
 
   // Use the store's selected indicator if available, else first available
@@ -348,6 +350,7 @@ function HazardTab({ stats }) {
 
       {isAggregate(activeId) ? <AggView id={activeId} mm={stats?.climate_hazard?.multimodel} />
         : isMM(activeId) ? <MMView id={activeId} mm={stats?.climate_hazard?.multimodel} />
+        : isCX(activeId) ? <CXView id={activeId} mm={stats?.climate_hazard?.multimodel} />
         : activeId === FHI_ID ? <IndexView fhi={fhi} /> : <>
       {/* Historical baseline */}
       <div className={styles.sectionTitle} style={{ marginTop: 8 }}>Historical baseline (1985–2014)</div>
@@ -504,6 +507,58 @@ function AggView({ id, mm }) {
           <div className={styles.summaryNote}>Change: median of {n} models vs 1985–2014. Adverse: models whose change is harmful.{id === AGG_ABS ? ' Past threshold: models whose change passes the worsening threshold.' : ''}</div>
         </>
       )}
+    </>
+  )
+}
+
+function CXView({ id, mm }) {
+  const { hazardPeriod, cxSeason } = useCRVAStore()
+  const period = hazardPeriod === 'historical' ? '2050' : hazardPeriod
+  const cx = mm?.compound
+  if (!cx) return <div className={styles.cropNote}>No model results for this area.</div>
+  const n = mm.n_models
+  const e = cx[cxKey(id, cxSeason)]
+  const sign = v => `${v > 0 ? '+' : ''}${fmt(v)}`
+  const seasonLabel = SEASONS.find(x => x.id === cxSeason)
+  return (
+    <>
+      <div className={styles.sectionTitle} style={{ marginTop: 8 }}>{seasonLabel?.label} ({seasonLabel?.months}) · median of {n} models</div>
+      <div className={styles.baselineRow}><span>1985–2014</span><span className={styles.baselineVal}>{e?.base != null ? `${fmt(e.base)} days/yr` : '—'}</span></div>
+      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Change by period · SSP2-4.5</div>
+      <table className={styles.table}>
+        <thead><tr><th>Period</th><th style={{ textAlign: 'right' }}>Median</th><th style={{ textAlign: 'right' }}>Range of models</th><th style={{ textAlign: 'right' }}>Increase</th></tr></thead>
+        <tbody>
+          {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => {
+            const x = e?.[p.id]
+            return (
+              <tr key={p.id} style={{ fontWeight: p.id === hazardPeriod ? 700 : 400 }}>
+                <td>{p.label}</td>
+                <td style={{ textAlign: 'right' }}>{x ? sign(x.med) : '—'}</td>
+                <td style={{ textAlign: 'right' }}>{x ? `${sign(x.min)} to ${sign(x.max)}` : '—'}</td>
+                <td style={{ textAlign: 'right' }}>{x ? `${x.n_up}/${n}` : '—'}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <div className={styles.sectionTitle} style={{ marginTop: 12 }}>All seasons · {HAZARD_PERIODS.find(p => p.id === period)?.label}</div>
+      <table className={styles.table}>
+        <thead><tr><th>Season</th><th style={{ textAlign: 'right' }}>1985–2014</th><th style={{ textAlign: 'right' }}>Change</th><th style={{ textAlign: 'right' }}>Increase</th></tr></thead>
+        <tbody>
+          {SEASONS.map(x => {
+            const y = cx[cxKey(id, x.id)]
+            return (
+              <tr key={x.id} style={{ fontWeight: x.id === cxSeason ? 700 : 400 }}>
+                <td>{x.label}</td>
+                <td style={{ textAlign: 'right' }}>{y?.base != null ? fmt(y.base) : '—'}</td>
+                <td style={{ textAlign: 'right' }}>{y?.[period] ? sign(y[period].med) : '—'}</td>
+                <td style={{ textAlign: 'right' }}>{y?.[period] ? `${y[period].n_up}/${n}` : '—'}</td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
+      <div className={styles.summaryNote}>Days per year, from {n} individual INDRA-CMIP6 models with thresholds from each model's 1985–2014 climate. Compound extremes are shown for information and are not part of the aggregate index.</div>
     </>
   )
 }

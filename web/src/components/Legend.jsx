@@ -5,6 +5,7 @@ import { getHazardMeta, hazardScale, cssGradient, fmt } from '../lib/hazardScale
 import { FHI_ID, FHI_CLASSES } from '../lib/hazardIndex.js'
 import { isAggregate, AGG_CLASSES, AGG_ABS, AGG_RR } from '../lib/aggregate.js'
 import { isMM, sourceLabel } from '../lib/multimodel.js'
+import { isCX, cxMeta, SEASONS } from '../lib/compound.js'
 import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import styles from './Legend.module.css'
 
@@ -24,7 +25,7 @@ const DIM_COLORS = {
 }
 
 export default function Legend() {
-  const { dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode, hazardPeriod, mmSource } = useCRVAStore()
+  const { dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode, hazardPeriod, mmSource, cxSeason } = useCRVAStore()
   const dim = dimensions.find(d => d.id === dimensionId)
 
   if (dimensionId === 'climate_hazard') {
@@ -65,13 +66,13 @@ export default function Legend() {
       )
     }
     const anomaly = hazardViewMode === 'anomaly'
-    const scale = hazardScale(ind, hazardViewMode)
+    const scale = hazardScale(isCX(hazardIndicatorId) ? cxMeta(hazardIndicatorId, cxSeason) : ind, hazardViewMode)
     const sign = v => (anomaly && v > 0 ? '+' : '') + fmt(v)
     return (
       <div className={styles.box}>
         <div className={styles.title}>{ind.label}</div>
         <div className={styles.subLabel}>
-          {isMM(hazardIndicatorId) ? `${sourceLabel(mmSource)} · SSP2-4.5 · by district` : 'INDRA-CMIP6 ensemble mean · 0.1°'} · {anomaly ? 'Change vs 1985–2014' : 'Absolute value'} · {anomaly && isMM(hazardIndicatorId) && ['mm_annual_rain', 'mm_june_rain', 'mm_july_rain', 'mm_rainy_days'].includes(hazardIndicatorId) ? '%' : ind.unit}
+          {isCX(hazardIndicatorId) ? `${sourceLabel(mmSource)} · ${SEASONS.find(x => x.id === cxSeason)?.label} · SSP2-4.5 · by district` : isMM(hazardIndicatorId) ? `${sourceLabel(mmSource)} · SSP2-4.5 · by district` : 'INDRA-CMIP6 ensemble mean · 0.1°'} · {anomaly ? 'Change vs 1985–2014' : 'Absolute value'} · {anomaly && isMM(hazardIndicatorId) && ['mm_annual_rain', 'mm_june_rain', 'mm_july_rain', 'mm_rainy_days'].includes(hazardIndicatorId) ? '%' : ind.unit}
         </div>
         <div className={styles.band} style={{ background: cssGradient(scale.cmap) }} />
         <div className={styles.rangeRow}>

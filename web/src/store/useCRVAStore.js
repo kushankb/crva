@@ -3,7 +3,7 @@ import { create } from 'zustand'
 // Indicators defined only as change from baseline have no historical map.
 const futureOnly = id => id === 'future_hazard_index' || id === 'agg_abs' || id === 'agg_rel' || id === 'rr_index'
 // Views built from individual models exist for SSP2-4.5 only.
-const modelView = id => id === 'agg_abs' || id === 'agg_rel' || id === 'rr_index' || (typeof id === 'string' && id.startsWith('mm_'))
+const modelView = id => id === 'agg_abs' || id === 'agg_rel' || id === 'rr_index' || (typeof id === 'string' && (id.startsWith('mm_') || id.startsWith('cx_')))
 
 const TILES_BASE = import.meta.env.VITE_TILES_BASE ?? 'https://kushankbajaj.com/crva-tiles'
 
@@ -45,6 +45,8 @@ export const useCRVAStore = create((set, get) => ({
   setHazardSsp: (ssp) => set(s => ({ hazardSsp: modelView(s.hazardIndicatorId) ? 'SSP245' : ssp })),
   mmSource: 'median',
   setMmSource: (m) => set({ mmSource: m }),
+  cxSeason: 'kharif',
+  setCxSeason: (v) => set({ cxSeason: v }),
   hazardPeriod: '2050',
   setHazardPeriod: (p) => set(s => ({ hazardPeriod: p === 'historical' && futureOnly(s.hazardIndicatorId) ? s.hazardPeriod : p, hazardViewMode: p === 'historical' ? 'values' : s.hazardViewMode })),
   hazardViewMode: 'values',

@@ -8,6 +8,7 @@ import { FHI_ID, FHI_CLASSES, fhiColorExpr } from '../lib/hazardIndex.js'
 import { loadStats } from '../lib/stats.js'
 import { isAggregate, aggColorExpr, mapCategory, AGG_CLASSES } from '../lib/aggregate.js'
 import { loadMM, isMM, mmComp } from '../lib/multimodel.js'
+import { loadCX, isCX, cxKey, cxMeta } from '../lib/compound.js'
 import styles from './Map.module.css'
 
 let pmRegistered = false
@@ -56,7 +57,7 @@ export default function Map() {
   const store = useCRVAStore()
   const {
     dimensionId,
-    hazardIndicatorId, hazardSsp, hazardPeriod, hazardViewMode, mmSource,
+    hazardIndicatorId, hazardSsp, hazardPeriod, hazardViewMode, mmSource, cxSeason,
     vulnerabilityIndicatorId, cropSensitivityPeriod,
     theme,
     setSelectedFeature,
@@ -105,12 +106,12 @@ export default function Map() {
     if (s.dimensionId !== 'climate_hazard') return
     if (s.hazardIndicatorId === FHI_ID) { applyFhiState(m, s.hazardSsp, s.hazardPeriod); return }
     if (isAggregate(s.hazardIndicatorId)) { applyAggState(m, s.hazardIndicatorId, s.mmSource, s.hazardPeriod); return }
-    if (isMM(s.hazardIndicatorId)) { applyMMState(m, s); return }
+    if (isMM(s.hazardIndicatorId) || isCX(s.hazardIndicatorId)) { applyMMState(m, s); return }
     if (!m.getLayer(VEC_LAYER)) return
     const propKey = s.getHazardPropertyKey()
     const scale = hazardScale(getHazardMeta(s.hazardIndicatorId), s.hazardViewMode)
     m.setPaintProperty(VEC_LAYER, 'circle-color', buildColorExpr(propKey, scale))
-  }, [hazardSsp, hazardPeriod, hazardViewMode, mmSource])
+  }, [hazardSsp, hazardPeriod, hazardViewMode, mmSource, cxSeason])
 
   useEffect(() => {
     if (!styleReady.current || !map.current) return
@@ -241,7 +242,7 @@ async function syncMapToState(m, store, setTilesStatus) {
   const safeHide = (id) => { try { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', 'none') } catch (_) {} }
   safeHide(VEC_LAYER); safeHide(CROP_LAYER); safeHide(CHORO_LAYER)
 
-  if (dimensionId === 'climate_hazard' && (isAggregate(store.hazardIndicatorId) || isMM(store.hazardIndicatorId))) {
+  if (dimensionId === 'climate_hazard' && (isAggregate(store.hazardIndicatorId) || isMM(store.hazardIndicatorId) || isCX(store.hazardIndicatorId))) {
     if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
     if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
     m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.85)
@@ -370,13 +371,15 @@ async function applyAggState(m, id, source, period) {
 
 // Rama Rao indicators from individual models, as a district choropleth.
 async function applyMMState(m, s) {
-  const mm = await loadMM()
-  const comp = mmComp(s.hazardIndicatorId)
+  const cx = isCX(s.hazardIndicatorId)
+  const mm = cx ? await loadCX() : await loadMM()
+  const comp = cx ? cxKey(s.hazardIndicatorId, s.cxSeason) : mmComp(s.hazardIndicatorId)
   const anomaly = s.hazardViewMode === 'anomaly' && s.hazardPeriod !== 'historical'
   const arr = anomaly
     ? mm.chg[comp]?.[s.mmSource]?.[s.hazardPeriod]
     : mm.ind[comp]?.[s.mmSource]?.[s.hazardPeriod === 'historical' ? 'base' : s.hazardPeriod]
-  const scale = hazardScale(getHazardMeta(s.hazardIndicatorId), anomaly ? 'anomaly' : 'values')
+  const meta = cx ? cxMeta(s.hazardIndicatorId, s.cxSeason) : getHazardMeta(s.hazardIndicatorId)
+  const scale = hazardScale(meta, anomaly ? 'anomaly' : 'values')
   m.setPaintProperty(CHORO_LAYER, 'fill-color', mmColorExpr(scale))
   mm.admins.forEach((a, i) => {
     const v = arr?.[i]

@@ -8,6 +8,7 @@ const indicators = allIndicators
 import { useCRVAStore, SSPS, SSP_LABELS } from '../../store/useCRVAStore.js'
 import { isAggregate } from '../../lib/aggregate.js'
 import { isMM, MODELS, sourceLabel } from '../../lib/multimodel.js'
+import { isCX, SEASONS } from '../../lib/compound.js'
 import styles from './Panel.module.css'
 
 export default function ClimateHazardPanel() {
@@ -16,8 +17,9 @@ export default function ClimateHazardPanel() {
     hazardSsp, setHazardSsp,
     hazardViewMode, setHazardViewMode,
     mmSource, setMmSource,
+    cxSeason, setCxSeason,
   } = useCRVAStore()
-  const modelView = isAggregate(hazardIndicatorId) || isMM(hazardIndicatorId)
+  const modelView = isAggregate(hazardIndicatorId) || isMM(hazardIndicatorId) || isCX(hazardIndicatorId)
   const [tip, setTip] = React.useState(null)
   const showTip = (e, ind) => {
     const r = e.currentTarget.getBoundingClientRect()
@@ -49,6 +51,20 @@ export default function ClimateHazardPanel() {
         {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
       </select>
       {!modelView && <div className={styles.note}>This indicator uses the 14-model ensemble-mean grid.</div>}
+
+      {isCX(hazardIndicatorId) && (
+        <>
+          <div className={styles.sectionLabel} style={{ marginTop: 12 }}>SEASON</div>
+          <div className={styles.sspRow}>
+            {SEASONS.map(x => (
+              <button key={x.id} className={`${styles.sspBtn} ${cxSeason === x.id ? styles.sspActive : ''}`} onClick={() => setCxSeason(x.id)} title={x.months}>
+                {x.label}
+              </button>
+            ))}
+          </div>
+          <div className={styles.note}>{SEASONS.find(x => x.id === cxSeason)?.months} · days per year</div>
+        </>
+      )}
 
       <div className={styles.sectionLabel} style={{ marginTop: 12 }}>INDICATOR</div>
       {indicators.map(group => (

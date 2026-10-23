@@ -218,6 +218,110 @@
     ]
   },
   {
+    "group": "Compound extremes · 6 models",
+    "indicators": [
+      {
+        "id": "cx_hot_dry",
+        "label": "Hot-and-dry days",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrBr",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 10,
+        "anomaly_max": 5,
+        "description": "Days when maximum temperature is above its 90th percentile for that month and the previous 30 days' rainfall is below its 10th percentile (1985–2014 thresholds in each model). Heat during a dry spell or drought: monsoon breaks in kharif, terminal heat in rabi. Not part of the aggregate index.",
+        "season_scale": {
+          "kharif": {
+            "vmin": 0,
+            "vmax": 7.83,
+            "amax": 4.81
+          },
+          "rabi": {
+            "vmin": 0,
+            "vmax": 9.65,
+            "amax": 7.93
+          },
+          "summer": {
+            "vmin": 0,
+            "vmax": 5.31,
+            "amax": 4.53
+          },
+          "annual": {
+            "vmin": 0,
+            "vmax": 18.7,
+            "amax": 13.4
+          }
+        }
+      },
+      {
+        "id": "cx_hot_night",
+        "label": "Hot days with hot nights",
+        "unit": "days yr⁻¹",
+        "cmap": "YlOrRd",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 30,
+        "anomaly_max": 20,
+        "description": "Days when both maximum and minimum temperature are above their 90th percentiles for that month (1985–2014 thresholds in each model). No relief at night for crops, livestock and farm workers; the closest proxy for humid heat without humidity data. Not part of the aggregate index.",
+        "season_scale": {
+          "kharif": {
+            "vmin": 0,
+            "vmax": 50.0,
+            "amax": 48.2
+          },
+          "rabi": {
+            "vmin": 0,
+            "vmax": 45.3,
+            "amax": 40.4
+          },
+          "summer": {
+            "vmin": 0,
+            "vmax": 21.0,
+            "amax": 19.0
+          },
+          "annual": {
+            "vmin": 0,
+            "vmax": 106.0,
+            "amax": 94.7
+          }
+        }
+      },
+      {
+        "id": "cx_whiplash",
+        "label": "Dry-to-wet whiplash",
+        "unit": "days yr⁻¹",
+        "cmap": "PuBu",
+        "anomaly_cmap": "RdBu_r",
+        "vmin": 0,
+        "vmax": 0.5,
+        "anomaly_max": 0.2,
+        "description": "Heavy-rain days (above the 95th percentile of wet days) within 5 days after a dry spell of 14 days or more (under 2.5 mm a day). Rain on dried, hardened soil causes runoff, erosion and waterlogging. Not part of the aggregate index.",
+        "season_scale": {
+          "kharif": {
+            "vmin": 0,
+            "vmax": 0.314,
+            "amax": 0.175
+          },
+          "rabi": {
+            "vmin": 0,
+            "vmax": 0.911,
+            "amax": 0.233
+          },
+          "summer": {
+            "vmin": 0,
+            "vmax": 0.193,
+            "amax": 0.133
+          },
+          "annual": {
+            "vmin": 0,
+            "vmax": 0.983,
+            "amax": 0.307
+          }
+        }
+      }
+    ]
+  },
+  {
     "group": "Additional · ensemble-mean grids",
     "indicators": [
       {
