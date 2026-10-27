@@ -52,6 +52,10 @@ export const useCRVAStore = create((set, get) => ({
   hazardViewMode: 'values',
   setHazardViewMode: (m) => set(s => ({ hazardViewMode: m, hazardPeriod: m === 'anomaly' && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),
 
+  // Historical hazard
+  historicalIndicatorId: 'historical_hazard_index',
+  setHistoricalIndicator: (id) => set({ historicalIndicatorId: id }),
+
   // Exposure
   exposureIndicatorId: 'exposure_index',
   setExposureIndicator: (id) => set({ exposureIndicatorId: id }),

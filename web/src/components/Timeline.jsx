@@ -27,13 +27,14 @@ export default function Timeline() {
         <span className={styles.label}>SHOW</span>
         <div className={styles.periods} role="group" aria-label="Show projected value or change">
           {[['values', 'Projected value', 'for the selected period'], ['anomaly', 'Change', 'from 1985–2014']].map(([id, label, sub]) => {
-            const off = isAggregate(hazardIndicatorId)
+            const locked = isAggregate(hazardIndicatorId)
+            const on = locked ? id === 'anomaly' : hazardViewMode === id
             return (
-              <button key={id} disabled={off}
-                title={off ? 'Overall future hazard indices already compare with 1985–2014' : undefined}
-                className={`${styles.period} ${!off && hazardViewMode === id ? styles.active : ''}`}
-                aria-pressed={!off && hazardViewMode === id}
-                onClick={() => setHazardViewMode(id)}>
+              <button key={id} disabled={locked && !on}
+                title={locked ? 'Overall future hazard indices are always a change from 1985–2014' : undefined}
+                className={`${styles.period} ${on ? styles.active : ''}`}
+                aria-pressed={on}
+                onClick={() => !locked && setHazardViewMode(id)}>
                 <span className={styles.periodLabel}>{label}</span>
                 <span className={styles.periodRange}>{sub}</span>
               </button>

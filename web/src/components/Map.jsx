@@ -59,7 +59,7 @@ export default function Map() {
   const {
     dimensionId,
     hazardIndicatorId, hazardSsp, hazardPeriod, hazardViewMode, mmSource, cxSeason,
-    vulnerabilityIndicatorId, cropSensitivityPeriod, exposureIndicatorId,
+    vulnerabilityIndicatorId, cropSensitivityPeriod, exposureIndicatorId, historicalIndicatorId,
     theme,
     setSelectedFeature,
   } = store
@@ -97,7 +97,7 @@ export default function Map() {
   useEffect(() => {
     if (!styleReady.current || !map.current) return
     syncMapToState(map.current, useCRVAStore.getState(), setTilesStatus)
-  }, [dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, exposureIndicatorId])
+  }, [dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, exposureIndicatorId, historicalIndicatorId])
 
   // Update color expression when SSP/period/viewMode changes without reloading tiles
   useEffect(() => {
@@ -136,9 +136,10 @@ export default function Map() {
         <div className={styles.placeholder}>
           <div className={styles.placeholderInner}>
             <div className={styles.placeholderIcon}>◎</div>
-            <div className={styles.placeholderTitle}>No tile data yet</div>
+            <div className={styles.placeholderTitle}>{currentDim === 'historical_hazard' ? 'Coming next' : 'No tile data yet'}</div>
             <div className={styles.placeholderBody}>
               {currentDim === 'climate_hazard' && <>Run <code>01_nc_to_geojson.py</code> then <code>02_tippecanoe_tiles.sh</code> to generate PMTiles.</>}
+              {currentDim === 'historical_hazard' && <>Historical hazard is coming next: drought, flood and cyclone proneness by district.</>}
               {currentDim === 'exposure'       && <>District-level data not yet loaded. Populate <code>public/data/crva_district_stats.json</code>.</>}
               {currentDim === 'vulnerability'  && <>District-level data not yet loaded. Populate <code>public/data/crva_district_stats.json</code>.</>}
               {currentDim === 'risk_score'     && <>Risk score pending. Run <code>08_risk_score.py</code> once all indicator data are available.</>}
@@ -279,7 +280,7 @@ async function syncMapToState(m, store, setTilesStatus) {
     m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
     setTilesStatus('ok')
 
-  } else if (dimensionId === 'vulnerability') {
+  } else if (dimensionId === 'vulnerability' || dimensionId === 'historical_hazard') {
     showChoropleth(m, dimensionId, setTilesStatus)
 
   } else if (dimensionId === 'risk_score') {
@@ -431,6 +432,7 @@ function showChoropleth(m, dimensionId, setTilesStatus) {
   const placeholderColor = {
     exposure:      '#4A90C4',
     vulnerability: '#A259C4',
+    historical_hazard: '#6B7B8D',
   }[dimensionId] ?? '#cccccc'
 
   try {

@@ -11,6 +11,7 @@ export default function ControlPanel() {
   return (
     <div className={styles.panel}>
       {dimensionId === 'climate_hazard' && <ClimateHazardPanel />}
+      {dimensionId === 'historical_hazard' && <ChoroPanel dimension="historical_hazard" />}
       {dimensionId === 'exposure'       && <ChoroPanel dimension="exposure" />}
       {dimensionId === 'vulnerability'  && <ChoroPanel dimension="vulnerability" />}
       {dimensionId === 'risk_score'     && <RiskScorePanel />}

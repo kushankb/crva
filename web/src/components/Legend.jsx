@@ -23,6 +23,7 @@ const GRADIENT = {
 const DIM_COLORS = {
   exposure:      'var(--dim-exposure)',
   vulnerability: 'var(--dim-vuln)',
+  historical_hazard: 'var(--dim-hist)',
 }
 
 export default function Legend() {
@@ -149,7 +150,7 @@ export default function Legend() {
   return (
     <div className={styles.box}>
       <div className={styles.title}>{dim?.label}</div>
-      <div className={styles.subLabel}>Placeholder · District-level data pending</div>
+      <div className={styles.subLabel}>{dimensionId === 'historical_hazard' ? 'Coming next · drought, flood and cyclone proneness' : 'Placeholder · District-level data pending'}</div>
       <div className={styles.choroBand} style={{ background: `linear-gradient(to right, #f7f7f7, ${color})` }} />
       <div className={styles.rangeRow}><span>Low</span><span>High</span></div>
     </div>

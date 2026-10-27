@@ -31,7 +31,8 @@ const SSP_COLORS = { SSP126: '#1A9850', SSP245: '#80C97A', SSP370: '#F46D43', SS
 
 const TABS = [
   { id: 'overview',     label: 'Overview' },
-  { id: 'hazard',       label: 'Climate Hazard' },
+  { id: 'hazard',       label: 'Future Hazard' },
+  { id: 'historical',   label: 'Historical Hazard' },
   { id: 'crop',         label: 'Crop Sensitivity' },
   { id: 'exposure',     label: 'Exposure' },
   { id: 'vulnerability',label: 'Vulnerability' },
@@ -101,6 +102,7 @@ export default function DetailDrawer() {
         {activeTab === 'overview' && <OverviewTab stats={stats} />}
         {activeTab === 'hazard' && <HazardTab stats={stats} />}
         {activeTab === 'crop' && <CropTab stats={stats} />}
+        {activeTab === 'historical' && <PendingTab title="Historical hazard" text="Drought (55%), flood (25%) and cyclone (20%) proneness, following Rama Rao et al. (2020), Table 5b. The district values are being compiled; this tab will then show the index and what drives it." />}
         {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} drivers={stats?.drivers} />}
         {activeTab === 'vulnerability' && <IndicatorTab data={stats?.vulnerability} label="Vulnerability" color={DIM_COLORS.vulnerability} note="Sensitivity factors and adaptive capacity" />}
       </div>
@@ -169,10 +171,10 @@ function OverviewTab({ stats }) {
         {[
           { tab: 'hazard', label: 'Future hazard', value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models unfavourable` : 'Rama Rao index, SSP2-4.5' },
           { tab: 'exposure', label: 'Exposure', value: ex?.class ?? modal(ex?.class_counts), color: EX_CLASS_COLOR_OV[ex?.class ?? modal(ex?.class_counts)], note: ex?.class_counts ? 'Most common class among districts' : 'Rama Rao index, 5 indicators' },
-          { tab: null, label: 'Historical hazard', value: null, note: 'Drought, flood, cyclone · coming next' },
+          { tab: 'historical', label: 'Historical hazard', value: null, note: 'Drought, flood, cyclone · coming next' },
           { tab: 'vulnerability', label: 'Vulnerability', value: null, note: 'Sensitivity and adaptive capacity · coming next' },
         ].map(c => (
-          <button key={c.label} className={styles.partCard} disabled={!c.tab || !c.value} onClick={() => c.tab && setDrawerTab(c.tab)}>
+          <button key={c.label} className={styles.partCard} disabled={!c.tab} onClick={() => c.tab && setDrawerTab(c.tab)}>
             <span className={styles.partLabel}>{c.label}</span>
             <span className={styles.partValue}>
               {c.color && <span className={styles.riskDot} style={{ background: c.color }} />}
@@ -183,6 +185,16 @@ function OverviewTab({ stats }) {
         ))}
       </div>
     </>
+  )
+}
+
+function PendingTab({ title, text }) {
+  return (
+    <div className={styles.empty} style={{ height: 160 }}>
+      <div className={styles.emptyIcon}>◎</div>
+      <div>{title} · coming next</div>
+      <div className={styles.emptyNote} style={{ maxWidth: 280, textAlign: 'center' }}>{text}</div>
+    </div>
   )
 }
 

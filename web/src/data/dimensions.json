@@ -1,11 +1,19 @@
 [
   {
     "id": "climate_hazard",
-    "label": "Climate Hazard",
+    "label": "Future Hazard",
     "description": "Projected change in climate hazard by mid- and late century (SSP2-4.5), from six individual INDRA-CMIP6 models, following Rama Rao et al. (2020).",
     "mapType": "pmtiles",
     "hasTimeline": true,
     "hasScenario": true
+  },
+  {
+    "id": "historical_hazard",
+    "label": "Historical Hazard",
+    "description": "How often districts have faced drought, floods and cyclones in the past, following Rama Rao et al. (2020): drought 55%, flood 25%, cyclone 20% (Table 5b).",
+    "mapType": "choropleth",
+    "hasTimeline": false,
+    "hasScenario": false
   },
   {
     "id": "exposure",

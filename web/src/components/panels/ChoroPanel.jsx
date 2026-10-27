@@ -1,10 +1,19 @@
 import React from 'react'
 import exposureIndicators from '../../data/exposure_indicators.json'
 import vulnerabilityIndicators from '../../data/vulnerability_indicators.json'
+import historicalIndicators from '../../data/historical_hazard_indicators.json'
 import { useCRVAStore, CROP_PERIODS } from '../../store/useCRVAStore.js'
 import styles from './Panel.module.css'
 
 const CONFIG = {
+  historical_hazard: {
+    indicators: historicalIndicators,
+    stateKey: 'historicalIndicatorId',
+    setter: 'setHistoricalIndicator',
+    footer: 'IMD · NDMA · CWC · Rama Rao et al. (2020) method',
+    description: 'How often districts have faced drought, floods and cyclones in the past.',
+    pending: 'Coming next: district drought, flood and cyclone proneness are being compiled.',
+  },
   exposure: {
     indicators: exposureIndicators,
     stateKey: 'exposureIndicatorId',
@@ -22,7 +31,7 @@ const CONFIG = {
 }
 
 export default function ChoroPanel({ dimension }) {
-  const { indicators, stateKey, setter, footer, description } = CONFIG[dimension]
+  const { indicators, stateKey, setter, footer, description, pending } = CONFIG[dimension]
   const store = useCRVAStore()
   const selectedId = store[stateKey]
   const setIndicator = store[setter]
@@ -54,7 +63,7 @@ export default function ChoroPanel({ dimension }) {
 
       {!isCropIndicator && dimension !== 'exposure' && (
         <div className={styles.placeholderNote}>
-          Placeholder map · District-level data pending connection
+          {pending ?? 'Placeholder map · District-level data pending connection'}
         </div>
       )}
 

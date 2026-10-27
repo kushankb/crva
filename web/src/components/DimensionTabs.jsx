@@ -3,7 +3,7 @@ import dimensions from '../data/dimensions.json'
 import { useCRVAStore } from '../store/useCRVAStore.js'
 import styles from './DimensionTabs.module.css'
 
-const MAIN_DIMS  = ['climate_hazard', 'exposure', 'vulnerability']
+const MAIN_DIMS  = ['climate_hazard', 'historical_hazard', 'exposure', 'vulnerability']
 const RISK_DIM   = 'risk_score'
 
 export default function DimensionTabs() {

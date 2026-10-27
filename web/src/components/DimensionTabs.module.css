@@ -31,10 +31,10 @@
   font-weight: 700;
 }
 
-/* Component dims — 3-column row */
+/* Component dims — 2 x 2 grid */
 .tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 4px;
 }
 

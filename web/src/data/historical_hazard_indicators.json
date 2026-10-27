@@ -1,12 +1,47 @@
 [
   {
-    "group": "Disaster Proneness",
+    "group": "Historical hazard index",
     "indicators": [
-      { "id": "drought_proneness_pct", "label": "Drought proneness", "unit": "% of geographical area", "direction": "+", "source": "NRAA / IMD", "rationale": "Frequent drought incidence implies riskier agriculture.", "cmap": "YlOrBr" },
-      { "id": "flood_proneness_pct", "label": "Flood proneness", "unit": "% of geographical area", "direction": "+", "source": "NDMA / CWC", "rationale": "Larger flood-susceptible area implies more land under risk.", "cmap": "Blues" },
-      { "id": "earthquake_proneness_pct", "label": "Earthquake proneness", "unit": "% of geographical area", "direction": "+", "source": "BIS / NDMA Seismic Zone Map", "rationale": "Earthquake-prone areas risk crop, livestock and infrastructure damage.", "cmap": "YlOrRd" },
-      { "id": "forest_fire_proneness_pct", "label": "Forest fire proneness", "unit": "% of geographical area", "direction": "+", "source": "FSI / ISFR 2021", "rationale": "Forest fires can spread into farmlands, destroying crops and infrastructure.", "cmap": "YlOrRd" },
-      { "id": "cyclone_proneness_pct", "label": "Cyclone proneness", "unit": "% of geographical area", "direction": "+", "source": "IMD Cyclone Atlas / NDMA", "rationale": "Cyclones bring strong winds, flooding, and saline intrusion that degrade soil.", "cmap": "PuBu" }
+      {
+        "id": "historical_hazard_index",
+        "label": "Historical hazard index (Rama Rao method)",
+        "unit": "Atlas classes, ±0.5 and ±1.5 SD",
+        "direction": "+",
+        "source": "Three indicators below, Atlas weights",
+        "rationale": "Rama Rao et al. (2020): z-scores of drought, flood and cyclone proneness, weighted 55/25/20 (Table 5b), classed at ±0.5 and ±1.5 SD (Table 7)."
+      }
+    ]
+  },
+  {
+    "group": "Disaster proneness",
+    "indicators": [
+      {
+        "id": "drought_proneness",
+        "label": "Drought proneness",
+        "unit": "frequency of drought years",
+        "direction": "+",
+        "source": "IMD rainfall",
+        "weight": 55,
+        "rationale": "Frequent drought makes rainfed agriculture riskier."
+      },
+      {
+        "id": "flood_proneness",
+        "label": "Flood proneness",
+        "unit": "% of area flood-prone",
+        "direction": "+",
+        "source": "NDMA / CWC",
+        "weight": 25,
+        "rationale": "A larger flood-prone area puts more land and people at risk."
+      },
+      {
+        "id": "cyclone_proneness",
+        "label": "Cyclone proneness",
+        "unit": "cyclone frequency and intensity",
+        "direction": "+",
+        "source": "IMD cyclone records",
+        "weight": 20,
+        "rationale": "Cyclones bring strong winds, flooding and saline intrusion."
+      }
     ]
   }
 ]
