@@ -7,6 +7,7 @@ import { isAggregate, AGG_CLASSES, AGG_ABS, AGG_RR } from '../lib/aggregate.js'
 import { isMM, sourceLabel } from '../lib/multimodel.js'
 import { isCX, cxMeta, SEASONS } from '../lib/compound.js'
 import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
+import { exMeta, exLegend, EX_INDEX } from '../lib/exposure.js'
 import styles from './Legend.module.css'
 
 const GRADIENT = {
@@ -25,7 +26,7 @@ const DIM_COLORS = {
 }
 
 export default function Legend() {
-  const { dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode, hazardPeriod, mmSource, cxSeason } = useCRVAStore()
+  const { dimensionId, exposureIndicatorId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode, hazardPeriod, mmSource, cxSeason } = useCRVAStore()
   const dim = dimensions.find(d => d.id === dimensionId)
 
   if (dimensionId === 'climate_hazard') {
@@ -98,6 +99,30 @@ export default function Legend() {
           <span>+50% gain</span>
         </div>
         <div className={styles.source}>% yield change vs baseline · grey = crop not grown · RCP 4.5</div>
+      </div>
+    )
+  }
+
+  if (dimensionId === 'exposure') {
+    const ind = exMeta(exposureIndicatorId)
+    const items = exLegend(exposureIndicatorId)
+    return (
+      <div className={styles.box}>
+        <div className={styles.title}>{ind?.label}</div>
+        <div className={styles.subLabel}>
+          {exposureIndicatorId === EX_INDEX
+            ? 'Rama Rao et al. (2020) · relative to the national mean'
+            : `${ind?.unit} · Atlas class bands`}
+        </div>
+        <div className={styles.riskRow}>
+          {items.slice().reverse().map(c => (
+            <div key={c.label} className={styles.riskItem}>
+              <div className={styles.riskSwatch} style={{ background: c.color }} />
+              <span>{c.label}</span>
+            </div>
+          ))}
+        </div>
+        <div className={styles.source}>Rural districts · urban districts not shown · missing source data counted as 0</div>
       </div>
     )
   }

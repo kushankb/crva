@@ -1,5 +1,18 @@
 [
   {
+    "group": "Exposure index",
+    "indicators": [
+      {
+        "id": "exposure_index",
+        "label": "Exposure index (Rama Rao method)",
+        "unit": "Atlas classes, ±0.5 and ±1.5 SD",
+        "direction": "+",
+        "source": "Five indicators below, Atlas weights",
+        "rationale": "Rama Rao et al. (2020): z-scores of the five indicators, weighted 40/15/20/15/10 (Table 5a), classed at ±0.5 and ±1.5 SD (Table 7)."
+      }
+    ]
+  },
+  {
     "group": "Land & Agriculture",
     "indicators": [
       {
@@ -7,27 +20,30 @@
         "label": "Net sown area",
         "unit": "% of geographical area",
         "direction": "+",
-        "source": "Agriculture Census 2015–16",
-        "rationale": "Higher cultivated area means more area may be affected by climate change.",
-        "cmap": "YlOrRd"
+        "source": "DES 2015–16",
+        "weight": 40,
+        "bands": [20, 40, 60, 80],
+        "rationale": "Higher cultivated area means more area may be affected by climate change."
       },
       {
         "id": "small_marginal_farmers_pct",
-        "label": "Small & marginal farmers",
-        "unit": "% of total farmers",
+        "label": "Small & marginal holdings",
+        "unit": "% of operational holdings",
         "direction": "+",
         "source": "Agriculture Census 2015–16",
-        "rationale": "Higher share means more people exposed with fewer resources.",
-        "cmap": "YlOrRd"
+        "weight": 20,
+        "bands": [20, 40, 60, 80],
+        "rationale": "Higher share means more people exposed with fewer resources."
       },
       {
         "id": "crossbred_cattle_pct",
-        "label": "Cross-bred cattle",
-        "unit": "% of total livestock",
+        "label": "Crossbred cattle",
+        "unit": "% of cattle",
         "direction": "+",
-        "source": "Livestock Census 2019",
-        "rationale": "Cross-bred cattle are more productive but more sensitive to climate stress.",
-        "cmap": "YlOrRd"
+        "source": "Livestock Census 2019; Jharkhand NSSO 2003",
+        "weight": 10,
+        "bands": [10, 20, 30, 40],
+        "rationale": "Crossbred cattle are more productive but more sensitive to climate stress."
       }
     ]
   },
@@ -39,27 +55,20 @@
         "label": "Rural population density",
         "unit": "persons per km²",
         "direction": "+",
-        "source": "Census 2011 / 2024 projections",
-        "rationale": "Higher density means a greater number of people at risk.",
-        "cmap": "YlOrRd"
+        "source": "Census 2011",
+        "weight": 15,
+        "bands": [200, 400, 600, 800],
+        "rationale": "Higher density means a greater number of people at risk."
       },
       {
         "id": "scst_population_pct",
         "label": "SC/ST population",
-        "unit": "% of total population",
+        "unit": "% of population",
         "direction": "+",
         "source": "Census 2011",
-        "rationale": "SC/ST population is more heavily dependent on natural resources and more exposed.",
-        "cmap": "YlOrRd"
-      },
-      {
-        "id": "women_landholdings_pct",
-        "label": "Women-owned landholdings",
-        "unit": "% of total landholdings",
-        "direction": "+",
-        "source": "Agriculture Census 2015–16",
-        "rationale": "Women's landholdings are generally smaller and resource-poor.",
-        "cmap": "YlOrRd"
+        "weight": 15,
+        "bands": [20, 40, 60, 80],
+        "rationale": "SC/ST population is more heavily dependent on natural resources and more exposed."
       }
     ]
   }

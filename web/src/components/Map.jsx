@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { loadEX, exClass, EX_INDEX, EX_CLASS_COLORS, EX_BAND_COLORS } from '../lib/exposure.js'
 import maplibregl from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
@@ -58,7 +59,7 @@ export default function Map() {
   const {
     dimensionId,
     hazardIndicatorId, hazardSsp, hazardPeriod, hazardViewMode, mmSource, cxSeason,
-    vulnerabilityIndicatorId, cropSensitivityPeriod,
+    vulnerabilityIndicatorId, cropSensitivityPeriod, exposureIndicatorId,
     theme,
     setSelectedFeature,
   } = store
@@ -96,7 +97,7 @@ export default function Map() {
   useEffect(() => {
     if (!styleReady.current || !map.current) return
     syncMapToState(map.current, useCRVAStore.getState(), setTilesStatus)
-  }, [dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod])
+  }, [dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, exposureIndicatorId])
 
   // Update color expression when SSP/period/viewMode changes without reloading tiles
   useEffect(() => {
@@ -270,7 +271,15 @@ async function syncMapToState(m, store, setTilesStatus) {
     const propKey = store.getCropPropKey()
     await loadCropGrid(m, propKey, setTilesStatus)
 
-  } else if (dimensionId === 'exposure' || dimensionId === 'vulnerability') {
+  } else if (dimensionId === 'exposure') {
+    if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
+    if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
+    await applyExposureState(m, store.exposureIndicatorId)
+    m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.85)
+    m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
+    setTilesStatus('ok')
+
+  } else if (dimensionId === 'vulnerability') {
     showChoropleth(m, dimensionId, setTilesStatus)
 
   } else if (dimensionId === 'risk_score') {
@@ -403,6 +412,19 @@ async function applyFhiState(m, ssp, period) {
     const i = FHI_CLASSES.findIndex(c => c.label === cat)
     m.setFeatureState({ source: 'districts', id: key.slice(9) }, { fhi: i >= 0 ? i : null })
   }
+}
+
+// Exposure (Rama Rao indicators and index) as a district choropleth: feature-state `exk` = class 0–4.
+async function applyExposureState(m, id) {
+  const ex = await loadEX()
+  const colors = id === EX_INDEX ? EX_CLASS_COLORS : EX_BAND_COLORS
+  const k = ['feature-state', 'exk']
+  m.setPaintProperty(CHORO_LAYER, 'fill-color',
+    ['case', ['==', ['typeof', k], 'number'], ['match', ['to-number', k], 0, colors[0], 1, colors[1], 2, colors[2], 3, colors[3], colors[4]], 'rgba(0,0,0,0)'])
+  ex.ids.forEach((a, i) => {
+    const c = exClass(id, ex, i)
+    m.setFeatureState({ source: 'districts', id: a }, { exk: typeof c === 'number' ? c : null })
+  })
 }
 
 function showChoropleth(m, dimensionId, setTilesStatus) {

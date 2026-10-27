@@ -8,6 +8,7 @@ import { FHI_ID, FHI_ENABLED, FHI_COMPONENTS, fhiClassOf } from '../lib/hazardIn
 import { AGG_RR, AGG_ABS, AGG_REL, AGG_TITLES, isAggregate, statsCategory, aggClass, COMPONENT_LABELS as AGG_LABELS, THRESHOLD_TEXT } from '../lib/aggregate.js'
 import { isMM, mmComp } from '../lib/multimodel.js'
 import { isCX, cxKey, SEASONS } from '../lib/compound.js'
+import exposureIndicators from '../data/exposure_indicators.json'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -101,7 +102,7 @@ export default function DetailDrawer() {
         )}
         {activeTab === 'hazard' && <HazardTab stats={stats} />}
         {activeTab === 'crop' && <CropTab stats={stats} />}
-        {activeTab === 'exposure' && <IndicatorTab data={stats?.exposure} label="Exposure" color={DIM_COLORS.exposure} note="Agricultural exposure of rural livelihoods" />}
+        {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} />}
         {activeTab === 'vulnerability' && <IndicatorTab data={stats?.vulnerability} label="Vulnerability" color={DIM_COLORS.vulnerability} note="Sensitivity factors and adaptive capacity" />}
       </div>
 
@@ -735,6 +736,62 @@ const INDICATOR_LABELS = {
   rural_road_density: 'Rural Road Density',
   crop_insurance_pct: 'Crop Insurance Coverage',
   crop_diversity_kharif: 'Kharif Crop Diversity',
+}
+
+const EX_CLASS_COLOR = { 'Very low': '#2c7bb6', 'Low': '#abd9e9', 'Medium': '#e9e4d4', 'High': '#fdae61', 'Very high': '#d7191c' }
+
+function ExposureTab({ data }) {
+  if (!data) return (
+    <div className={styles.empty} style={{ height: 120 }}>
+      <div>No exposure data</div>
+      <div className={styles.emptyNote}>Urban districts and the islands are outside the Rama Rao exposure index</div>
+    </div>
+  )
+  if (data.class_counts) {
+    const total = Object.values(data.class_counts).reduce((a, b) => a + b, 0)
+    return (
+      <>
+        <div className={styles.sectionTitle}>Exposure index · districts by class</div>
+        <div className={styles.cropNote}>Rama Rao et al. (2020) method. Zoom in and select a district for its indicators.</div>
+        {Object.entries(data.class_counts).reverse().map(([c, n]) => (
+          <div key={c} className={styles.indicRow}>
+            <span className={styles.indicName}><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, marginRight: 6, background: EX_CLASS_COLOR[c] }} />{c}</span>
+            <div className={styles.indicBar}><div className={styles.indicBarFill} style={{ width: `${(n / Math.max(total, 1)) * 100}%`, background: EX_CLASS_COLOR[c] }} /></div>
+            <span className={styles.indicVal}>{n}</span>
+          </div>
+        ))}
+      </>
+    )
+  }
+  const inds = exposureIndicators.flatMap(g => g.indicators).filter(i => i.bands)
+  const gaps = data.gaps ? data.gaps.split(',') : []
+  return (
+    <>
+      <div className={styles.sectionTitle}>Exposure index</div>
+      <div className={styles.cropNote}>Rama Rao et al. (2020) method: five indicators, Atlas weights, classes relative to the national mean</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 12px' }}>
+        <span style={{ width: 14, height: 14, borderRadius: 3, background: EX_CLASS_COLOR[data.class] ?? '#ccc' }} />
+        <strong>{data.class ?? '—'}</strong>
+        <span className={styles.emptyNote}>index {typeof data.index === 'number' ? data.index.toFixed(2) : '—'} (0 = national mean)</span>
+      </div>
+      {inds.map(ind => {
+        const v = data.indicators?.[ind.id]
+        const isGap = gaps.includes(ind.id)
+        const top = ind.bands[ind.bands.length - 1] * 1.25
+        return (
+          <div key={ind.id} className={styles.indicRow}>
+            <span className={styles.indicName}>{ind.label} <span className={styles.emptyNote}>({ind.weight}%)</span></span>
+            <div className={styles.indicBar}>
+              <div className={styles.indicBarFill} style={{ width: `${Math.min(100, ((v ?? 0) / top) * 100)}%`, background: DIM_COLORS.exposure }} />
+            </div>
+            <span className={styles.indicVal}>{isGap ? 'no data' : typeof v === 'number' ? (v >= 100 ? v.toFixed(0) : v.toFixed(1)) : '—'}</span>
+          </div>
+        )
+      })}
+      {gaps.length > 0 && <div className={styles.cropNote} style={{ marginTop: 8 }}>No source data for {gaps.length === 5 ? 'this district' : 'some indicators'}; counted as 0 in the index, so its class is not a measured result.</div>}
+      {data.source_district && <div className={styles.cropNote} style={{ marginTop: 8 }}>Values from 2011 district {data.source_district}.</div>}
+    </>
+  )
 }
 
 function IndicatorTab({ data, label, color, note }) {

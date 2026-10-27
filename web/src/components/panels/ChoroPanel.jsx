@@ -9,7 +9,7 @@ const CONFIG = {
     indicators: exposureIndicators,
     stateKey: 'exposureIndicatorId',
     setter: 'setExposureIndicator',
-    footer: 'Census · Agriculture Census · Livestock Census',
+    footer: 'Census 2011 · DES 2015–16 · Agriculture Census 2015–16 · Livestock Census 2019 · Rama Rao et al. (2020) method. Districts missing from the source data are set to 0.',
     description: 'Inventory of rural people and agriculture-dependent livelihoods exposed to climate change impacts.',
   },
   vulnerability: {
@@ -52,7 +52,7 @@ export default function ChoroPanel({ dimension }) {
         </div>
       )}
 
-      {!isCropIndicator && (
+      {!isCropIndicator && dimension !== 'exposure' && (
         <div className={styles.placeholderNote}>
           Placeholder map · District-level data pending connection
         </div>

@@ -53,7 +53,7 @@ export const useCRVAStore = create((set, get) => ({
   setHazardViewMode: (m) => set(s => ({ hazardViewMode: m, hazardPeriod: m === 'anomaly' && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),
 
   // Exposure
-  exposureIndicatorId: 'net_sown_area_pct',
+  exposureIndicatorId: 'exposure_index',
   setExposureIndicator: (id) => set({ exposureIndicatorId: id }),
 
   // Vulnerability (incl. crop sensitivity)
