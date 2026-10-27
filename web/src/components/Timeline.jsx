@@ -1,11 +1,13 @@
 import React from 'react'
 import { useCRVAStore, HAZARD_PERIODS, CROP_PERIODS } from '../store/useCRVAStore.js'
+import { isAggregate } from '../lib/aggregate.js'
 import styles from './Timeline.module.css'
 
 export default function Timeline() {
   const {
     dimensionId,
     hazardPeriod, setHazardPeriod,
+    hazardIndicatorId, hazardViewMode, setHazardViewMode,
     cropPeriod, setCropPeriod,
   } = useCRVAStore()
 
@@ -20,6 +22,23 @@ export default function Timeline() {
               <span className={styles.periodRange}>{p.range}</span>
             </button>
           ))}
+        </div>
+        <span className={styles.divider} aria-hidden="true" />
+        <span className={styles.label}>SHOW</span>
+        <div className={styles.periods} role="group" aria-label="Show projected value or change">
+          {[['values', 'Projected value', 'for the selected period'], ['anomaly', 'Change', 'from 1985–2014']].map(([id, label, sub]) => {
+            const off = isAggregate(hazardIndicatorId)
+            return (
+              <button key={id} disabled={off}
+                title={off ? 'Overall future hazard indices already compare with 1985–2014' : undefined}
+                className={`${styles.period} ${!off && hazardViewMode === id ? styles.active : ''}`}
+                aria-pressed={!off && hazardViewMode === id}
+                onClick={() => setHazardViewMode(id)}>
+                <span className={styles.periodLabel}>{label}</span>
+                <span className={styles.periodRange}>{sub}</span>
+              </button>
+            )
+          })}
         </div>
       </footer>
     )

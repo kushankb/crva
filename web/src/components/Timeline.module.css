@@ -60,3 +60,7 @@
   color: var(--text-muted);
   flex: 1;
 }
+.divider { width: 1px; align-self: stretch; margin: 10px 4px; background: var(--border); flex-shrink: 0; }
+.period:disabled { opacity: 0.4; cursor: not-allowed; }
+.period:disabled:hover { background: none; }
+.period:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

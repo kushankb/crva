@@ -41,16 +41,6 @@ function IndicatorOptions({ id }) {
         </>
       )}
 
-      {!agg && (
-        <>
-          <div className={styles.optionLabel}>Show</div>
-          <div className={styles.toggleRow}>
-            <button className={`${styles.toggle} ${hazardViewMode === 'values' ? styles.active : ''}`} onClick={() => setHazardViewMode('values')}>Projected value</button>
-            <button className={`${styles.toggle} ${hazardViewMode === 'anomaly' ? styles.active : ''}`} onClick={() => setHazardViewMode('anomaly')}>Change from 1985–2014</button>
-          </div>
-        </>
-      )}
-
       {grid && (
         <>
           <div className={styles.optionLabel}>Scenario</div>
@@ -116,7 +106,7 @@ export default function ClimateHazardPanel() {
 
   return (
     <div className={styles.root}>
-      <p className={styles.dimDesc}>Pick an indicator, then the period at the bottom of the map.</p>
+      <p className={styles.dimDesc}>Pick an indicator, then the period and what to show at the bottom of the map.</p>
       <div className={styles.sectionLabel}>INDICATOR</div>
       {MAIN.map(renderGroup)}
 
