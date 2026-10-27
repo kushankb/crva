@@ -11,8 +11,10 @@ const groups = allIndicators
   .map(g => ({ ...g, indicators: g.indicators.filter(i => FHI_ENABLED || i.id !== FHI_ID) }))
   .filter(g => g.indicators.length)
 // Main views first; the ensemble-mean grids sit behind "More climate indicators".
+// The 14-model ensemble-mean grids stay in the app but are hidden for now.
+export const SHOW_ENSEMBLE_GRIDS = false
 const MAIN = groups.filter(g => !g.group.startsWith('Additional'))
-const MORE = groups.filter(g => g.group.startsWith('Additional'))
+const MORE = SHOW_ENSEMBLE_GRIDS ? groups.filter(g => g.group.startsWith('Additional')) : []
 const GROUP_TITLES = { 'Aggregate future hazard': 'Overall future hazard' }
 
 // Settings for the selected indicator, shown right under it and only when they apply.
@@ -23,7 +25,7 @@ function IndicatorOptions({ id }) {
   } = useCRVAStore()
   const agg = isAggregate(id), mm = isMM(id), cx = isCX(id)
   const grid = !agg && !mm && !cx && id !== FHI_ID
-  const models = agg || mm || cx
+  if (!cx && !grid) return null
 
   return (
     <div className={styles.optionsBox}>
@@ -55,16 +57,6 @@ function IndicatorOptions({ id }) {
         </>
       )}
 
-      {models && (
-        <details className={styles.advanced} open={mmSource !== 'median'}>
-          <summary>Advanced · climate model: <strong>{mmSource === 'median' ? 'median of 6' : mmSource}</strong></summary>
-          <select aria-label="Climate model" className={styles.select} value={mmSource} onChange={e => setMmSource(e.target.value)}>
-            <option value="median">{sourceLabel('median')}</option>
-            {MODELS.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-          <div className={styles.note}>SSP2-4.5 · six INDRA-CMIP6 models</div>
-        </details>
-      )}
     </div>
   )
 }
@@ -106,15 +98,17 @@ export default function ClimateHazardPanel() {
 
   return (
     <div className={styles.root}>
-      <p className={styles.hint}>Pick an indicator, then the period and what to show in the bar below the map.</p>
+      <p className={styles.hint}>Pick an indicator, then the period, what to show and the climate model in the bar below the map.</p>
       {MAIN.map(renderGroup)}
 
-      <details className={styles.more} open={inMore}>
-        <summary>More climate indicators · ensemble mean, all scenarios</summary>
-        {MORE.map(renderGroup)}
-      </details>
+      {MORE.length > 0 && (
+        <details className={styles.more} open={inMore}>
+          <summary>More climate indicators · ensemble mean, all scenarios</summary>
+          {MORE.map(renderGroup)}
+        </details>
+      )}
 
-      <div className={styles.footer}>INDRA-CMIP6 · main views: 6 individual models, district level · more indicators: 14-model ensemble mean, 0.1°</div>
+      <div className={styles.footer}>INDRA-CMIP6 · SSP2-4.5 · 6 individual models, district level</div>
 
       {tip?.text && (
         <div id="hazard-tip" role="tooltip" className={styles.tooltip}

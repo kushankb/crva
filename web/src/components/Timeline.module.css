@@ -4,8 +4,8 @@
   border-top: 1px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 16px;
-  gap: 12px;
+  padding: 0 12px;
+  gap: 8px;
   flex-shrink: 0;
   overflow-x: auto;
 }
@@ -29,11 +29,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 5px 14px;
+  padding: 4px 10px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
   transition: background 0.12s, border-color 0.12s;
-  min-width: 80px;
+  min-width: 66px;
 }
 .period:hover { background: var(--border); }
 .period.active {
@@ -64,3 +64,19 @@
 .period:disabled { opacity: 0.4; cursor: not-allowed; }
 .period:disabled:hover { background: none; }
 .period:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.menuWrap { position: relative; flex-shrink: 0; }
+.menuBtn { min-width: 0; }
+.menu {
+  position: fixed;
+  list-style: none; margin: 0; padding: 4px; min-width: 210px; z-index: 50;
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.12);
+}
+.menuItem {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+  padding: 7px 10px; border-radius: var(--radius); font-size: 12px; cursor: pointer; color: var(--text-primary);
+}
+.menuItem:hover, .menuItem:focus-visible { background: var(--border); outline: none; }
+.menuItemActive { font-weight: 700; box-shadow: inset 2px 0 0 var(--accent); }
+.menuSub { font-size: 10.5px; color: var(--text-muted); }
