@@ -388,3 +388,25 @@
   line-height: 1.45;
   font-style: italic;
 }
+
+/* Drivers */
+.driverSentence {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  margin: 2px 0 6px;
+}
+.partGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.partCard {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  padding: 9px 10px; text-align: left;
+  border: 1px solid var(--border); border-radius: 8px; background: transparent;
+  font: inherit; color: inherit; cursor: pointer;
+}
+.partCard:hover:not(:disabled) { border-color: var(--accent); }
+.partCard:disabled { cursor: default; opacity: 0.7; }
+.partCard:disabled .partValue { color: var(--text-muted); font-weight: 500; }
+.partCard:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.partLabel { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
+.partValue { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+.partNote { font-size: 10.5px; color: var(--text-muted); line-height: 1.35; }

@@ -15,7 +15,8 @@ Across models: median index, number of models whose category is unfavourable
 towards no hazard).
 
 Reads model_indicators/model_changes.csv (from 10_multimodel.py --per-model);
-writes model_indicators/atlas_index.csv.
+writes model_indicators/atlas_index.csv, atlas_index_per_model.csv and atlas_contrib_per_model.csv
+(each indicator's contribution to the index, per model; used for the drivers in the app).
 
 Run:
   conda run -n ml_trade python 11_atlas_index.py
@@ -41,7 +42,7 @@ def category_code(v, sd):
 def main():
     ch = pd.read_csv(IND_DIR / "model_changes.csv")
     ch = ch[ch["indicator"].isin(WEIGHTS)]
-    rows = []
+    rows, contrib = [], []
     for (model, window), g in ch.groupby(["model", "window"]):
         wide = g.pivot_table(index="admin", columns="indicator", values="change")
         dist = wide.index.str.startswith("district:")
@@ -52,7 +53,9 @@ def main():
             lo, hi = np.percentile(d, [1, 99])
             xc = x.clip(lo, hi)
             denom = (hi - lo) if lo < 0 < hi else max(abs(lo), abs(hi))
-            index += (SIGN[ind] * xc / (denom if denom > 0 else 1)).fillna(0) * w / 100
+            c = (SIGN[ind] * xc / (denom if denom > 0 else 1)).fillna(0) * w / 100
+            index += c
+            contrib.append(pd.DataFrame({"model": model, "window": window, "admin": c.index, "indicator": ind, "contrib": c.values}))
         sd = index[dist].std(ddof=0)
         for admin, v in index.items():
             rows.append({"model": model, "window": window, "admin": admin, "index": v, "sd": sd,
@@ -66,6 +69,8 @@ def main():
         n=("code", "count")).reset_index()
     summ["category"] = summ["code_med"].map(lambda c: CATS[c + 2])
     per.to_csv(IND_DIR / "atlas_index_per_model.csv", index=False)
+    # each indicator's weighted, normalised contribution to the index (sums to the index), per model
+    pd.concat(contrib).to_csv(IND_DIR / "atlas_contrib_per_model.csv", index=False)
     summ.to_csv(IND_DIR / "atlas_index.csv", index=False)
 
     d = summ[summ["admin"].str.startswith("district:")]

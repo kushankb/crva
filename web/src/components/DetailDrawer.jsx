@@ -9,6 +9,7 @@ import { AGG_RR, AGG_ABS, AGG_REL, AGG_TITLES, isAggregate, statsCategory, aggCl
 import { isMM, mmComp } from '../lib/multimodel.js'
 import { isCX, cxKey, SEASONS } from '../lib/compound.js'
 import exposureIndicators from '../data/exposure_indicators.json'
+import DriverBars, { driverSentence, hazardLabel, exposureLabel, RISK_PARTS, riskLabel } from './DriverBars.jsx'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -97,12 +98,10 @@ export default function DetailDrawer() {
           </div>
         )}
 
-        {activeTab === 'overview' && (
-          <OverviewTab stats={stats} riskInfo={riskInfo} radarData={radarData} hasHazardData={hasHazardData} />
-        )}
+        {activeTab === 'overview' && <OverviewTab stats={stats} />}
         {activeTab === 'hazard' && <HazardTab stats={stats} />}
         {activeTab === 'crop' && <CropTab stats={stats} />}
-        {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} />}
+        {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} drivers={stats?.drivers} />}
         {activeTab === 'vulnerability' && <IndicatorTab data={stats?.vulnerability} label="Vulnerability" color={DIM_COLORS.vulnerability} note="Sensitivity factors and adaptive capacity" />}
       </div>
 
@@ -111,159 +110,110 @@ export default function DetailDrawer() {
   )
 }
 
-function OverviewTab({ stats, riskInfo, radarData, hasHazardData }) {
-  const { hazardSsp, hazardPeriod } = useCRVAStore()
-  if (!hasHazardData && !stats) {
-    return (
-      <div className={styles.empty}>
-        <div className={styles.emptyIcon}>◎</div>
-        <div>No data available.</div>
-        <div className={styles.emptyNote}>Exposure, Vulnerability and Risk Score data pending.</div>
-      </div>
-    )
-  }
+const periodOf = p => (p === 'historical' ? '2050' : p)
+const periodLabel = p => HAZARD_PERIODS.find(x => x.id === p)?.label ?? p
+const modal = counts => counts ? Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null : null
+const EX_CLASS_COLOR_OV = { 'Very low': '#2c7bb6', 'Low': '#abd9e9', 'Medium': '#e9e4d4', 'High': '#fdae61', 'Very high': '#d7191c' }
 
-  // If we have hazard data, show a summary of key indicators
-  if (hasHazardData) {
-    const inds = stats.climate_hazard.indicators
-    const KEY_INDS = ['tmean', 'heat_stress_35', 'summer_tmean', 'prcptot', 'june_precip', 'cdd', 'rx3day']
-    // Historical has no future to compare against, so default the comparison to ~2050.
-    const period = hazardPeriod === 'historical' ? '2050' : hazardPeriod
-    const futLabel = `${SSP_LABELS[hazardSsp]} ${HAZARD_PERIODS.find(p => p.id === period)?.label ?? period}`
-    const summaryRows = KEY_INDS.filter(id => inds[id]).map(id => {
-      const meta = getIndicatorMeta(id)
-      const hist = inds[id]?.historical?.mean
-      const fut585 = inds[id]?.[hazardSsp]?.[period]?.mean
-      const delta = (hist != null && fut585 != null) ? (fut585 - hist) : null
-      return { id, label: meta?.label ?? id, unit: meta?.unit ?? '', hist, fut585, delta }
-    })
-
-    return (
-      <>
-        {stats.climate_hazard.multimodel?.aggregate?.[period] && (() => {
-          const cur = stats.climate_hazard.multimodel.aggregate[period]
-          const n = stats.climate_hazard.multimodel.n_models
-          return (
-            <>
-              <div className={styles.sectionTitle}>Future hazard · SSP2-4.5 {HAZARD_PERIODS.find(p => p.id === period)?.label} · {n} models</div>
-              {[AGG_RR, AGG_ABS, AGG_REL].map(id => {
-                const cat = statsCategory(id, cur), c = aggClass(id, cat)
-                return (
-                  <div key={id} className={styles.riskSummary} style={{ borderColor: c?.color, marginTop: 6 }}>
-                    <span className={styles.riskDot} style={{ background: c?.color }} />
-                    <span style={{ fontWeight: id === AGG_RR ? 700 : 600 }}>{AGG_TITLES[id]}</span>
-                    <span className={styles.riskScore} style={{ fontWeight: 700 }}>{cat ?? '—'}</span>
-                  </div>
-                )
-              })}
-              {cur.atlas && <div className={styles.summaryNote}>Rama Rao index: {cur.atlas.n_unfav} of {n} models unfavourable, {cur.atlas.n_fav} favourable.</div>}
-              <div style={{ marginBottom: 14 }} />
-            </>
-          )
-        })()}
-        {FHI_ENABLED && stats.climate_hazard.future_hazard_index?.[hazardSsp]?.[period] && (() => {
-          const cur = stats.climate_hazard.future_hazard_index[hazardSsp][period]
-          const c = fhiClassOf(cur.category)
-          return (
-            <>
-              <div className={styles.sectionTitle}>Future hazard index · {futLabel}</div>
-              <div className={styles.riskSummary} style={{ borderColor: c.color, marginTop: 0, marginBottom: 14 }}>
-                <span className={styles.riskDot} style={{ background: c.color }} />
-                <span style={{ fontWeight: 700 }}>{cur.category}</span>
-                <span className={styles.riskScore}>index {cur.value > 0 ? '+' : ''}{cur.value.toFixed(3)}</span>
-              </div>
-            </>
-          )
-        })()}
-        <div className={styles.sectionTitle}>Key Climate Hazard Indicators</div>
-        <div className={styles.summaryNote}>Historical baseline (1985–2014) vs {futLabel} · set scenario and period on the left</div>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Indicator</th>
-              <th style={{ textAlign: 'right' }}>Historical</th>
-              <th style={{ textAlign: 'right' }}>{futLabel}</th>
-              <th style={{ textAlign: 'right' }}>Change</th>
-            </tr>
-          </thead>
-          <tbody>
-            {summaryRows.map(r => (
-              <tr key={r.id}>
-                <td style={{ fontSize: 10.5 }}>{r.label}</td>
-                <td style={{ textAlign: 'right' }}>{r.hist != null ? fmt(r.hist) : '—'}</td>
-                <td style={{ textAlign: 'right' }}>{r.fut585 != null ? fmt(r.fut585) : '—'}</td>
-                <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                  {r.delta != null ? `${r.delta > 0 ? '+' : ''}${fmt(r.delta)}` : '—'}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div className={styles.summaryNote} style={{ marginTop: 8 }}>→ Switch to Climate Hazard tab for full projections by indicator and scenario.</div>
-
-        {stats?.risk_score && (
-          <>
-            <div className={styles.sectionTitle} style={{ marginTop: 14 }}>CRVA Summary Scores</div>
-            <div className={styles.scoreGrid}>
-              {[
-                { id: 'climate_hazard', label: 'Climate Hazard', score: stats?.climate_hazard?.composite_score },
-                { id: 'exposure',       label: 'Exposure',       score: stats?.exposure?.composite_score },
-                { id: 'vulnerability',  label: 'Vulnerability',  score: stats?.vulnerability?.composite_score },
-                { id: 'risk_score',     label: 'Risk Score',     score: stats?.risk_score?.score },
-              ].map(d => (
-                <div key={d.id} className={styles.scoreCard}>
-                  <div className={styles.scoreDimLabel}>{d.label}</div>
-                  <div className={styles.scoreVal} style={{ color: DIM_COLORS[d.id] }}>
-                    {d.score != null ? d.score.toFixed(1) : '—'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
-      </>
-    )
-  }
-
-  // Fallback: full CRVA overview (for when all dimension data exists)
+// State view: how many of the state's districts have each top driver.
+function TopCounts({ counts, labelOf, noun = 'districts' }) {
+  if (!counts) return null
+  const rows = Object.entries(counts).filter(([k]) => k && k !== 'null').sort((a, b) => b[1] - a[1])
+  const total = rows.reduce((s, [, n]) => s + n, 0)
   return (
     <>
-      <div className={styles.sectionTitle}>CRVA Summary Scores</div>
-      <div className={styles.scoreGrid}>
+      {rows.map(([k, n]) => (
+        <div key={k} className={styles.indicRow}>
+          <span className={styles.indicName}>{labelOf(k)}</span>
+          <div className={styles.indicBar}><div className={styles.indicBarFill} style={{ width: `${(n / Math.max(total, 1)) * 100}%`, background: '#c8553d' }} /></div>
+          <span className={styles.indicVal}>{n}</span>
+        </div>
+      ))}
+      <div className={styles.summaryNote}>Top driver in each of the state's {total} {noun}. Select a district for its own breakdown.</div>
+    </>
+  )
+}
+
+function OverviewTab({ stats }) {
+  const { hazardPeriod, setDrawerTab } = useCRVAStore()
+  const period = periodOf(hazardPeriod)
+  const dr = stats?.drivers
+  const isState = dr?.states_view === 'top_counts'
+  const risk = dr?.risk?.[period]
+  const items = RISK_PARTS.map(pt => ({ id: pt.id, label: `${pt.label} (${pt.weight}%)`, value: risk ? risk[pt.id] : null }))
+  const avail = items.filter(x => typeof x.value === 'number')
+  const total = avail.reduce((s, x) => s + x.value, 0)
+  const sentence = driverSentence('Risk', items.map(x => ({ ...x, label: x.label.replace(/ \(\d+%\)/, '') })), total, 'above average', 'below average')
+  const mm = stats?.climate_hazard?.multimodel?.aggregate?.[period]
+  const rrCat = mm ? statsCategory(AGG_RR, mm) : null
+  const rrC = rrCat ? aggClass(AGG_RR, rrCat) : null
+  const ex = stats?.exposure
+
+  return (
+    <>
+      <div className={styles.sectionTitle}>What drives risk here · {periodLabel(period)}</div>
+      {isState ? (
+        <TopCounts counts={dr?.risk?.[period]} labelOf={riskLabel} />
+      ) : risk ? (
+        <>
+          {sentence && <div className={styles.driverSentence}>{sentence}</div>}
+          <DriverBars items={items} upLabel="raises risk" downLabel="lowers risk" />
+          <div className={styles.summaryNote}>Each part compared with other districts (0 = national average), times its Atlas weight (Table 6). Historical hazard and vulnerability are being added.</div>
+        </>
+      ) : (
+        <div className={styles.emptyNote}>No risk breakdown for this area.</div>
+      )}
+
+      <div className={styles.sectionTitle} style={{ marginTop: 16 }}>Parts of risk</div>
+      <div className={styles.partGrid}>
         {[
-          { id: 'climate_hazard', label: 'Climate Hazard', score: stats?.climate_hazard?.composite_score },
-          { id: 'exposure',       label: 'Exposure',        score: stats?.exposure?.composite_score },
-          { id: 'vulnerability',  label: 'Vulnerability',   score: stats?.vulnerability?.composite_score },
-          { id: 'risk_score',     label: 'Risk Score',      score: stats?.risk_score?.score },
-        ].map(d => (
-          <div key={d.id} className={styles.scoreCard}>
-            <div className={styles.scoreDimLabel}>{d.label}</div>
-            <div className={styles.scoreVal} style={{ color: DIM_COLORS[d.id] }}>
-              {d.score != null ? d.score.toFixed(1) : '—'}
-            </div>
-          </div>
+          { tab: 'hazard', label: 'Future hazard', value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models unfavourable` : 'Rama Rao index, SSP2-4.5' },
+          { tab: 'exposure', label: 'Exposure', value: ex?.class ?? modal(ex?.class_counts), color: EX_CLASS_COLOR_OV[ex?.class ?? modal(ex?.class_counts)], note: ex?.class_counts ? 'Most common class among districts' : 'Rama Rao index, 5 indicators' },
+          { tab: null, label: 'Historical hazard', value: null, note: 'Drought, flood, cyclone · coming next' },
+          { tab: 'vulnerability', label: 'Vulnerability', value: null, note: 'Sensitivity and adaptive capacity · coming next' },
+        ].map(c => (
+          <button key={c.label} className={styles.partCard} disabled={!c.tab || !c.value} onClick={() => c.tab && setDrawerTab(c.tab)}>
+            <span className={styles.partLabel}>{c.label}</span>
+            <span className={styles.partValue}>
+              {c.color && <span className={styles.riskDot} style={{ background: c.color }} />}
+              {c.value ?? 'Coming next'}
+            </span>
+            <span className={styles.partNote}>{c.note}</span>
+          </button>
         ))}
       </div>
-
-      <div className={styles.sectionTitle} style={{ marginTop: 14 }}>Risk Profile</div>
-      <div className={styles.radarWrap}>
-        <ResponsiveContainer width="100%" height={200}>
-          <RadarChart data={radarData} margin={{ top: 10, right: 30, bottom: 10, left: 30 }}>
-            <PolarGrid stroke="var(--border)" />
-            <PolarAngleAxis dataKey="axis" tick={{ fontSize: 10, fill: 'var(--text-secondary)' }} />
-            <Radar name="Score" dataKey="value" stroke="#E05A3A" fill="#E05A3A" fillOpacity={0.25} />
-          </RadarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {riskInfo && (
-        <div className={styles.riskSummary} style={{ borderColor: riskInfo.color + '44', background: riskInfo.color + '11' }}>
-          <span className={styles.riskDot} style={{ background: riskInfo.color }} />
-          <span style={{ color: riskInfo.color, fontWeight: 700 }}>{riskInfo.label} Risk</span>
-          <span className={styles.riskScore}>Score: {stats.risk_score.score.toFixed(1)} / 100</span>
-        </div>
-      )}
     </>
+  )
+}
+
+// What drives the future hazard (Rama Rao index) in this district: each indicator's weighted contribution.
+function FutureDrivers({ stats }) {
+  const { hazardPeriod } = useCRVAStore()
+  const period = periodOf(hazardPeriod)
+  const dr = stats?.drivers
+  if (!dr) return null
+  if (dr.states_view === 'top_counts') {
+    return (
+      <div style={{ marginBottom: 14 }}>
+        <div className={styles.sectionTitle}>What drives future hazard · {periodLabel(period)}</div>
+        <TopCounts counts={dr.future_hazard?.[period]} labelOf={hazardLabel} />
+      </div>
+    )
+  }
+  const f = dr.future_hazard?.[period]
+  if (!f) return null
+  const items = Object.entries(f.c).map(([id, value]) => ({ id, label: hazardLabel(id), value }))
+  const sentence = driverSentence('Future hazard', items, f.index, 'unfavourable', 'favourable')
+  return (
+    <div style={{ marginBottom: 14 }}>
+      <div className={styles.sectionTitle}>What drives future hazard · {periodLabel(period)}</div>
+      {sentence && <div className={styles.driverSentence}>{sentence}</div>}
+      <DriverBars items={items} limit={6} upLabel="worsens" downLabel="eases" />
+      <div className={styles.summaryNote}>
+        Weighted, normalised change of each Rama Rao indicator (0 = no change from 1985–2014); median of {f.n} models.
+        {f.top && ` ${f.agree} of ${f.n} models have ${hazardLabel(f.top).toLowerCase()} as the main driver.`}
+      </div>
+    </div>
   )
 }
 
@@ -315,6 +265,7 @@ function HazardTab({ stats }) {
 
   return (
     <>
+      <FutureDrivers stats={stats} />
       {/* Indicator selector */}
       <div className={styles.indicatorPickerRow}>
         <div className={styles.activeIndicatorLabel}>
@@ -740,7 +691,7 @@ const INDICATOR_LABELS = {
 
 const EX_CLASS_COLOR = { 'Very low': '#2c7bb6', 'Low': '#abd9e9', 'Medium': '#e9e4d4', 'High': '#fdae61', 'Very high': '#d7191c' }
 
-function ExposureTab({ data }) {
+function ExposureTab({ data, drivers }) {
   if (!data) return (
     <div className={styles.empty} style={{ height: 120 }}>
       <div>No exposure data</div>
@@ -751,6 +702,9 @@ function ExposureTab({ data }) {
     const total = Object.values(data.class_counts).reduce((a, b) => a + b, 0)
     return (
       <>
+        <div className={styles.sectionTitle}>What drives exposure</div>
+        <TopCounts counts={drivers?.exposure} labelOf={exposureLabel} />
+        <div style={{ height: 12 }} />
         <div className={styles.sectionTitle}>Exposure index · districts by class</div>
         <div className={styles.cropNote}>Rama Rao et al. (2020) method. Zoom in and select a district for its indicators.</div>
         {Object.entries(data.class_counts).reverse().map(([c, n]) => (
@@ -765,6 +719,9 @@ function ExposureTab({ data }) {
   }
   const inds = exposureIndicators.flatMap(g => g.indicators).filter(i => i.bands)
   const gaps = data.gaps ? data.gaps.split(',') : []
+  const exd = drivers?.exposure
+  const dItems = exd ? Object.entries(exd.c).map(([id, value]) => ({ id, label: exposureLabel(id), value })) : []
+  const dSentence = exd ? driverSentence('Exposure', dItems, exd.index, 'above average', 'below average') : null
   return (
     <>
       <div className={styles.sectionTitle}>Exposure index</div>
@@ -774,6 +731,15 @@ function ExposureTab({ data }) {
         <strong>{data.class ?? '—'}</strong>
         <span className={styles.emptyNote}>index {typeof data.index === 'number' ? data.index.toFixed(2) : '—'} (0 = national mean)</span>
       </div>
+      {exd && (
+        <>
+          <div className={styles.sectionTitle} style={{ marginTop: 4 }}>What drives exposure</div>
+          {dSentence && <div className={styles.driverSentence}>{dSentence}</div>}
+          <DriverBars items={dItems} upLabel="raises" downLabel="lowers" />
+          <div className={styles.summaryNote}>Each indicator compared with the national average (z-score) times its Atlas weight; the bars add up to the index.</div>
+          <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Indicator values</div>
+        </>
+      )}
       {inds.map(ind => {
         const v = data.indicators?.[ind.id]
         const isGap = gaps.includes(ind.id)

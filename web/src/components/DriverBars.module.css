@@ -1,0 +1,21 @@
+.wrap { display: flex; flex-direction: column; gap: 5px; margin: 6px 0 4px; }
+.axis {
+  display: flex; justify-content: space-between;
+  margin-left: 42%; margin-right: 48px;
+  font-size: 10px; color: var(--text-muted); letter-spacing: 0.02em;
+}
+.row { display: grid; grid-template-columns: 42% 1fr 44px; align-items: center; gap: 6px; font-size: 11.5px; }
+.label { color: var(--text-secondary); line-height: 1.25; }
+.track { position: relative; height: 10px; background: var(--border); border-radius: 2px; }
+.mid { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--text-muted); }
+.bar { position: absolute; top: 0; bottom: 0; border-radius: 2px; }
+.up { background: #c8553d; }
+.down { background: #3b7bbf; }
+.val { text-align: right; font-variant-numeric: tabular-nums; color: var(--text-primary); font-size: 11px; }
+.pending .label { color: var(--text-muted); }
+.trackPending {
+  height: 10px; border: 1px dashed var(--border-hi, var(--border)); border-radius: 2px;
+  font-size: 9.5px; line-height: 9px; color: var(--text-muted); text-align: center;
+}
+.more { align-self: flex-start; font: inherit; font-size: 11px; color: var(--accent); background: none; border: 0; padding: 2px 0; cursor: pointer; }
+.more:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

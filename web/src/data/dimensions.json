@@ -2,7 +2,7 @@
   {
     "id": "climate_hazard",
     "label": "Climate Hazard",
-    "description": "Future climate hazard projections from INDRA-CMIP6 bias-corrected downscaled data (0.1° grid, 14-model ensemble mean) across four SSP scenarios and three time periods.",
+    "description": "Projected change in climate hazard by mid- and late century (SSP2-4.5), from six individual INDRA-CMIP6 models, following Rama Rao et al. (2020).",
     "mapType": "pmtiles",
     "hasTimeline": true,
     "hasScenario": true
