@@ -158,7 +158,7 @@ function OverviewTab({ stats }) {
         <>
           {sentence && <div className={styles.driverSentence}>{sentence}</div>}
           <DriverBars items={items} upLabel="raises risk" downLabel="lowers risk" />
-          <div className={styles.summaryNote}>Each part compared with other districts (0 = national average), times its Atlas weight (Table 6). Historical hazard and vulnerability are being added.</div>
+          <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Historical hazard and vulnerability are being added.</div>
         </>
       ) : (
         <div className={styles.emptyNote}>No risk breakdown for this area.</div>

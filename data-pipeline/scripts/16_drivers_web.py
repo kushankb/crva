@@ -5,9 +5,10 @@ Future hazard  each Table 5c indicator's contribution to the Rama Rao index (wei
                the six models, per window; `top` = the indicator pushing hardest in the direction of the index,
                `agree` = how many models have that same top driver.        (11_atlas_index.py -> atlas_contrib_per_model.csv)
 Exposure       each indicator's contribution (weight x z-score)            (Outputs/CRVA_exposure 03 -> exposure_index_lgd.csv)
-Risk           each component standardised across districts (z) x its Atlas Table 6 weight (hazard 20, future hazard 20,
-               exposure 20, vulnerability 40), so every bar means "how far this component pushes risk above or below the
-               national average". Historical hazard and vulnerability are not available yet (null).
+Risk           as in the Atlas: each component index x its Table 6 weight (historical hazard 20, future hazard 20,
+               exposure 20, vulnerability 40), added without rescaling. Exposure (z-score based) reads relative to other
+               districts; future hazard reads relative to today (0 = no change). Historical hazard and vulnerability are
+               not available yet (null).
 States         for each part, how many of the state's districts have each top driver.
 
 Writes a `drivers` block into web/public/data/crva_stats.json.
@@ -58,10 +59,7 @@ def main():
     idx = idx[idx.admin.str.startswith("district:")].set_index(["admin", "window"]).index_med
     med = pm.groupby(["admin", "window", "indicator"]).contrib.median().unstack()
     per_model = pm.pivot_table(index=["admin", "window", "model"], columns="indicator", values="contrib")
-    risk_fh = {}
-    for w in sorted(pm.window.unique()):
-        z = zscore(idx.xs(w, level="window"))
-        risk_fh[w] = z
+    risk_fh = {w: idx.xs(w, level="window") for w in sorted(pm.window.unique())}
     for (a, w), row in med.iterrows():
         if a not in out:
             continue
@@ -74,7 +72,7 @@ def main():
 
     # exposure
     ex = pd.read_csv(EXPO, dtype={"_id": str}).dropna(subset=["idx_atlas", "_id"])
-    z_ex = zscore(ex.set_index("_id").idx_atlas)
+    ex_idx = ex.set_index("_id").idx_atlas
     for r in ex.itertuples():
         a = f"district:{r._1}"
         if a not in out:
@@ -82,14 +80,14 @@ def main():
         c = {EX_ID[k]: round(float(getattr(r, f"c_{k}")), 4) for k in EX}
         out[a]["exposure"] = {"c": c, "index": round(float(r.idx_atlas), 4), "top": top_of(c, r.idx_atlas)}
 
-    # risk: weight x z of each component
+    # risk, as in the Atlas: Table 6 weight x each component index, added without further rescaling
     for a, d in out.items():
         i = a.split(":", 1)[1]
         rk = {}
         for w, z in risk_fh.items():
             rk[w] = {"historical_hazard": None, "vulnerability": None,
                      "future_hazard": round(float(z[a]) * RISK_W["future_hazard"], 4) if a in z.index else None,
-                     "exposure": round(float(z_ex[i]) * RISK_W["exposure"], 4) if i in z_ex.index else None}
+                     "exposure": round(float(ex_idx[i]) * RISK_W["exposure"], 4) if i in ex_idx.index else None}
             avail = {k: v for k, v in rk[w].items() if v is not None}
             rk[w]["top"] = top_of(avail, sum(avail.values())) if avail else None
         d["risk"] = rk
