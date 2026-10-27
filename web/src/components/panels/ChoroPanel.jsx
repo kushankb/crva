@@ -41,7 +41,6 @@ export default function ChoroPanel({ dimension }) {
 
   return (
     <div className={styles.root}>
-      <p className={styles.dimDesc}>{description}</p>
 
       {/* Crop period selector — only when a crop indicator is selected */}
       {isCropIndicator && (
@@ -67,13 +66,12 @@ export default function ChoroPanel({ dimension }) {
         </div>
       )}
 
-      <div className={styles.sectionLabel} style={{ marginTop: 12 }}>INDICATOR</div>
       {indicators.map(group => (
         <div key={group.group} className={styles.group}>
           <div className={styles.groupLabel}>
             {group.subgroup === 'sensitivity' && <span className={styles.subTag}>Sensitivity</span>}
-            {group.subgroup === 'crop_sensitivity' && <span className={styles.subTag} style={{ background: 'rgba(180,83,9,0.1)', color: '#b45309' }}>Crop Sensitivity · Soora RCP4.5</span>}
-            {group.subgroup === 'adaptive_capacity' && <span className={styles.subTag} style={{ background: 'rgba(26,152,80,0.12)', color: '#1A9850' }}>Adaptive Capacity</span>}
+            {group.subgroup === 'crop_sensitivity' && <span className={styles.subTag}>Sensitivity</span>}
+            {group.subgroup === 'adaptive_capacity' && <span className={styles.subTag}>Adaptive Capacity</span>}
             {group.group}
           </div>
           {group.indicators.map(ind => (
@@ -86,8 +84,8 @@ export default function ChoroPanel({ dimension }) {
               <div className={styles.indicatorTop}>
                 <span className={styles.indicatorLabel}>{ind.label}</span>
                 {ind.mapType === 'grid'
-                  ? <span className={`${styles.dirBadge}`} style={{ background: 'rgba(180,83,9,0.1)', color: '#b45309' }}>grid · Soora</span>
-                  : <span className={`${styles.dirBadge} ${ind.direction === '-' ? styles.dirGood : styles.dirBad}`}>
+                  ? null
+                  : dimension === 'vulnerability' && <span className={styles.dirBadge}>
                       {ind.direction === '-' ? '▲ adaptive' : '▼ risk'}
                     </span>
                 }

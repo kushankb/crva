@@ -106,12 +106,11 @@ export default function ClimateHazardPanel() {
 
   return (
     <div className={styles.root}>
-      <p className={styles.dimDesc}>Pick an indicator, then the period and what to show at the bottom of the map.</p>
-      <div className={styles.sectionLabel}>INDICATOR</div>
+      <p className={styles.hint}>Pick an indicator, then the period and what to show in the bar below the map.</p>
       {MAIN.map(renderGroup)}
 
       <details className={styles.more} open={inMore}>
-        <summary>More climate indicators · ensemble-mean grids, all scenarios</summary>
+        <summary>More climate indicators · ensemble mean, all scenarios</summary>
         {MORE.map(renderGroup)}
       </details>
 
