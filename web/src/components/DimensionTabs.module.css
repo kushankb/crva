@@ -8,7 +8,7 @@
 .riskBtn {
   width: 100%;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   text-align: center;
   color: var(--text-secondary);
@@ -40,7 +40,7 @@
 
 .tab {
   padding: 8px 4px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 500;
   text-align: center;
   color: var(--text-secondary);
@@ -68,7 +68,7 @@
 /* Active dimension description */
 .desc {
   margin: 8px 0 0;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-muted);
   line-height: 1.5;
   padding: 6px 8px;

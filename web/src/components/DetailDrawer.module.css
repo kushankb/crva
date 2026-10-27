@@ -28,14 +28,14 @@
 }
 
 .featureName {
-  font-size: 16px;
+  font-size: 14.5px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
 }
 
 .stateName {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-muted);
   margin-top: 2px;
 }
@@ -59,7 +59,7 @@
 
 .close {
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11.5px;
   width: 22px;
   height: 22px;
   display: flex;
@@ -119,11 +119,11 @@
   height: 100%;
   gap: 8px;
   color: var(--text-muted);
-  font-size: 12px;
+  font-size: 11.5px;
   text-align: center;
   padding: 24px;
 }
-.emptyIcon { font-size: 28px; }
+.emptyIcon { font-size: 24px; }
 .emptyNote { font-size: 10.5px; margin-top: 4px; }
 .emptyNote code { font-family: var(--font-mono); font-size: 10px; background: var(--border); padding: 1px 4px; border-radius: 3px; }
 
@@ -151,9 +151,9 @@
   padding: 8px 6px;
   text-align: center;
 }
-.scoreIcon { font-size: 13px; }
+.scoreIcon { font-size: 12px; }
 .scoreDimLabel { font-size: 9px; color: var(--text-muted); margin-top: 3px; line-height: 1.2; }
-.scoreVal { font-size: 16px; font-weight: 700; margin-top: 3px; font-family: var(--font-mono); }
+.scoreVal { font-size: 14.5px; font-weight: 700; margin-top: 3px; font-family: var(--font-mono); }
 
 .radarWrap { margin: 0 -6px; }
 
@@ -161,7 +161,7 @@
 .baselineRow {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-secondary);
   margin-bottom: 8px;
 }
@@ -286,7 +286,7 @@
   border-radius: var(--radius);
   border: 1px solid;
   margin-top: 10px;
-  font-size: 12px;
+  font-size: 11.5px;
 }
 .riskDot {
   width: 10px;
@@ -311,7 +311,7 @@
 }
 
 .activeIndicatorLabel {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
   flex: 1;
@@ -366,7 +366,7 @@
   width: 100%;
   text-align: left;
   padding: 5px 10px;
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-secondary);
   transition: background 0.1s;
   border-bottom: 1px solid var(--border);
@@ -391,7 +391,7 @@
 
 /* Drivers */
 .driverSentence {
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.45;
   color: var(--text-primary);
   margin: 2px 0 6px;
@@ -408,5 +408,5 @@
 .partCard:disabled .partValue { color: var(--text-muted); font-weight: 500; }
 .partCard:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .partLabel { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
-.partValue { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; }
+.partValue { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
 .partNote { font-size: 10.5px; color: var(--text-muted); line-height: 1.35; }

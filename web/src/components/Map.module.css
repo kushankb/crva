@@ -28,20 +28,20 @@
 }
 
 .placeholderIcon {
-  font-size: 28px;
+  font-size: 24px;
   color: var(--text-muted);
   margin-bottom: 8px;
 }
 
 .placeholderTitle {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .placeholderBody {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-secondary);
   line-height: 1.5;
 }
