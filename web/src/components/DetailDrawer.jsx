@@ -647,41 +647,69 @@ function IndexView({ fhi }) {
 const ALL_CROPS = ['Rice_Irrigated','Wheat','Maize','Chickpea','Pigeonpea','Soybean','Groundnut','Mustard','Cotton','Potato','Sorghum','Pearl_Millet']
 const CROP_PERIODS_LIST = ['2020','2050','2080']
 
+const CROP_HORIZONS = [{ id: 'mid', label: 'Mid-century', range: '2031–2065' }, { id: 'end', label: 'End-century', range: '2071–2100' }]
+const pct = v => (typeof v === 'number' ? `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}%` : '—')
+
+// Crop yield change: Soora et al. (TNC/InfoCrop) first, the pooled estimate and its range beside it.
 function CropTab({ stats }) {
-  const yields = stats?.crop_impact?.yields ?? {}
-  const crops = ALL_CROPS.filter(c => yields[c])
+  const [h, setH] = React.useState('mid')
+  const cs = stats?.crop_sensitivity
+  if (!cs) return (
+    <div className={styles.empty} style={{ height: 120 }}>
+      <div>No crop sensitivity data</div>
+      <div className={styles.emptyNote}>None of the synthesised crops is grown here, or the area is outside the analysis</div>
+    </div>
+  )
+  const state = cs.level === 'state'
+  const rows = Object.entries(cs.crops).map(([crop, v]) => ({ crop, ...(v[h] ?? {}) })).filter(r => r.n)
+  rows.sort((a, b) => state ? (b.major - a.major) || a.crop.localeCompare(b.crop) : (b.prod_kt ?? 0) - (a.prod_kt ?? 0))
+  const vals = rows.flatMap(r => [r.soora, r.pooled, r.lo, r.hi]).filter(v => typeof v === 'number')
+  const span = Math.max(20, ...vals.map(Math.abs))
+  const x = v => `${50 + (Math.max(-span, Math.min(span, v)) / span) * 50}%`
   return (
     <>
-      <div className={styles.sectionTitle}>Crop Yield Change — RCP 4.5 (Soora et al.)</div>
-      <div className={styles.cropNote}>% change relative to baseline. Green = benefit · Red = loss</div>
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Crop</th>
-            <th style={{ textAlign: 'right' }}>~2020</th>
-            <th style={{ textAlign: 'right' }}>~2050</th>
-            <th style={{ textAlign: 'right' }}>~2080</th>
-          </tr>
-        </thead>
-        <tbody>
-          {crops.map(c => (
-            <tr key={c}>
-              <td>{c.replace(/_/g, ' ')}</td>
-              {CROP_PERIODS_LIST.map(p => {
-                const v = yields[c]?.[p]
-                return (
-                  <td key={p} style={{ textAlign: 'right', color: v > 0 ? '#1A9850' : v < 0 ? '#D73027' : 'var(--text-muted)', fontWeight: Math.abs(v ?? 0) > 20 ? 700 : 400 }}>
-                    {v != null ? `${v > 0 ? '+' : ''}${v.toFixed(1)}%` : '—'}
-                  </td>
-                )
-              })}
-            </tr>
-          ))}
-        </tbody>
-        {crops.length === 0 && (
-          <tbody><tr><td colSpan={4}><div className={styles.cropNote} style={{ padding: '12px 0' }}>No crop data available for this area.</div></td></tr></tbody>
-        )}
-      </table>
+      <div className={styles.sectionTitle}>Crop yield change · climate change vs baseline</div>
+      <div className={styles.cropToggle} role="group" aria-label="Horizon">
+        {CROP_HORIZONS.map(o => (
+          <button key={o.id} className={`${styles.cropToggleBtn} ${h === o.id ? styles.cropToggleOn : ''}`} aria-pressed={h === o.id} onClick={() => setH(o.id)}>
+            {o.label}<span>{o.range}</span>
+          </button>
+        ))}
+      </div>
+      <div className={styles.cropKey} aria-hidden="true">
+        <span><i className={styles.keySoora} /> Soora et al. (TNC/InfoCrop)</span>
+        <span><i className={styles.keyPooled} /> Pooled{state ? ' (all studies)' : ' (3 sources)'}</span>
+        <span><i className={styles.keyRange} /> {state ? 'middle half of studies' : 'range of sources'}</span>
+      </div>
+      <div className={styles.cropRows}>
+        <div className={styles.cropAxis} aria-hidden="true"><span>{pct(-span)}</span><span>0</span><span>{pct(span)}</span></div>
+        {rows.map(r => (
+          <div key={r.crop} className={styles.cropRow}>
+            <div className={styles.cropName}>
+              {r.crop}
+              <span className={styles.cropMeta}>
+                {state ? (r.major ? 'major producer · ' : '') + `${r.n} stud${r.n === 1 ? 'y' : 'ies'}` : `${r.prod_kt >= 10 ? Math.round(r.prod_kt).toLocaleString() : r.prod_kt} kt · ${r.n} source${r.n === 1 ? '' : 's'}`}
+              </span>
+            </div>
+            <div className={styles.cropPlot} aria-label={`Soora ${pct(r.soora)}, pooled ${pct(r.pooled)}, range ${pct(r.lo)} to ${pct(r.hi)}`}>
+              <span className={styles.cropZero} />
+              {typeof r.lo === 'number' && <span className={styles.cropRange} style={{ left: x(Math.min(r.lo, r.hi)), right: `calc(100% - ${x(Math.max(r.lo, r.hi))})` }} />}
+              {typeof r.pooled === 'number' && <span className={styles.cropPooled} style={{ left: x(r.pooled) }} />}
+              {typeof r.soora === 'number' && <span className={styles.cropSoora} style={{ left: x(r.soora) }} />}
+            </div>
+            <div className={styles.cropVals}>
+              <strong>{pct(r.soora)}</strong>
+              <span>{pct(r.pooled)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className={styles.summaryNote} style={{ marginTop: 10 }}>
+        {state
+          ? 'Pooled: median of all study points for the state (published studies and large-scale datasets), headline configuration of the impacts synthesis; the line is the middle half of studies.'
+          : 'Pooled: median of Soora (TNC/InfoCrop), GGCMI and Hultgren for this district, each averaged over its variants; the line is their range. Only crops grown in the district are shown, by production.'}
+        {' '}Soora et al. include CO2 fertilisation. % change in yield.
+      </div>
     </>
   )
 }

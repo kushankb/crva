@@ -22,7 +22,7 @@ const CONFIG = {
     description: 'Inventory of rural people and agriculture-dependent livelihoods exposed to climate change impacts.',
   },
   vulnerability: {
-    indicators: vulnerabilityIndicators,
+    indicators: vulnerabilityIndicators.filter(g => g.subgroup !== 'crop_sensitivity'),  // crops: right panel only
     stateKey: 'vulnerabilityIndicatorId',
     setter: 'setVulnerabilityIndicator',
     footer: 'IMD · CGWB · NRSC · NSSO · MoA · Soora et al.',

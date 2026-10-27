@@ -410,3 +410,37 @@
 .partLabel { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); }
 .partValue { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
 .partNote { font-size: 10.5px; color: var(--text-muted); line-height: 1.35; }
+
+/* Crop sensitivity */
+.cropToggle { display: flex; gap: 4px; margin: 4px 0 8px; }
+.cropToggleBtn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 5px 6px; font: inherit; font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  background: transparent; border: 1px solid var(--border); border-radius: var(--radius); cursor: pointer;
+}
+.cropToggleBtn span { font-size: 10.5px; font-weight: 400; color: var(--text-muted); }
+.cropToggleOn { background: var(--accent); border-color: var(--accent); color: #fff; }
+.cropToggleOn span { color: rgba(255,255,255,0.75); }
+.cropToggleBtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cropKey { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 10.5px; color: var(--text-muted); margin-bottom: 6px; }
+.cropKey span { display: inline-flex; align-items: center; gap: 5px; }
+.keySoora, .keyPooled { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.keySoora { background: var(--text-primary); }
+.keyPooled { border: 1.5px solid var(--text-primary); background: var(--bg-panel); }
+.keyRange { width: 16px; height: 3px; background: var(--border-hi, #c9c3b8); display: inline-block; border-radius: 2px; }
+.cropRows { display: flex; flex-direction: column; gap: 2px; }
+.cropAxis {
+  display: flex; justify-content: space-between; margin-left: 34%; margin-right: 64px;
+  font-size: 9.5px; color: var(--text-muted); font-variant-numeric: tabular-nums;
+}
+.cropRow { display: grid; grid-template-columns: 34% 1fr 58px; align-items: center; gap: 6px; padding: 5px 0; border-top: 1px solid var(--border); }
+.cropName { font-size: 12px; font-weight: 600; color: var(--text-primary); display: flex; flex-direction: column; line-height: 1.25; }
+.cropMeta { font-size: 10px; font-weight: 400; color: var(--text-muted); }
+.cropPlot { position: relative; height: 16px; }
+.cropZero { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--text-muted); opacity: 0.6; }
+.cropRange { position: absolute; top: 6.5px; height: 3px; background: var(--border-hi, #c9c3b8); border-radius: 2px; }
+.cropPooled, .cropSoora { position: absolute; top: 3px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; }
+.cropPooled { border: 1.5px solid var(--text-primary); background: var(--bg-panel); }
+.cropSoora { background: var(--text-primary); width: 8px; height: 8px; top: 4px; margin-left: -4px; }
+.cropVals { display: flex; flex-direction: column; align-items: flex-end; font-size: 11.5px; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.cropVals span { font-size: 10.5px; color: var(--text-muted); }
