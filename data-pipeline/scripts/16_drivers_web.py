@@ -30,6 +30,8 @@ MI = HERE.parent / "model_indicators"
 HIST = ROOT.parent / "Outputs" / "CRVA_historical_hazard" / "data" / "processed" / "hazard_index_lgd.csv"
 EXPO = ROOT.parent / "Outputs" / "CRVA_exposure" / "data" / "processed" / "exposure_index_lgd.csv"
 STATS = ROOT / "web" / "public" / "data" / "crva_stats.json"
+# Ladakh (Leh, Kargil) is not assessed: left out of the exposure and historical hazard indices (2026-10-29)
+NOT_ASSESSED = {"district:003", "district:004"}
 RISK_W = {"historical_hazard": 0.2, "future_hazard": 0.2, "exposure": 0.2, "vulnerability": 0.4}
 EX = ["nsa", "rpd", "smh", "scst", "xbc"]
 EX_ID = {"nsa": "net_sown_area_pct", "rpd": "rural_pop_density", "smh": "small_marginal_farmers_pct",
@@ -102,6 +104,9 @@ def main():
             avail = {k: v for k, v in rk[w].items() if v is not None}
             rk[w]["top"] = top_of(avail, sum(avail.values())) if avail else None
         d["risk"] = rk
+        if a in NOT_ASSESSED:
+            d["risk"] = {w: None for w in rk}
+            d["not_assessed"] = "Ladakh: exposure and historical hazard data incomplete"
 
     for a, d in out.items():
         stats[a]["drivers"] = d
@@ -124,7 +129,7 @@ def main():
         if "historical_hazard" in d:
             s["historical_hazard"][d["historical_hazard"]["top"]] += 1
         for w, v in d["risk"].items():
-            if v["top"]:
+            if v and v["top"]:
                 s["risk"].setdefault(w, Counter())[v["top"]] += 1
     for sk, s in agg.items():
         stats[sk]["drivers"] = {"future_hazard": {w: dict(c) for w, c in s["future_hazard"].items()},
@@ -136,7 +141,7 @@ def main():
     print(f"drivers: {n_fh} districts with future hazard, {n_ex} with exposure, {len(agg)} states")
     ex_top = Counter(d["exposure"]["top"] for d in out.values() if "exposure" in d)
     fh_top = Counter(d["future_hazard"]["2050"]["top"] for d in out.values() if "future_hazard" in d)
-    print("risk ~2050 top parts:", Counter(d["risk"]["2050"]["top"] for d in out.values()).most_common())
+    print("risk ~2050 top parts:", Counter((d["risk"]["2050"] or {}).get("top") for d in out.values()).most_common())
     print("exposure top drivers:", ex_top.most_common()); print("future hazard ~2050 top drivers:", fh_top.most_common(6))
 
 

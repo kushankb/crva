@@ -36,6 +36,8 @@ def main():
 
     stats_f = WEB / "crva_stats.json"
     stats = json.loads(stats_f.read_text())
+    for v in stats.values():
+        v.pop("historical_hazard", None)   # clear old entries (e.g. districts later left out of the index)
     for i, row in enumerate(d.itertuples()):
         k = f"district:{row._1}"
         if k not in stats:

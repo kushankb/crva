@@ -126,8 +126,8 @@ export default function Legend() {
           ))}
         </div>
         <div className={styles.source}>{dimensionId === 'exposure'
-          ? 'Rural districts · urban districts not shown · missing source data counted as 0'
-          : 'Rural districts · urban districts and islands not shown'}</div>
+          ? 'Rural districts · urban districts, islands and Ladakh not assessed · missing source data counted as 0'
+          : 'Rural districts · urban districts, islands and Ladakh not assessed'}</div>
       </div>
     )
   }

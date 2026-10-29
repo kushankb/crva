@@ -165,7 +165,7 @@ function OverviewTab({ stats }) {
           <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Vulnerability is being added.</div>
         </>
       ) : (
-        <div className={styles.emptyNote}>No risk breakdown for this area.</div>
+        <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : 'No risk breakdown for this area.'}</div>
       )}
 
       <div className={styles.sectionTitle} style={{ marginTop: 16 }}>Parts of risk</div>
@@ -735,12 +735,12 @@ const EX_CLASS_COLOR = { 'Very low': '#2c7bb6', 'Low': '#abd9e9', 'Medium': '#e9
 
 const EX_CFG = {
   key: 'exposure', name: 'Exposure', groups: exposureIndicators, labelOf: exposureLabel, color: '#4A90C4',
-  noun: 'five indicators', empty: 'Urban districts and the islands are outside the Rama Rao exposure index',
+  noun: 'five indicators', empty: 'Not assessed: urban districts, the islands and Ladakh (incomplete data) are outside the Rama Rao exposure index',
   gapNote: true,
 }
 const HH_CFG = {
   key: 'historical_hazard', name: 'Historical hazard', groups: historicalIndicators, labelOf: historicalLabel, color: '#8a6d3b',
-  noun: 'drought, flood and cyclone proneness', empty: 'Urban districts and the islands are outside the Rama Rao index',
+  noun: 'drought, flood and cyclone proneness', empty: 'Not assessed: urban districts, the islands and Ladakh (incomplete data) are outside the Rama Rao index',
   units: { drought_proneness: '% of years', flood_proneness: '% of area', cyclone_proneness: '0–100' },
 }
 
