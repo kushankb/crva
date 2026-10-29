@@ -4,11 +4,10 @@ What drives each district's risk and each of its components, for the app's detai
 Future hazard  each Table 5c indicator's contribution to the Rama Rao index (weight x normalised change), median of
                the six models, per window; `top` = the indicator pushing hardest in the direction of the index,
                `agree` = how many models have that same top driver.        (11_atlas_index.py -> atlas_contrib_per_model.csv)
-Exposure       each indicator's contribution (weight x z-score)            (Outputs/CRVA_exposure 03 -> exposure_index_lgd.csv)
+Exposure, historical hazard  each indicator's contribution (weight x z-score)            (Outputs/CRVA_exposure 03 -> exposure_index_lgd.csv)
 Risk           as in the Atlas: each component index x its Table 6 weight (historical hazard 20, future hazard 20,
                exposure 20, vulnerability 40), added without rescaling. Exposure (z-score based) reads relative to other
-               districts; future hazard reads relative to today (0 = no change). Historical hazard and vulnerability are
-               not available yet (null).
+               districts; future hazard reads relative to today (0 = no change). Vulnerability is not available yet (null).
 States         for each part, how many of the state's districts have each top driver.
 
 Writes a `drivers` block into web/public/data/crva_stats.json.
@@ -28,6 +27,7 @@ ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 admin = importlib.import_module("04_admin_aggregates")
 MI = HERE.parent / "model_indicators"
+HIST = ROOT.parent / "Outputs" / "CRVA_historical_hazard" / "data" / "processed" / "hazard_index_lgd.csv"
 EXPO = ROOT.parent / "Outputs" / "CRVA_exposure" / "data" / "processed" / "exposure_index_lgd.csv"
 STATS = ROOT / "web" / "public" / "data" / "crva_stats.json"
 RISK_W = {"historical_hazard": 0.2, "future_hazard": 0.2, "exposure": 0.2, "vulnerability": 0.4}
@@ -80,12 +80,23 @@ def main():
         c = {EX_ID[k]: round(float(getattr(r, f"c_{k}")), 4) for k in EX}
         out[a]["exposure"] = {"c": c, "index": round(float(r.idx_atlas), 4), "top": top_of(c, r.idx_atlas)}
 
+    # historical hazard
+    hh = pd.read_csv(HIST, dtype={"_id": str}).dropna(subset=["idx_atlas", "_id"])
+    hh_idx = hh.set_index("_id").idx_atlas
+    for r in hh.itertuples():
+        a = f"district:{r._1}"
+        if a not in out:
+            continue
+        c = {f"{k}_proneness": round(float(getattr(r, f"c_{k}")), 4) for k in ("drought", "flood", "cyclone")}
+        out[a]["historical_hazard"] = {"c": c, "index": round(float(r.idx_atlas), 4), "top": top_of(c, r.idx_atlas)}
+
     # risk, as in the Atlas: Table 6 weight x each component index, added without further rescaling
     for a, d in out.items():
         i = a.split(":", 1)[1]
         rk = {}
         for w, z in risk_fh.items():
-            rk[w] = {"historical_hazard": None, "vulnerability": None,
+            rk[w] = {"vulnerability": None,
+                     "historical_hazard": round(float(hh_idx[i]) * RISK_W["historical_hazard"], 4) if i in hh_idx.index else None,
                      "future_hazard": round(float(z[a]) * RISK_W["future_hazard"], 4) if a in z.index else None,
                      "exposure": round(float(ex_idx[i]) * RISK_W["exposure"], 4) if i in ex_idx.index else None}
             avail = {k: v for k, v in rk[w].items() if v is not None}
@@ -105,17 +116,19 @@ def main():
         sk = state_keys.get(state_of.get(a))
         if not sk:
             continue
-        s = agg.setdefault(sk, {"future_hazard": {}, "exposure": Counter(), "risk": {}})
+        s = agg.setdefault(sk, {"future_hazard": {}, "exposure": Counter(), "historical_hazard": Counter(), "risk": {}})
         for w, v in d.get("future_hazard", {}).items():
             s["future_hazard"].setdefault(w, Counter())[v["top"]] += 1
         if "exposure" in d:
             s["exposure"][d["exposure"]["top"]] += 1
+        if "historical_hazard" in d:
+            s["historical_hazard"][d["historical_hazard"]["top"]] += 1
         for w, v in d["risk"].items():
             if v["top"]:
                 s["risk"].setdefault(w, Counter())[v["top"]] += 1
     for sk, s in agg.items():
         stats[sk]["drivers"] = {"future_hazard": {w: dict(c) for w, c in s["future_hazard"].items()},
-                                "exposure": dict(s["exposure"]), "risk": {w: dict(c) for w, c in s["risk"].items()},
+                                "exposure": dict(s["exposure"]), "historical_hazard": dict(s["historical_hazard"]), "risk": {w: dict(c) for w, c in s["risk"].items()},
                                 "states_view": "top_counts"}
     STATS.write_text(json.dumps(stats, separators=(",", ":")))
     n_fh = sum("future_hazard" in d for d in out.values())
@@ -123,6 +136,7 @@ def main():
     print(f"drivers: {n_fh} districts with future hazard, {n_ex} with exposure, {len(agg)} states")
     ex_top = Counter(d["exposure"]["top"] for d in out.values() if "exposure" in d)
     fh_top = Counter(d["future_hazard"]["2050"]["top"] for d in out.values() if "future_hazard" in d)
+    print("risk ~2050 top parts:", Counter(d["risk"]["2050"]["top"] for d in out.values()).most_common())
     print("exposure top drivers:", ex_top.most_common()); print("future hazard ~2050 top drivers:", fh_top.most_common(6))
 
 

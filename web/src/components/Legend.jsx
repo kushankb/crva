@@ -7,7 +7,7 @@ import { isAggregate, AGG_CLASSES, AGG_ABS, AGG_RR } from '../lib/aggregate.js'
 import { isMM, sourceLabel } from '../lib/multimodel.js'
 import { isCX, cxMeta, SEASONS } from '../lib/compound.js'
 import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
-import { exMeta, exLegend, EX_INDEX } from '../lib/exposure.js'
+import { layerMeta, layerLegend, isLayerIndex } from '../lib/exposure.js'
 import styles from './Legend.module.css'
 
 const GRADIENT = {
@@ -27,7 +27,7 @@ const DIM_COLORS = {
 }
 
 export default function Legend() {
-  const { dimensionId, exposureIndicatorId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode, hazardPeriod, mmSource, cxSeason } = useCRVAStore()
+  const { dimensionId, exposureIndicatorId, historicalIndicatorId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode, hazardPeriod, mmSource, cxSeason } = useCRVAStore()
   const dim = dimensions.find(d => d.id === dimensionId)
 
   if (dimensionId === 'climate_hazard') {
@@ -104,16 +104,18 @@ export default function Legend() {
     )
   }
 
-  if (dimensionId === 'exposure') {
-    const ind = exMeta(exposureIndicatorId)
-    const items = exLegend(exposureIndicatorId)
+  if (dimensionId === 'exposure' || dimensionId === 'historical_hazard') {
+    const id = dimensionId === 'exposure' ? exposureIndicatorId : historicalIndicatorId
+    const ind = layerMeta(dimensionId, id)
+    const items = layerLegend(dimensionId, id)
+    const isIdx = isLayerIndex(dimensionId, id)
     return (
       <div className={styles.box}>
         <div className={styles.title}>{ind?.label}</div>
         <div className={styles.subLabel}>
-          {exposureIndicatorId === EX_INDEX
+          {isIdx
             ? 'Rama Rao et al. (2020) · relative to the national mean'
-            : `${ind?.unit} · Atlas class bands`}
+            : `${ind?.unit} · ${dimensionId === 'exposure' ? 'Atlas class bands' : 'classes of the source data'}`}
         </div>
         <div className={styles.riskRow}>
           {items.slice().reverse().map(c => (
@@ -123,7 +125,9 @@ export default function Legend() {
             </div>
           ))}
         </div>
-        <div className={styles.source}>Rural districts · urban districts not shown · missing source data counted as 0</div>
+        <div className={styles.source}>{dimensionId === 'exposure'
+          ? 'Rural districts · urban districts not shown · missing source data counted as 0'
+          : 'Rural districts · urban districts and islands not shown'}</div>
       </div>
     )
   }
@@ -150,7 +154,7 @@ export default function Legend() {
   return (
     <div className={styles.box}>
       <div className={styles.title}>{dim?.label}</div>
-      <div className={styles.subLabel}>{dimensionId === 'historical_hazard' ? 'Coming next · drought, flood and cyclone proneness' : 'Placeholder · District-level data pending'}</div>
+      <div className={styles.subLabel}>Placeholder · District-level data pending</div>
       <div className={styles.choroBand} style={{ background: `linear-gradient(to right, #f7f7f7, ${color})` }} />
       <div className={styles.rangeRow}><span>Low</span><span>High</span></div>
     </div>

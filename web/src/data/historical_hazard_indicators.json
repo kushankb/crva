@@ -18,29 +18,35 @@
       {
         "id": "drought_proneness",
         "label": "Drought proneness",
-        "unit": "frequency of drought years",
+        "unit": "% of years in drought",
         "direction": "+",
-        "source": "IMD rainfall",
+        "source": "IMD rainfall 1981–2020",
         "weight": 55,
-        "rationale": "Frequent drought makes rainfed agriculture riskier."
+        "bands": [10, 20, 30],
+        "bandLabels": ["Low · < 10 %", "Moderate · 10–20 %", "High · 20–30 %", "Very high · ≥ 30 %"],
+        "rationale": "Share of years with seasonal rainfall more than 25 % below the district average (IMD meteorological drought). June–September rainfall where the monsoon brings at least half the annual total, annual rainfall otherwise."
       },
       {
         "id": "flood_proneness",
         "label": "Flood proneness",
-        "unit": "% of area flood-prone",
+        "unit": "% of area ever flooded",
         "direction": "+",
-        "source": "NDMA / CWC",
+        "source": "NRSC flood atlas 1998–2022",
         "weight": 25,
-        "rationale": "A larger flood-prone area puts more land and people at risk."
+        "bands": [5, 15, 30],
+        "bandLabels": ["Low · < 5 %", "Moderate · 5–15 %", "High · 15–30 %", "Very high · ≥ 30 %"],
+        "rationale": "Area flooded at least once in satellite images 1998–2022 (NRSC/ISRO Flood Affected Area Atlas), as a share of the district's area. 0 = no flooding observed."
       },
       {
         "id": "cyclone_proneness",
         "label": "Cyclone proneness",
-        "unit": "cyclone frequency and intensity",
+        "unit": "index 0–100",
         "direction": "+",
-        "source": "IMD cyclone records",
+        "source": "IMD cyclone tracks 1982–2020",
         "weight": 20,
-        "rationale": "Cyclones bring strong winds, flooding and saline intrusion."
+        "bands": [20, 40, 60],
+        "bandLabels": ["Low · < 20", "Moderate · 20–40", "High · 40–60", "Very high · ≥ 60"],
+        "rationale": "Equal-weight average of the number of cyclonic storms and of severe cyclonic storms crossing the district, and the highest wind on those tracks, each scaled 0–1 (IMD/RSMC best tracks)."
       }
     ]
   }

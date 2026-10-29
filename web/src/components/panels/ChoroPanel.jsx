@@ -10,9 +10,8 @@ const CONFIG = {
     indicators: historicalIndicators,
     stateKey: 'historicalIndicatorId',
     setter: 'setHistoricalIndicator',
-    footer: 'IMD · NDMA · CWC · Rama Rao et al. (2020) method',
+    footer: 'IMD rainfall 1981–2020 · NRSC flood atlas 1998–2022 · IMD cyclone tracks 1982–2020 · Rama Rao et al. (2020) method',
     description: 'How often districts have faced drought, floods and cyclones in the past.',
-    pending: 'Coming next: district drought, flood and cyclone proneness are being compiled.',
   },
   exposure: {
     indicators: exposureIndicators,
@@ -60,7 +59,7 @@ export default function ChoroPanel({ dimension }) {
         </div>
       )}
 
-      {!isCropIndicator && dimension !== 'exposure' && (
+      {!isCropIndicator && dimension === 'vulnerability' && (
         <div className={styles.placeholderNote}>
           {pending ?? 'Placeholder map · District-level data pending connection'}
         </div>

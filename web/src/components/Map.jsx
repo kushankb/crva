@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { loadEX, exClass, EX_INDEX, EX_CLASS_COLORS, EX_BAND_COLORS } from '../lib/exposure.js'
+import { loadLayer, layerClass, layerColors } from '../lib/exposure.js'
 import maplibregl from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
 import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
@@ -272,15 +272,15 @@ async function syncMapToState(m, store, setTilesStatus) {
     const propKey = store.getCropPropKey()
     await loadCropGrid(m, propKey, setTilesStatus)
 
-  } else if (dimensionId === 'exposure') {
+  } else if (dimensionId === 'exposure' || dimensionId === 'historical_hazard') {
     if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
     if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
-    await applyExposureState(m, store.exposureIndicatorId)
+    await applyLayerState(m, dimensionId, dimensionId === 'exposure' ? store.exposureIndicatorId : store.historicalIndicatorId)
     m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.85)
     m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
     setTilesStatus('ok')
 
-  } else if (dimensionId === 'vulnerability' || dimensionId === 'historical_hazard') {
+  } else if (dimensionId === 'vulnerability') {
     showChoropleth(m, dimensionId, setTilesStatus)
 
   } else if (dimensionId === 'risk_score') {
@@ -415,15 +415,19 @@ async function applyFhiState(m, ssp, period) {
   }
 }
 
-// Exposure (Rama Rao indicators and index) as a district choropleth: feature-state `exk` = class 0–4.
-async function applyExposureState(m, id) {
-  const ex = await loadEX()
-  const colors = id === EX_INDEX ? EX_CLASS_COLORS : EX_BAND_COLORS
+// Exposure / historical hazard (Rama Rao indicators and index) as a district choropleth: feature-state `exk` = class.
+async function applyLayerState(m, dim, id) {
+  const ex = await loadLayer(dim)
+  const colors = layerColors(dim, id)
   const k = ['feature-state', 'exk']
-  m.setPaintProperty(CHORO_LAYER, 'fill-color',
-    ['case', ['==', ['typeof', k], 'number'], ['match', ['to-number', k], 0, colors[0], 1, colors[1], 2, colors[2], 3, colors[3], colors[4]], 'rgba(0,0,0,0)'])
+  const match = ['match', ['to-number', k]]
+  colors.slice(0, -1).forEach((c, i) => match.push(i, c)); match.push(colors[colors.length - 1])
+  m.setPaintProperty(CHORO_LAYER, 'fill-color', ['case', ['==', ['typeof', k], 'number'], match, 'rgba(0,0,0,0)'])
+  // clear districts the other layer coloured but this one has no value for
+  if (m.__exIds) m.__exIds.forEach(a => m.setFeatureState({ source: 'districts', id: a }, { exk: null }))
+  m.__exIds = ex.ids
   ex.ids.forEach((a, i) => {
-    const c = exClass(id, ex, i)
+    const c = layerClass(dim, id, ex, i)
     m.setFeatureState({ source: 'districts', id: a }, { exk: typeof c === 'number' ? c : null })
   })
 }

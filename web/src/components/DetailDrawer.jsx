@@ -9,7 +9,8 @@ import { AGG_RR, AGG_ABS, AGG_REL, AGG_TITLES, isAggregate, statsCategory, aggCl
 import { isMM, mmComp } from '../lib/multimodel.js'
 import { isCX, cxKey, SEASONS } from '../lib/compound.js'
 import exposureIndicators from '../data/exposure_indicators.json'
-import DriverBars, { driverSentence, hazardLabel, exposureLabel, RISK_PARTS, riskLabel } from './DriverBars.jsx'
+import historicalIndicators from '../data/historical_hazard_indicators.json'
+import DriverBars, { driverSentence, hazardLabel, exposureLabel, historicalLabel, RISK_PARTS, riskLabel } from './DriverBars.jsx'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -102,7 +103,7 @@ export default function DetailDrawer() {
         {activeTab === 'overview' && <OverviewTab stats={stats} />}
         {activeTab === 'hazard' && <HazardTab stats={stats} />}
         {activeTab === 'crop' && <CropTab stats={stats} />}
-        {activeTab === 'historical' && <PendingTab title="Historical hazard" text="Drought (55%), flood (25%) and cyclone (20%) proneness, following Rama Rao et al. (2020), Table 5b. The district values are being compiled; this tab will then show the index and what drives it." />}
+        {activeTab === 'historical' && <ExposureTab data={stats?.historical_hazard} drivers={stats?.drivers} cfg={HH_CFG} />}
         {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} drivers={stats?.drivers} />}
         {activeTab === 'vulnerability' && <IndicatorTab data={stats?.vulnerability} label="Vulnerability" color={DIM_COLORS.vulnerability} note="Sensitivity factors and adaptive capacity" />}
       </div>
@@ -150,6 +151,7 @@ function OverviewTab({ stats }) {
   const rrCat = mm ? statsCategory(AGG_RR, mm) : null
   const rrC = rrCat ? aggClass(AGG_RR, rrCat) : null
   const ex = stats?.exposure
+  const hh = stats?.historical_hazard
 
   return (
     <>
@@ -160,7 +162,7 @@ function OverviewTab({ stats }) {
         <>
           {sentence && <div className={styles.driverSentence}>{sentence}</div>}
           <DriverBars items={items} upLabel="raises risk" downLabel="lowers risk" />
-          <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Historical hazard and vulnerability are being added.</div>
+          <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Vulnerability is being added.</div>
         </>
       ) : (
         <div className={styles.emptyNote}>No risk breakdown for this area.</div>
@@ -171,7 +173,7 @@ function OverviewTab({ stats }) {
         {[
           { tab: 'hazard', label: 'Future hazard', value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models unfavourable` : 'Rama Rao index, SSP2-4.5' },
           { tab: 'exposure', label: 'Exposure', value: ex?.class ?? modal(ex?.class_counts), color: EX_CLASS_COLOR_OV[ex?.class ?? modal(ex?.class_counts)], note: ex?.class_counts ? 'Most common class among districts' : 'Rama Rao index, 5 indicators' },
-          { tab: 'historical', label: 'Historical hazard', value: null, note: 'Drought, flood, cyclone · coming next' },
+          { tab: 'historical', label: 'Historical hazard', value: hh?.class ?? modal(hh?.class_counts), color: EX_CLASS_COLOR_OV[hh?.class ?? modal(hh?.class_counts)], note: hh?.class_counts ? 'Most common class among districts' : 'Drought, flood, cyclone, 1981–2022' },
           { tab: 'vulnerability', label: 'Vulnerability', value: null, note: 'Sensitivity and adaptive capacity · coming next' },
         ].map(c => (
           <button key={c.label} className={styles.partCard} disabled={!c.tab} onClick={() => c.tab && setDrawerTab(c.tab)}>
@@ -731,21 +733,32 @@ const INDICATOR_LABELS = {
 
 const EX_CLASS_COLOR = { 'Very low': '#2c7bb6', 'Low': '#abd9e9', 'Medium': '#e9e4d4', 'High': '#fdae61', 'Very high': '#d7191c' }
 
-function ExposureTab({ data, drivers }) {
+const EX_CFG = {
+  key: 'exposure', name: 'Exposure', groups: exposureIndicators, labelOf: exposureLabel, color: '#4A90C4',
+  noun: 'five indicators', empty: 'Urban districts and the islands are outside the Rama Rao exposure index',
+  gapNote: true,
+}
+const HH_CFG = {
+  key: 'historical_hazard', name: 'Historical hazard', groups: historicalIndicators, labelOf: historicalLabel, color: '#8a6d3b',
+  noun: 'drought, flood and cyclone proneness', empty: 'Urban districts and the islands are outside the Rama Rao index',
+  units: { drought_proneness: '% of years', flood_proneness: '% of area', cyclone_proneness: '0–100' },
+}
+
+function ExposureTab({ data, drivers, cfg = EX_CFG }) {
   if (!data) return (
     <div className={styles.empty} style={{ height: 120 }}>
-      <div>No exposure data</div>
-      <div className={styles.emptyNote}>Urban districts and the islands are outside the Rama Rao exposure index</div>
+      <div>No {cfg.name.toLowerCase()} data</div>
+      <div className={styles.emptyNote}>{cfg.empty}</div>
     </div>
   )
   if (data.class_counts) {
     const total = Object.values(data.class_counts).reduce((a, b) => a + b, 0)
     return (
       <>
-        <div className={styles.sectionTitle}>What drives exposure</div>
-        <TopCounts counts={drivers?.exposure} labelOf={exposureLabel} />
+        <div className={styles.sectionTitle}>What drives {cfg.name.toLowerCase()}</div>
+        <TopCounts counts={drivers?.[cfg.key]} labelOf={cfg.labelOf} />
         <div style={{ height: 12 }} />
-        <div className={styles.sectionTitle}>Exposure index · districts by class</div>
+        <div className={styles.sectionTitle}>{cfg.name} index · districts by class</div>
         <div className={styles.cropNote}>Rama Rao et al. (2020) method. Zoom in and select a district for its indicators.</div>
         {Object.entries(data.class_counts).reverse().map(([c, n]) => (
           <div key={c} className={styles.indicRow}>
@@ -757,15 +770,15 @@ function ExposureTab({ data, drivers }) {
       </>
     )
   }
-  const inds = exposureIndicators.flatMap(g => g.indicators).filter(i => i.bands)
+  const inds = cfg.groups.flatMap(g => g.indicators).filter(i => i.bands)
   const gaps = data.gaps ? data.gaps.split(',') : []
-  const exd = drivers?.exposure
-  const dItems = exd ? Object.entries(exd.c).map(([id, value]) => ({ id, label: exposureLabel(id), value })) : []
-  const dSentence = exd ? driverSentence('Exposure', dItems, exd.index, 'above average', 'below average') : null
+  const exd = drivers?.[cfg.key]
+  const dItems = exd ? Object.entries(exd.c).map(([id, value]) => ({ id, label: cfg.labelOf(id), value })) : []
+  const dSentence = exd ? driverSentence(cfg.name, dItems, exd.index, 'above average', 'below average') : null
   return (
     <>
-      <div className={styles.sectionTitle}>Exposure index</div>
-      <div className={styles.cropNote}>Rama Rao et al. (2020) method: five indicators, Atlas weights, classes relative to the national mean</div>
+      <div className={styles.sectionTitle}>{cfg.name} index</div>
+      <div className={styles.cropNote}>Rama Rao et al. (2020) method: {cfg.noun}, Atlas weights, classes relative to the national mean</div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 12px' }}>
         <span style={{ width: 14, height: 14, borderRadius: 3, background: EX_CLASS_COLOR[data.class] ?? '#ccc' }} />
         <strong>{data.class ?? '—'}</strong>
@@ -773,7 +786,7 @@ function ExposureTab({ data, drivers }) {
       </div>
       {exd && (
         <>
-          <div className={styles.sectionTitle} style={{ marginTop: 4 }}>What drives exposure</div>
+          <div className={styles.sectionTitle} style={{ marginTop: 4 }}>What drives {cfg.name.toLowerCase()}</div>
           {dSentence && <div className={styles.driverSentence}>{dSentence}</div>}
           <DriverBars items={dItems} upLabel="raises" downLabel="lowers" />
           <div className={styles.summaryNote}>Each indicator compared with the national average (z-score) times its Atlas weight; the bars add up to the index.</div>
@@ -786,15 +799,15 @@ function ExposureTab({ data, drivers }) {
         const top = ind.bands[ind.bands.length - 1] * 1.25
         return (
           <div key={ind.id} className={styles.indicRow}>
-            <span className={styles.indicName}>{ind.label} <span className={styles.emptyNote}>({ind.weight}%)</span></span>
+            <span className={styles.indicName}>{ind.label} <span className={styles.emptyNote} style={{ textTransform: 'none' }}>({ind.weight}%{cfg.units ? ` · ${cfg.units[ind.id]}` : ''})</span></span>
             <div className={styles.indicBar}>
-              <div className={styles.indicBarFill} style={{ width: `${Math.min(100, ((v ?? 0) / top) * 100)}%`, background: DIM_COLORS.exposure }} />
+              <div className={styles.indicBarFill} style={{ width: `${Math.min(100, ((v ?? 0) / top) * 100)}%`, background: cfg.color }} />
             </div>
             <span className={styles.indicVal}>{isGap ? 'no data' : typeof v === 'number' ? (v >= 100 ? v.toFixed(0) : v.toFixed(1)) : '—'}</span>
           </div>
         )
       })}
-      {gaps.length > 0 && <div className={styles.cropNote} style={{ marginTop: 8 }}>No source data for {gaps.length === 5 ? 'this district' : 'some indicators'}; counted as 0 in the index, so its class is not a measured result.</div>}
+      {cfg.gapNote && gaps.length > 0 && <div className={styles.cropNote} style={{ marginTop: 8 }}>No source data for {gaps.length === 5 ? 'this district' : 'some indicators'}; counted as 0 in the index, so its class is not a measured result.</div>}
       {data.source_district && <div className={styles.cropNote} style={{ marginTop: 8 }}>Values from 2011 district {data.source_district}.</div>}
     </>
   )
