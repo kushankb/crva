@@ -2,6 +2,7 @@ import React from 'react'
 import hazardIndicators from '../data/climate_hazard_indicators.json'
 import exposureIndicators from '../data/exposure_indicators.json'
 import historicalIndicators from '../data/historical_hazard_indicators.json'
+import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import styles from './DriverBars.module.css'
 
 // What pushes a score up or down: one diverging bar per part, sorted by size.
@@ -74,6 +75,8 @@ const EX = Object.fromEntries(exposureIndicators.flatMap(g => g.indicators).map(
 export const hazardLabel = id => HZ[`mm_${id}`] ?? id.replace(/_/g, ' ')
 export const exposureLabel = id => EX[id] ?? id.replace(/_/g, ' ')
 const HH = Object.fromEntries(historicalIndicators.flatMap(g => g.indicators).map(i => [i.id, i.label]))
+const VU = Object.fromEntries(vulnerabilityIndicators.flatMap(g => g.indicators).map(i => [i.id, i.label]))
+export const vulnerabilityLabel = id => VU[id] ?? id.replace(/_/g, ' ')
 export const historicalLabel = id => HH[id] ?? id.replace(/_/g, ' ')
 export const RISK_PARTS = [
   { id: 'historical_hazard', label: 'Historical hazard', weight: 20 },

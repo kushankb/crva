@@ -2,9 +2,11 @@
 // historical hazard (18_historical_web.py). Both share one shape: {ids, ind, idx, cls, classes, gap, parent}.
 import exposureIndicators from '../data/exposure_indicators.json'
 import historicalIndicators from '../data/historical_hazard_indicators.json'
+import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 
 export const EX_INDEX = 'exposure_index'
 export const HH_INDEX = 'historical_hazard_index'
+export const VU_INDEX = 'vulnerability_index'
 export const EX_CLASS_COLORS = ['#2c7bb6', '#abd9e9', '#e9e4d4', '#fdae61', '#d7191c']
 export const EX_BAND_COLORS = ['#eff3ff', '#bdd7e7', '#6baed6', '#3182bd', '#08519c']
 const HH_BAND_COLORS = ['#fff7ec', '#fdd49e', '#fc8d59', '#b30000']
@@ -12,6 +14,7 @@ const HH_BAND_COLORS = ['#fff7ec', '#fdd49e', '#fc8d59', '#b30000']
 const LAYERS = {
   exposure: { file: 'exposure.json', groups: exposureIndicators, index: EX_INDEX, bandColors: EX_BAND_COLORS },
   // historical hazard bands are the source files' classes, lower bound inclusive (≥ 10 % = Moderate, …)
+  vulnerability: { file: 'vulnerability.json', groups: vulnerabilityIndicators, index: VU_INDEX, bandColors: EX_BAND_COLORS },
   historical_hazard: { file: 'historical_hazard.json', groups: historicalIndicators, index: HH_INDEX, bandColors: HH_BAND_COLORS, lowerInclusive: true },
 }
 

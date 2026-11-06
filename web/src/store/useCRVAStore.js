@@ -61,7 +61,7 @@ export const useCRVAStore = create((set, get) => ({
   setExposureIndicator: (id) => set({ exposureIndicatorId: id }),
 
   // Vulnerability (incl. crop sensitivity)
-  vulnerabilityIndicatorId: 'rainfed_area_pct',
+  vulnerabilityIndicatorId: 'vulnerability_index',
   setVulnerabilityIndicator: (id) => set({ vulnerabilityIndicatorId: id }),
   cropSensitivityPeriod: '2050',
   setCropSensitivityPeriod: (p) => set({ cropSensitivityPeriod: p }),

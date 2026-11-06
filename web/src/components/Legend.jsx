@@ -104,8 +104,8 @@ export default function Legend() {
     )
   }
 
-  if (dimensionId === 'exposure' || dimensionId === 'historical_hazard') {
-    const id = dimensionId === 'exposure' ? exposureIndicatorId : historicalIndicatorId
+  if (dimensionId === 'exposure' || dimensionId === 'historical_hazard' || (dimensionId === 'vulnerability' && !vulnerabilityIndicatorId?.startsWith('crop_'))) {
+    const id = { exposure: exposureIndicatorId, historical_hazard: historicalIndicatorId, vulnerability: vulnerabilityIndicatorId }[dimensionId]
     const ind = layerMeta(dimensionId, id)
     const items = layerLegend(dimensionId, id)
     const isIdx = isLayerIndex(dimensionId, id)
@@ -115,7 +115,7 @@ export default function Legend() {
         <div className={styles.subLabel}>
           {isIdx
             ? 'Rama Rao et al. (2020) · relative to the national mean'
-            : `${ind?.unit} · ${dimensionId === 'exposure' ? 'Atlas class bands' : 'classes of the source data'}`}
+            : `${ind?.unit} · ${dimensionId === 'historical_hazard' ? 'classes of the source data' : dimensionId === 'exposure' ? 'Atlas class bands' : 'value bands'}`}
         </div>
         <div className={styles.riskRow}>
           {items.slice().reverse().map(c => (
@@ -125,7 +125,7 @@ export default function Legend() {
             </div>
           ))}
         </div>
-        <div className={styles.source}>{dimensionId === 'exposure'
+        <div className={styles.source}>{dimensionId === 'vulnerability' ? 'Partial: 11 of 15 Atlas indicators · urban districts, islands and Ladakh not assessed' : dimensionId === 'exposure'
           ? 'Rural districts · urban districts, islands and Ladakh not assessed · missing source data counted as 0'
           : 'Rural districts · urban districts, islands and Ladakh not assessed'}</div>
       </div>

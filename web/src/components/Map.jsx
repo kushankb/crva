@@ -272,10 +272,10 @@ async function syncMapToState(m, store, setTilesStatus) {
     const propKey = store.getCropPropKey()
     await loadCropGrid(m, propKey, setTilesStatus)
 
-  } else if (dimensionId === 'exposure' || dimensionId === 'historical_hazard') {
+  } else if (dimensionId === 'exposure' || dimensionId === 'historical_hazard' || dimensionId === 'vulnerability') {
     if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
     if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
-    await applyLayerState(m, dimensionId, dimensionId === 'exposure' ? store.exposureIndicatorId : store.historicalIndicatorId)
+    await applyLayerState(m, dimensionId, { exposure: store.exposureIndicatorId, historical_hazard: store.historicalIndicatorId, vulnerability: store.vulnerabilityIndicatorId }[dimensionId])
     m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.85)
     m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
     setTilesStatus('ok')

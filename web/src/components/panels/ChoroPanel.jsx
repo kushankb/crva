@@ -24,8 +24,8 @@ const CONFIG = {
     indicators: vulnerabilityIndicators.filter(g => g.subgroup !== 'crop_sensitivity'),  // crops: right panel only
     stateKey: 'vulnerabilityIndicatorId',
     setter: 'setVulnerabilityIndicator',
-    footer: 'IMD · CGWB · NRSC · NSSO · MoA · Soora et al.',
-    description: 'Sensitivity (factors increasing susceptibility, including projected crop yield impacts) and adaptive capacity (factors enabling adjustment).',
+    footer: 'Rama Rao et al. (2020) indicators and weights (Tables 4, 5d). Partial: self-help groups, market access, income and income inequity (19 % of the weight) not yet included.',
+    description: 'How well districts can absorb and adapt to climate shocks: natural, human, social and physical capital.',
   },
 }
 
@@ -59,7 +59,7 @@ export default function ChoroPanel({ dimension }) {
         </div>
       )}
 
-      {!isCropIndicator && dimension === 'vulnerability' && (
+      {false && (
         <div className={styles.placeholderNote}>
           {pending ?? 'Placeholder map · District-level data pending connection'}
         </div>
@@ -84,8 +84,8 @@ export default function ChoroPanel({ dimension }) {
                 <span className={styles.indicatorLabel}>{ind.label}</span>
                 {ind.mapType === 'grid'
                   ? null
-                  : dimension === 'vulnerability' && <span className={styles.dirBadge}>
-                      {ind.direction === '-' ? '▲ adaptive' : '▼ risk'}
+                  : dimension === 'vulnerability' && ind.weight && <span className={styles.dirBadge}>
+                      {ind.direction === '-' ? 'lowers' : 'raises'}
                     </span>
                 }
               </div>

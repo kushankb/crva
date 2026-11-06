@@ -10,7 +10,8 @@ import { isMM, mmComp } from '../lib/multimodel.js'
 import { isCX, cxKey, SEASONS } from '../lib/compound.js'
 import exposureIndicators from '../data/exposure_indicators.json'
 import historicalIndicators from '../data/historical_hazard_indicators.json'
-import DriverBars, { driverSentence, hazardLabel, exposureLabel, historicalLabel, RISK_PARTS, riskLabel } from './DriverBars.jsx'
+import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
+import DriverBars, { driverSentence, hazardLabel, exposureLabel, historicalLabel, vulnerabilityLabel, RISK_PARTS, riskLabel } from './DriverBars.jsx'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -105,7 +106,7 @@ export default function DetailDrawer() {
         {activeTab === 'crop' && <CropTab stats={stats} />}
         {activeTab === 'historical' && <ExposureTab data={stats?.historical_hazard} drivers={stats?.drivers} cfg={HH_CFG} />}
         {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} drivers={stats?.drivers} />}
-        {activeTab === 'vulnerability' && <IndicatorTab data={stats?.vulnerability} label="Vulnerability" color={DIM_COLORS.vulnerability} note="Sensitivity factors and adaptive capacity" />}
+        {activeTab === 'vulnerability' && <ExposureTab data={stats?.vulnerability} drivers={stats?.drivers} cfg={VU_CFG} />}
       </div>
 
       <div className={styles.source}>TCP/IND/4005 · IPCC WG2 AR6 · CRIDA · INDRA-CMIP6</div>
@@ -152,6 +153,7 @@ function OverviewTab({ stats }) {
   const rrC = rrCat ? aggClass(AGG_RR, rrCat) : null
   const ex = stats?.exposure
   const hh = stats?.historical_hazard
+  const vu = stats?.vulnerability
 
   return (
     <>
@@ -162,7 +164,7 @@ function OverviewTab({ stats }) {
         <>
           {sentence && <div className={styles.driverSentence}>{sentence}</div>}
           <DriverBars items={items} upLabel="raises risk" downLabel="lowers risk" />
-          <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Vulnerability is being added.</div>
+          <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Vulnerability is partial: 11 of the Atlas's 15 indicators.</div>
         </>
       ) : (
         <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : 'No risk breakdown for this area.'}</div>
@@ -174,7 +176,7 @@ function OverviewTab({ stats }) {
           { tab: 'hazard', label: 'Future hazard', value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models unfavourable` : 'Rama Rao index, SSP2-4.5' },
           { tab: 'exposure', label: 'Exposure', value: ex?.class ?? modal(ex?.class_counts), color: EX_CLASS_COLOR_OV[ex?.class ?? modal(ex?.class_counts)], note: ex?.class_counts ? 'Most common class among districts' : 'Rama Rao index, 5 indicators' },
           { tab: 'historical', label: 'Historical hazard', value: hh?.class ?? modal(hh?.class_counts), color: EX_CLASS_COLOR_OV[hh?.class ?? modal(hh?.class_counts)], note: hh?.class_counts ? 'Most common class among districts' : 'Drought, flood, cyclone, 1981–2022' },
-          { tab: 'vulnerability', label: 'Vulnerability', value: null, note: 'Sensitivity and adaptive capacity · coming next' },
+          { tab: 'vulnerability', label: 'Vulnerability', value: vu?.class ?? modal(vu?.class_counts), color: EX_CLASS_COLOR_OV[vu?.class ?? modal(vu?.class_counts)], note: vu?.class_counts ? 'Most common class among districts' : 'Partial: 11 of 15 Atlas indicators' },
         ].map(c => (
           <button key={c.label} className={styles.partCard} disabled={!c.tab} onClick={() => c.tab && setDrawerTab(c.tab)}>
             <span className={styles.partLabel}>{c.label}</span>
@@ -742,6 +744,13 @@ const HH_CFG = {
   key: 'historical_hazard', name: 'Historical hazard', groups: historicalIndicators, labelOf: historicalLabel, color: '#8a6d3b',
   noun: 'drought, flood and cyclone proneness', empty: 'Not assessed: urban districts, the islands and Ladakh (incomplete data) are outside the Rama Rao index',
   units: { drought_proneness: '% of years', flood_proneness: '% of area', cyclone_proneness: '0–100' },
+}
+
+const VU_CFG = {
+  key: 'vulnerability', name: 'Vulnerability', groups: vulnerabilityIndicators.filter(g => g.subgroup !== 'crop_sensitivity'),
+  labelOf: vulnerabilityLabel, color: '#A259C4',
+  noun: '11 of 15 indicators (self-help groups, markets, income and income inequity not yet available)',
+  empty: 'Not assessed: urban districts, the islands and Ladakh are outside the Rama Rao index',
 }
 
 function ExposureTab({ data, drivers, cfg = EX_CFG }) {
