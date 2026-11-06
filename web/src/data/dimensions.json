@@ -26,7 +26,7 @@
   {
     "id": "vulnerability",
     "label": "Vulnerability",
-    "description": "How well districts can absorb and adapt to climate shocks: natural, human, social, physical and financial capital (Rama Rao et al. 2020). 14 of 15 indicators so far.",
+    "description": "How well districts can absorb and adapt to climate shocks: natural, human, social, physical and financial capital (Rama Rao et al. 2020). 14 of the 15 Atlas indicators.",
     "mapType": "choropleth",
     "hasTimeline": false,
     "hasScenario": false

@@ -749,7 +749,7 @@ const HH_CFG = {
 const VU_CFG = {
   key: 'vulnerability', name: 'Vulnerability', groups: vulnerabilityIndicators.filter(g => g.subgroup !== 'crop_sensitivity'),
   labelOf: vulnerabilityLabel, color: '#A259C4',
-  noun: '14 of 15 indicators (per-capita income not yet available)',
+  noun: '14 indicators (per-capita income not available; its weight is added to low-income households)',
   empty: 'Not assessed: urban districts, the islands and Ladakh are outside the Rama Rao index',
 }
 
