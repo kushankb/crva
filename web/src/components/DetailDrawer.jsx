@@ -164,7 +164,7 @@ function OverviewTab({ stats }) {
         <>
           {sentence && <div className={styles.driverSentence}>{sentence}</div>}
           <DriverBars items={items} upLabel="raises risk" downLabel="lowers risk" />
-          <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Vulnerability is partial: 11 of the Atlas's 15 indicators.</div>
+          <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Vulnerability is 14 of the Atlas's 15 indicators.</div>
         </>
       ) : (
         <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : 'No risk breakdown for this area.'}</div>
@@ -176,7 +176,7 @@ function OverviewTab({ stats }) {
           { tab: 'hazard', label: 'Future hazard', value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models unfavourable` : 'Rama Rao index, SSP2-4.5' },
           { tab: 'exposure', label: 'Exposure', value: ex?.class ?? modal(ex?.class_counts), color: EX_CLASS_COLOR_OV[ex?.class ?? modal(ex?.class_counts)], note: ex?.class_counts ? 'Most common class among districts' : 'Rama Rao index, 5 indicators' },
           { tab: 'historical', label: 'Historical hazard', value: hh?.class ?? modal(hh?.class_counts), color: EX_CLASS_COLOR_OV[hh?.class ?? modal(hh?.class_counts)], note: hh?.class_counts ? 'Most common class among districts' : 'Drought, flood, cyclone, 1981–2022' },
-          { tab: 'vulnerability', label: 'Vulnerability', value: vu?.class ?? modal(vu?.class_counts), color: EX_CLASS_COLOR_OV[vu?.class ?? modal(vu?.class_counts)], note: vu?.class_counts ? 'Most common class among districts' : 'Partial: 11 of 15 Atlas indicators' },
+          { tab: 'vulnerability', label: 'Vulnerability', value: vu?.class ?? modal(vu?.class_counts), color: EX_CLASS_COLOR_OV[vu?.class ?? modal(vu?.class_counts)], note: vu?.class_counts ? 'Most common class among districts' : '14 of 15 Atlas indicators' },
         ].map(c => (
           <button key={c.label} className={styles.partCard} disabled={!c.tab} onClick={() => c.tab && setDrawerTab(c.tab)}>
             <span className={styles.partLabel}>{c.label}</span>
@@ -749,7 +749,7 @@ const HH_CFG = {
 const VU_CFG = {
   key: 'vulnerability', name: 'Vulnerability', groups: vulnerabilityIndicators.filter(g => g.subgroup !== 'crop_sensitivity'),
   labelOf: vulnerabilityLabel, color: '#A259C4',
-  noun: '11 of 15 indicators (self-help groups, markets, income and income inequity not yet available)',
+  noun: '14 of 15 indicators (per-capita income not yet available)',
   empty: 'Not assessed: urban districts, the islands and Ladakh are outside the Rama Rao index',
 }
 

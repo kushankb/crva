@@ -7,7 +7,7 @@ Future hazard  each Table 5c indicator's contribution to the Rama Rao index (wei
 Exposure, historical hazard  each indicator's contribution (weight x z-score)            (Outputs/CRVA_exposure 03 -> exposure_index_lgd.csv)
 Risk           as in the Atlas: each component index x its Table 6 weight (historical hazard 20, future hazard 20,
                exposure 20, vulnerability 40), added without rescaling. Exposure (z-score based) reads relative to other
-               districts; future hazard reads relative to today (0 = no change). Vulnerability is partial (11 of 15 Atlas indicators).
+               districts; future hazard reads relative to today (0 = no change). Vulnerability is 14 of 15 Atlas indicators.
 States         for each part, how many of the state's districts have each top driver.
 
 Writes a `drivers` block into web/public/data/crva_stats.json.
@@ -31,7 +31,7 @@ HIST = ROOT.parent / "Outputs" / "CRVA_historical_hazard" / "data" / "processed"
 VULN = ROOT.parent / "Outputs" / "CRVA_vulnerability" / "data" / "processed" / "vulnerability_index_lgd.csv"
 VU_ID = {"rain": "annual_rainfall_mm", "degr": "degraded_land_pct", "awhc": "awhc_mm", "gw": "groundwater_availability",
          "lsd": "livestock_density", "lit": "literacy_pct", "gap": "gender_gap_literacy", "irr": "net_irrigated_pct",
-         "road": "road_density", "elec": "rural_electrification_pct", "fert": "fertiliser_use"}
+         "road": "road_density", "elec": "rural_electrification_pct", "fert": "fertiliser_use", "shg": "shg_density", "mkt": "market_density", "linc": "low_income_households_pct"}
 EXPO = ROOT.parent / "Outputs" / "CRVA_exposure" / "data" / "processed" / "exposure_index_lgd.csv"
 STATS = ROOT / "web" / "public" / "data" / "crva_stats.json"
 # Ladakh (Leh, Kargil) is not assessed: left out of the exposure and historical hazard indices (2026-10-29)
@@ -96,7 +96,7 @@ def main():
         c = {f"{k}_proneness": round(float(getattr(r, f"c_{k}")), 4) for k in ("drought", "flood", "cyclone")}
         out[a]["historical_hazard"] = {"c": c, "index": round(float(r.idx_atlas), 4), "top": top_of(c, r.idx_atlas)}
 
-    # vulnerability (partial: 11 of 15 Atlas indicators)
+    # vulnerability (14 of 15 Atlas indicators)
     vu = pd.read_csv(VULN, dtype={"_id": str}).dropna(subset=["idx", "_id"])
     vu_idx = vu.set_index("_id").idx
     for r in vu.itertuples():

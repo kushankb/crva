@@ -125,7 +125,7 @@ export default function Legend() {
             </div>
           ))}
         </div>
-        <div className={styles.source}>{dimensionId === 'vulnerability' ? 'Partial: 11 of 15 Atlas indicators · urban districts, islands and Ladakh not assessed' : dimensionId === 'exposure'
+        <div className={styles.source}>{dimensionId === 'vulnerability' ? '14 of 15 Atlas indicators · urban districts, islands and Ladakh not assessed' : dimensionId === 'exposure'
           ? 'Rural districts · urban districts, islands and Ladakh not assessed · missing source data counted as 0'
           : 'Rural districts · urban districts, islands and Ladakh not assessed'}</div>
       </div>

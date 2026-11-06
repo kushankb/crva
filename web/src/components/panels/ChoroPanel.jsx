@@ -24,8 +24,8 @@ const CONFIG = {
     indicators: vulnerabilityIndicators.filter(g => g.subgroup !== 'crop_sensitivity'),  // crops: right panel only
     stateKey: 'vulnerabilityIndicatorId',
     setter: 'setVulnerabilityIndicator',
-    footer: 'Rama Rao et al. (2020) indicators and weights (Tables 4, 5d). Partial: self-help groups, market access, income and income inequity (19 % of the weight) not yet included.',
-    description: 'How well districts can absorb and adapt to climate shocks: natural, human, social and physical capital.',
+    footer: 'Rama Rao et al. (2020) indicators and weights (Tables 4, 5d). 14 of 15 indicators; per-capita income (4 % of the weight) not yet included. SHG density, market density and low-income households replace the Atlas definitions.',
+    description: 'How well districts can absorb and adapt to climate shocks: natural, human, social, physical and financial capital.',
   },
 }
 
