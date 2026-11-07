@@ -30,7 +30,7 @@ def main():
     out = {"ids": d["_id"].tolist(),
            "ind": {IND[c]: rnd(d[c], 1) for c in IND},
            "idx": rnd(d.idx_atlas, 3), "cls": cls, "classes": CLASSES,
-           "gap": [None if pd.isna(g) else ",".join(IND[x] for x in g.split(",")) for g in d.gap_filled_zero],
+           "gap": [None if pd.isna(g) else ",".join(IND[x] for x in g.split(",")) for g in d.missing],
            "parent": [None if (sh >= 0.9 or bn is True) else f"{s} (2011 district, {sh:.0%} of area)" for s, sh, bn in zip(d.district, d.share, d.by_name)]}
     (WEB / "historical_hazard.json").write_text(json.dumps(out, separators=(",", ":")))
 

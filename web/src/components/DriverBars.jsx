@@ -6,8 +6,8 @@ import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import styles from './DriverBars.module.css'
 
 // What pushes a score up or down: one diverging bar per part, sorted by size.
-// items: [{ id, label, value }] — value null shows the part as not yet available.
-export default function DriverBars({ items, max, limit, upLabel = 'raises', downLabel = 'lowers' }) {
+// items: [{ id, label, value }] — value null shows the part with `pendingLabel` (e.g. no data, weight shared).
+export default function DriverBars({ items, max, limit, upLabel = 'raises', downLabel = 'lowers', pendingLabel = 'not yet available' }) {
   const [all, setAll] = React.useState(false)
   const avail = items.filter(i => typeof i.value === 'number')
   const pending = items.filter(i => typeof i.value !== 'number')
@@ -40,7 +40,7 @@ export default function DriverBars({ items, max, limit, upLabel = 'raises', down
       {pending.map(i => (
         <div key={i.id} className={`${styles.row} ${styles.pending}`} role="listitem">
           <span className={styles.label}>{i.label}</span>
-          <span className={styles.trackPending}>not yet available</span>
+          <span className={styles.trackPending}>{pendingLabel}</span>
           <span className={styles.val}>—</span>
         </div>
       ))}

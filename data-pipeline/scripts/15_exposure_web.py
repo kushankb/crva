@@ -6,7 +6,8 @@ Writes web/public/data/exposure.json  {ids, ind: {indicator: [...]}, cls: [...],
        and an `exposure` block per district in web/public/data/crva_stats.json
 Exposure index: Rama Rao et al. (2020) method — z-scores across rural districts, rural density capped at p99,
 weights NSA 40 / density 15 / small holdings 20 / SC-ST 15 / crossbred cattle 10, classes at ±0.5 / ±1.5 SD.
-Gaps (districts missing from the source sheet) are 0 and flagged in `gap`.
+Missing values are not filled: `gap` lists them, and their weight is shared among the district's other indicators
+(crva_weights.reweighted_index). Districts missing from the source sheet have no index.
 
   conda run -n ml_trade python 15_exposure_web.py
 """
@@ -32,7 +33,7 @@ def main():
     out = {"ids": d["_id"].tolist(),
            "ind": {IND[c]: rnd(d[c], 1) for c in IND},
            "idx": rnd(d.idx_atlas, 3), "cls": cls, "classes": CLASSES,
-           "gap": [None if pd.isna(g) else ",".join(IND[x] for x in g.split(",")) for g in d.gap_filled_zero],
+           "gap": [None if pd.isna(g) else ",".join(IND[x] for x in g.split(",")) for g in d.missing],
            "parent": [None if m.startswith("same") or not s else f"{s} ({m.split(' (')[0]})" for s, m in zip(d.source_district.fillna(""), d.method)]}
     (WEB / "exposure.json").write_text(json.dumps(out, separators=(",", ":")))
 

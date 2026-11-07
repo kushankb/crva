@@ -138,6 +138,13 @@ function TopCounts({ counts, labelOf, noun = 'districts' }) {
   )
 }
 
+
+// Names of the parts with no data, for the re-weighting notes
+const listNames = (ids, labelOf) => {
+  const n = ids.map(labelOf)
+  return n.length > 1 ? `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}` : n[0]
+}
+
 function OverviewTab({ stats }) {
   const { hazardPeriod, setDrawerTab } = useCRVAStore()
   const period = periodOf(hazardPeriod)
@@ -163,11 +170,12 @@ function OverviewTab({ stats }) {
       ) : risk ? (
         <>
           {sentence && <div className={styles.driverSentence}>{sentence}</div>}
-          <DriverBars items={items} upLabel="raises risk" downLabel="lowers risk" />
+          <DriverBars items={items} upLabel="raises risk" downLabel="lowers risk" pendingLabel="no data · weight shared" />
           <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Vulnerability is 14 of the Atlas's 15 indicators.</div>
+          {risk.missing && <div className={styles.cropNote} style={{ marginTop: 6 }}>No {listNames(risk.missing.split(','), riskLabel).toLowerCase()} data here; its weight is shared among the other parts in proportion to their weights.</div>}
         </>
       ) : (
-        <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : 'No risk breakdown for this area.'}</div>
+        <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : 'Not assessed: less than half of the risk weight has data here (urban districts, the islands, and districts missing from the source data).'}</div>
       )}
 
       <div className={styles.sectionTitle} style={{ marginTop: 16 }}>Parts of risk</div>
@@ -182,7 +190,7 @@ function OverviewTab({ stats }) {
             <span className={styles.partLabel}>{c.label}</span>
             <span className={styles.partValue}>
               {c.color && <span className={styles.riskDot} style={{ background: c.color }} />}
-              {c.value ?? 'Coming next'}
+              {c.value ?? 'No data'}
             </span>
             <span className={styles.partNote}>{c.note}</span>
           </button>
@@ -738,7 +746,6 @@ const EX_CLASS_COLOR = { 'Very low': '#2c7bb6', 'Low': '#abd9e9', 'Medium': '#e9
 const EX_CFG = {
   key: 'exposure', name: 'Exposure', groups: exposureIndicators, labelOf: exposureLabel, color: '#4A90C4',
   noun: 'five indicators', empty: 'Not assessed: urban districts, the islands and Ladakh (incomplete data) are outside the Rama Rao exposure index',
-  gapNote: true,
 }
 const HH_CFG = {
   key: 'historical_hazard', name: 'Historical hazard', groups: historicalIndicators, labelOf: historicalLabel, color: '#8a6d3b',
@@ -797,7 +804,7 @@ function ExposureTab({ data, drivers, cfg = EX_CFG }) {
         <>
           <div className={styles.sectionTitle} style={{ marginTop: 4 }}>What drives {cfg.name.toLowerCase()}</div>
           {dSentence && <div className={styles.driverSentence}>{dSentence}</div>}
-          <DriverBars items={dItems} upLabel="raises" downLabel="lowers" />
+          <DriverBars items={dItems} upLabel="raises" downLabel="lowers" pendingLabel="no data · weight shared" />
           <div className={styles.summaryNote}>Each indicator compared with the national average (z-score) times its Atlas weight; the bars add up to the index.</div>
           <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Indicator values</div>
         </>
@@ -816,7 +823,9 @@ function ExposureTab({ data, drivers, cfg = EX_CFG }) {
           </div>
         )
       })}
-      {cfg.gapNote && gaps.length > 0 && <div className={styles.cropNote} style={{ marginTop: 8 }}>No source data for {gaps.length === 5 ? 'this district' : 'some indicators'}; counted as 0 in the index, so its class is not a measured result.</div>}
+      {gaps.length > 0 && <div className={styles.cropNote} style={{ marginTop: 8 }}>{typeof data.index === 'number'
+        ? `No data for ${listNames(gaps, cfg.labelOf).toLowerCase()}; ${gaps.length > 1 ? 'their weight is' : 'its weight is'} shared among the other indicators in proportion to their Atlas weights.`
+        : 'This district has no row in the source data, so it has no index.'}</div>}
       {data.source_district && <div className={styles.cropNote} style={{ marginTop: 8 }}>Values from 2011 district {data.source_district}.</div>}
     </>
   )

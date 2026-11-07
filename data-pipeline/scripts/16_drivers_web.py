@@ -6,7 +6,8 @@ Future hazard  each Table 5c indicator's contribution to the Rama Rao index (wei
                `agree` = how many models have that same top driver.        (11_atlas_index.py -> atlas_contrib_per_model.csv)
 Exposure, historical hazard  each indicator's contribution (weight x z-score)            (Outputs/CRVA_exposure 03 -> exposure_index_lgd.csv)
 Risk           as in the Atlas: each component index x its Table 6 weight (historical hazard 20, future hazard 20,
-               exposure 20, vulnerability 40), added without rescaling. Exposure (z-score based) reads relative to other
+               exposure 20, vulnerability 40). Where a part is missing, the weights are re-scaled over the parts the
+               district has (crva_weights.reweighted_index, used for every CRVA dimension; at least half needed). Exposure (z-score based) reads relative to other
                districts; future hazard reads relative to today (0 = no change). Vulnerability is 14 of 15 Atlas indicators.
 States         for each part, how many of the state's districts have each top driver.
 
@@ -26,6 +27,7 @@ HERE = Path(__file__).parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(HERE))
 admin = importlib.import_module("04_admin_aggregates")
+from crva_weights import reweighted_index
 MI = HERE.parent / "model_indicators"
 HIST = ROOT.parent / "Outputs" / "CRVA_historical_hazard" / "data" / "processed" / "hazard_index_lgd.csv"
 VULN = ROOT.parent / "Outputs" / "CRVA_vulnerability" / "data" / "processed" / "vulnerability_index_lgd.csv"
@@ -50,8 +52,9 @@ def top_of(contrib: dict, total: float):
     return (max if total >= 0 else min)(items, key=lambda kv: kv[1])[0]
 
 
-def zscore(s):
-    return (s - s.mean()) / s.std()
+def num(v, k=4):
+    """Rounded float, or None for a missing value (JSON has no NaN)."""
+    return None if v is None or pd.isna(v) else round(float(v), k)
 
 
 def main():
@@ -83,7 +86,7 @@ def main():
         a = f"district:{r._1}"
         if a not in out:
             continue
-        c = {EX_ID[k]: round(float(getattr(r, f"c_{k}")), 4) for k in EX}
+        c = {EX_ID[k]: num(getattr(r, f"c_{k}")) for k in EX}
         out[a]["exposure"] = {"c": c, "index": round(float(r.idx_atlas), 4), "top": top_of(c, r.idx_atlas)}
 
     # historical hazard
@@ -93,7 +96,7 @@ def main():
         a = f"district:{r._1}"
         if a not in out:
             continue
-        c = {f"{k}_proneness": round(float(getattr(r, f"c_{k}")), 4) for k in ("drought", "flood", "cyclone")}
+        c = {f"{k}_proneness": num(getattr(r, f"c_{k}")) for k in ("drought", "flood", "cyclone")}
         out[a]["historical_hazard"] = {"c": c, "index": round(float(r.idx_atlas), 4), "top": top_of(c, r.idx_atlas)}
 
     # vulnerability (14 of 15 Atlas indicators)
@@ -103,20 +106,30 @@ def main():
         a = f"district:{r._1}"
         if a not in out:
             continue
-        c = {VU_ID[k]: round(float(getattr(r, f"c_{k}")), 4) for k in VU_ID}
+        c = {VU_ID[k]: num(getattr(r, f"c_{k}")) for k in VU_ID}
         out[a]["vulnerability"] = {"c": c, "index": round(float(r.idx), 4), "top": top_of(c, r.idx)}
 
-    # risk, as in the Atlas: Table 6 weight x each component index, added without further rescaling
+    # risk, as in the Atlas: Table 6 weight x each component index; weights re-scaled over the parts a district has
+    ids = list(out)
+    num_ids = [a.split(":", 1)[1] for a in ids]
+    risk_tab = {}
+    for w, z in risk_fh.items():
+        parts = pd.DataFrame({"historical_hazard": hh_idx.reindex(num_ids).values,
+                              "future_hazard": z.reindex(ids).values,
+                              "exposure": ex_idx.reindex(num_ids).values,
+                              "vulnerability": vu_idx.reindex(num_ids).values}, index=ids)
+        risk_tab[w] = reweighted_index(parts, RISK_W)
     for a, d in out.items():
-        i = a.split(":", 1)[1]
         rk = {}
-        for w, z in risk_fh.items():
-            rk[w] = {"vulnerability": round(float(vu_idx[i]) * RISK_W["vulnerability"], 4) if i in vu_idx.index else None,
-                     "historical_hazard": round(float(hh_idx[i]) * RISK_W["historical_hazard"], 4) if i in hh_idx.index else None,
-                     "future_hazard": round(float(z[a]) * RISK_W["future_hazard"], 4) if a in z.index else None,
-                     "exposure": round(float(ex_idx[i]) * RISK_W["exposure"], 4) if i in ex_idx.index else None}
+        for w, (ix, contrib, share, missing) in risk_tab.items():
+            if pd.isna(ix[a]):
+                rk[w] = None
+                continue
+            rk[w] = {k: num(contrib.at[a, k]) for k in RISK_W}
             avail = {k: v for k, v in rk[w].items() if v is not None}
             rk[w]["top"] = top_of(avail, sum(avail.values())) if avail else None
+            if missing[a]:
+                rk[w]["missing"] = missing[a]
         d["risk"] = rk
         if a in NOT_ASSESSED:
             d["risk"] = {w: None for w in rk}

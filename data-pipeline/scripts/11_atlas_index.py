@@ -6,7 +6,8 @@ Per model and SSP2-4.5 window, over districts:
   1. change from 1985–2014 (% for rainfall and rainy days, absolute otherwise)
   2. truncate at the 1st and 99th percentile
   3. Z = ±X / (Xmax − Xmin) if the range spans 0, else ±X / |X|max  (− for inverse indicators)
-  4. index = Σ (Table 5c weight / 100) · Z
+  4. index = Σ (Table 5c weight / 100) · Z; a missing indicator's weight is shared among the district's others
+     (crva_weights.reweighted_index, used for every CRVA dimension; with complete data this is the same sum)
   5. category by the SD of the district index around zero (Table 7)
 States use the constants of the district distribution.
 
@@ -26,6 +27,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from crva_weights import reweighted_index
+
 IND_DIR = Path(__file__).parents[1] / "model_indicators"
 WEIGHTS = {"annual_rain": 10, "june_rain": 5, "july_rain": 15, "rainy_days": 5, "tmax": 6, "tmin": 6,
            "hot_days": 5, "cold_days": 3, "frost": 2, "drought": 12, "dry_spells": 11, "p99_rain": 5,
@@ -42,20 +45,25 @@ def category_code(v, sd):
 def main():
     ch = pd.read_csv(IND_DIR / "model_changes.csv")
     ch = ch[ch["indicator"].isin(WEIGHTS)]
-    rows, contrib = [], []
+    rows, contrib, scores = [], [], []
     for (model, window), g in ch.groupby(["model", "window"]):
         wide = g.pivot_table(index="admin", columns="indicator", values="change")
         dist = wide.index.str.startswith("district:")
-        index = pd.Series(0.0, index=wide.index)
-        for ind, w in WEIGHTS.items():
+        z = pd.DataFrame(index=wide.index)
+        for ind in WEIGHTS:
             x = wide[ind]
             d = x[dist].dropna()
             lo, hi = np.percentile(d, [1, 99])
             xc = x.clip(lo, hi)
             denom = (hi - lo) if lo < 0 < hi else max(abs(lo), abs(hi))
-            c = (SIGN[ind] * xc / (denom if denom > 0 else 1)).fillna(0) * w / 100
-            index += c
-            contrib.append(pd.DataFrame({"model": model, "window": window, "admin": c.index, "indicator": ind, "contrib": c.values}))
+            z[ind] = SIGN[ind] * xc / (denom if denom > 0 else 1)
+        index, c, share, _ = reweighted_index(z, WEIGHTS)
+        cl = c.stack(future_stack=True).rename("contrib").reset_index()
+        cl.columns = ["admin", "indicator", "contrib"]
+        contrib.append(cl.assign(model=model, window=window)[["model", "window", "admin", "indicator", "contrib"]])
+        # values and normalised scores, for the distribution plots (Outputs/CRVA_indicator_distributions)
+        scores.append(pd.concat([wide[list(WEIGHTS)].add_suffix("_change"), z.add_suffix("_score")], axis=1)
+                      .assign(model=model, window=window).reset_index())
         sd = index[dist].std(ddof=0)
         for admin, v in index.items():
             rows.append({"model": model, "window": window, "admin": admin, "index": v, "sd": sd,
@@ -72,6 +80,7 @@ def main():
     # each indicator's weighted, normalised contribution to the index (sums to the index), per model
     pd.concat(contrib).to_csv(IND_DIR / "atlas_contrib_per_model.csv", index=False)
     summ.to_csv(IND_DIR / "atlas_index.csv", index=False)
+    pd.concat(scores).to_csv(IND_DIR / "atlas_scores_per_model.csv", index=False)
 
     d = summ[summ["admin"].str.startswith("district:")]
     for w in sorted(d["window"].unique()):
