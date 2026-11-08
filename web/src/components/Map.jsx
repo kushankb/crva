@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { loadLayer, layerClass, layerColors } from '../lib/exposure.js'
+import { loadLayer, layerClass, layerColors, EX_CLASS_COLORS } from '../lib/exposure.js'
+import { loadRisk, riskWindow } from '../lib/risk.js'
 import maplibregl from 'maplibre-gl'
 import { Protocol } from 'pmtiles'
-import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
+import { useCRVAStore } from '../store/useCRVAStore.js'
 import Legend from './Legend.jsx'
 import { getHazardMeta, hazardScale, buildColorExpr } from '../lib/hazardScale.js'
 import { FHI_ID, FHI_CLASSES, fhiColorExpr } from '../lib/hazardIndex.js'
@@ -19,11 +20,6 @@ function ensurePmtiles() {
     maplibregl.addProtocol('pmtiles', p.tile.bind(p))
     pmRegistered = true
   }
-}
-
-function buildRiskColorExpr() {
-  return ['match', ['get', 'risk_class'],
-    5, '#D73027', 4, '#F46D43', 3, '#FEE08B', 2, '#A6D96A', 1, '#1A9850', '#cccccc']
 }
 
 async function tileExists(url) {
@@ -104,6 +100,7 @@ export default function Map() {
     if (!styleReady.current || !map.current) return
     const m = map.current
     const s = useCRVAStore.getState()
+    if (s.dimensionId === 'risk_score') { applyRiskState(m, s.hazardPeriod); return }
     if (s.dimensionId !== 'climate_hazard') return
     if (s.hazardIndicatorId === FHI_ID) { applyFhiState(m, s.hazardSsp, s.hazardPeriod); return }
     if (isAggregate(s.hazardIndicatorId)) { applyAggState(m, s.hazardIndicatorId, s.mmSource, s.hazardPeriod); return }
@@ -124,10 +121,15 @@ export default function Map() {
       m.setPaintProperty('state-outline',   'line-color',       dark ? '#6A6258' : '#555555')
       m.setPaintProperty('district-outline','line-color',       dark ? '#5A5248' : '#666666')
       m.setPaintProperty('india-border',    'line-color',       dark ? '#7A6E64' : '#444444')
+      m.setPaintProperty('district-selected', 'line-color',     dark ? '#F4EFE6' : '#1C1814')
     } catch (_) {}
   }, [theme])
 
   const currentDim = store.dimensionId
+  const sel = store.selectedFeature
+  useEffect(() => {
+    if (!sel || sel.type !== 'district') map.current?.__clearDistSel?.()
+  }, [sel])
 
   return (
     <div className={styles.wrap}>
@@ -142,7 +144,6 @@ export default function Map() {
               {currentDim === 'historical_hazard' && <>Historical hazard is coming next: drought, flood and cyclone proneness by district.</>}
               {currentDim === 'exposure'       && <>District-level data not yet loaded. Populate <code>public/data/crva_district_stats.json</code>.</>}
               {currentDim === 'vulnerability'  && <>District-level data not yet loaded. Populate <code>public/data/crva_district_stats.json</code>.</>}
-              {currentDim === 'risk_score'     && <>Risk score pending. Run <code>08_risk_score.py</code> once all indicator data are available.</>}
             </div>
           </div>
         </div>
@@ -171,12 +172,18 @@ function addAdminLayers(m, setSelectedFeature, popup) {
   m.addLayer({ id: 'district-fill',   type: 'fill', source: 'districts', layout: { visibility: 'none' }, paint: { 'fill-color': ['case', ['boolean', ['feature-state', 'selected'], false], 'rgba(201,169,110,0.18)', ['boolean', ['feature-state', 'hover'], false], 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0)'] } })
   m.addLayer({ id: 'district-outline',type: 'line', source: 'districts', layout: { visibility: 'none' }, paint: { 'line-color': '#666666', 'line-width': 0.5 } })
   m.addLayer({ id: 'india-border',    type: 'line', source: 'states',    paint: { 'line-color': '#555555', 'line-width': 1.2 } })
+  // selected district: a dark outline at every zoom, so the selection is visible on any layer
+  m.addLayer({ id: 'district-selected', type: 'line', source: 'districts', paint: { 'line-color': '#1C1814', 'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.2, 0] } })
 
   let stateHovId = null, stateSelId = null
   let distHovId  = null, distSelId  = null
+  const choroOn = () => { try { return m.getLayoutProperty('choro-fill', 'visibility') === 'visible' } catch { return false } }
+  // lets the component clear the district outline when the drawer moves to a state or closes
+  m.__clearDistSel = () => { if (distSelId !== null) { m.setFeatureState({ source: 'districts', id: distSelId }, { selected: false }); distSelId = null } }
+  const distMode = () => m.getZoom() >= DISTRICT_ZOOM || choroOn()
 
   m.on('mousemove', 'state-fill', e => {
-    if (m.getZoom() >= DISTRICT_ZOOM) return
+    if (distMode()) return
     if (!e.features.length) return
     m.getCanvas().style.cursor = 'pointer'
     if (stateHovId !== null) m.setFeatureState({ source: 'states', id: stateHovId }, { hover: false })
@@ -189,38 +196,44 @@ function addAdminLayers(m, setSelectedFeature, popup) {
     stateHovId = null; m.getCanvas().style.cursor = ''; popup.current.remove()
   })
   m.on('click', 'state-fill', e => {
-    if (m.getZoom() >= DISTRICT_ZOOM || !e.features.length) return
+    if (distMode() || !e.features.length) return
     if (stateSelId !== null) m.setFeatureState({ source: 'states', id: stateSelId }, { selected: false })
     stateSelId = e.features[0].id
     m.setFeatureState({ source: 'states', id: stateSelId }, { selected: true })
     setSelectedFeature({ type: 'state', id: stateSelId, name: e.features[0].properties.name ?? 'Unknown' })
   })
 
-  m.on('mousemove', 'district-fill', e => {
-    if (m.getZoom() < DISTRICT_ZOOM || !e.features.length) return
-    m.getCanvas().style.cursor = 'pointer'
-    if (distHovId !== null) m.setFeatureState({ source: 'districts', id: distHovId }, { hover: false })
-    distHovId = e.features[0].id
-    m.setFeatureState({ source: 'districts', id: distHovId }, { hover: true })
-    const p = e.features[0].properties
-    popup.current.setLngLat(e.lngLat).setHTML(`<strong>${p.name ?? 'District'}</strong><br/><span style="opacity:.7">${p.state_name ?? ''}</span><br/><span style="font-size:10px;opacity:.55">Click to explore</span>`).addTo(m)
-  })
-  m.on('mouseleave', 'district-fill', () => {
-    if (distHovId !== null) m.setFeatureState({ source: 'districts', id: distHovId }, { hover: false })
-    distHovId = null; m.getCanvas().style.cursor = ''; popup.current.remove()
-  })
-  m.on('click', 'district-fill', e => {
-    if (m.getZoom() < DISTRICT_ZOOM || !e.features.length) return
-    if (distSelId !== null) m.setFeatureState({ source: 'districts', id: distSelId }, { selected: false })
-    distSelId = e.features[0].id
-    m.setFeatureState({ source: 'districts', id: distSelId }, { selected: true })
-    const p = e.features[0].properties
-    setSelectedFeature({ type: 'district', id: distSelId, name: p.name ?? 'Unknown', state_name: p.state_name ?? '' })
-  })
+  // Districts are clickable at any zoom while a district layer is on the map (what you see is what you click);
+  // otherwise only from DISTRICT_ZOOM. The state is one click away in the drawer header.
+  const onDist = layer => (layer === 'district-fill' ? m.getZoom() >= DISTRICT_ZOOM : m.getZoom() < DISTRICT_ZOOM && choroOn())
+  for (const layer of ['district-fill', 'choro-fill']) {
+    m.on('mousemove', layer, e => {
+      if (!onDist(layer) || !e.features.length) return
+      m.getCanvas().style.cursor = 'pointer'
+      if (distHovId !== null) m.setFeatureState({ source: 'districts', id: distHovId }, { hover: false })
+      distHovId = e.features[0].id
+      m.setFeatureState({ source: 'districts', id: distHovId }, { hover: true })
+      const p = e.features[0].properties
+      popup.current.setLngLat(e.lngLat).setHTML(`<strong>${p.name ?? 'District'}</strong><br/><span style="opacity:.7">${p.state_name ?? ''}</span><br/><span style="font-size:10px;opacity:.55">Click to explore</span>`).addTo(m)
+    })
+    m.on('mouseleave', layer, () => {
+      if (distHovId !== null) m.setFeatureState({ source: 'districts', id: distHovId }, { hover: false })
+      distHovId = null; m.getCanvas().style.cursor = ''; popup.current.remove()
+    })
+    m.on('click', layer, e => {
+      if (!onDist(layer) || !e.features.length) return
+      if (stateSelId !== null) { m.setFeatureState({ source: 'states', id: stateSelId }, { selected: false }); stateSelId = null }
+      if (distSelId !== null) m.setFeatureState({ source: 'districts', id: distSelId }, { selected: false })
+      distSelId = e.features[0].id
+      m.setFeatureState({ source: 'districts', id: distSelId }, { selected: true })
+      const p = e.features[0].properties
+      setSelectedFeature({ type: 'district', id: distSelId, name: p.name ?? 'Unknown', state_name: p.state_name ?? '' })
+    })
+  }
 
   m.on('click', e => {
     const atState = m.queryRenderedFeatures(e.point, { layers: ['state-fill'] }).length
-    const atDist  = m.queryRenderedFeatures(e.point, { layers: ['district-fill'] }).length
+    const atDist  = m.queryRenderedFeatures(e.point, { layers: ['district-fill', 'choro-fill'] }).length
     if (atState || atDist) return
     if (stateSelId !== null) { m.setFeatureState({ source: 'states', id: stateSelId }, { selected: false }); stateSelId = null }
     if (distSelId  !== null) { m.setFeatureState({ source: 'districts', id: distSelId }, { selected: false }); distSelId = null }
@@ -284,7 +297,12 @@ async function syncMapToState(m, store, setTilesStatus) {
     showChoropleth(m, dimensionId, setTilesStatus)
 
   } else if (dimensionId === 'risk_score') {
-    showRiskScore(m, setTilesStatus)
+    if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
+    if (m.getSource(VEC_ID)) m.removeSource(VEC_ID)
+    await applyRiskState(m, store.hazardPeriod)
+    m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.85)
+    m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
+    setTilesStatus('ok')
   }
 }
 
@@ -447,11 +465,15 @@ function showChoropleth(m, dimensionId, setTilesStatus) {
   setTilesStatus('placeholder')
 }
 
-function showRiskScore(m, setTilesStatus) {
-  try {
-    m.setPaintProperty(CHORO_LAYER, 'fill-color', buildRiskColorExpr())
-    m.setPaintProperty(CHORO_LAYER, 'fill-opacity', 0.6)
-    m.setLayoutProperty(CHORO_LAYER, 'visibility', 'visible')
-  } catch (_) {}
-  setTilesStatus('placeholder')
+// Climate risk index (lib/risk.js) as a district choropleth: feature-state `exk` = class for the chosen window.
+async function applyRiskState(m, period) {
+  const r = await loadRisk()
+  const cls = r.cls[riskWindow(period)] ?? []
+  const k = ['feature-state', 'exk']
+  const match = ['match', ['to-number', k]]
+  EX_CLASS_COLORS.slice(0, -1).forEach((c, i) => match.push(i, c)); match.push(EX_CLASS_COLORS[EX_CLASS_COLORS.length - 1])
+  m.setPaintProperty(CHORO_LAYER, 'fill-color', ['case', ['==', ['typeof', k], 'number'], match, 'rgba(0,0,0,0)'])
+  if (m.__exIds) m.__exIds.forEach(a => m.setFeatureState({ source: 'districts', id: a }, { exk: null }))
+  m.__exIds = r.ids
+  r.ids.forEach((a, i) => m.setFeatureState({ source: 'districts', id: a }, { exk: typeof cls[i] === 'number' ? cls[i] : null }))
 }

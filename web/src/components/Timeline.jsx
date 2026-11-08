@@ -3,6 +3,7 @@ import { useCRVAStore, HAZARD_PERIODS, CROP_PERIODS } from '../store/useCRVAStor
 import { isAggregate } from '../lib/aggregate.js'
 import { isMM, MODELS } from '../lib/multimodel.js'
 import { isCX } from '../lib/compound.js'
+import { riskWindow } from '../lib/risk.js'
 import styles from './Timeline.module.css'
 
 export default function Timeline() {
@@ -71,6 +72,24 @@ export default function Timeline() {
     )
   }
 
+  if (dimensionId === 'risk_score') {
+    const w = riskWindow(hazardPeriod)
+    return (
+      <footer className={styles.bar}>
+        <span className={styles.label}>PERIOD</span>
+        <div className={styles.periods} role="group" aria-label="Future hazard period used in the risk index">
+          {HAZARD_PERIODS.filter(p => p.id !== 'historical').map(p => (
+            <button key={p.id} className={`${styles.period} ${w === p.id ? styles.active : ''}`} aria-pressed={w === p.id} onClick={() => setHazardPeriod(p.id)}>
+              <span className={styles.periodLabel}>{p.label}</span>
+              <span className={styles.periodRange}>{p.range}</span>
+            </button>
+          ))}
+        </div>
+        <div className={styles.note}>The period changes only the future-hazard part (20 %) · SSP2-4.5, median of 6 models</div>
+      </footer>
+    )
+  }
+
   // Static dimensions — minimal footer
   return (
     <footer className={styles.bar}>
@@ -79,7 +98,6 @@ export default function Timeline() {
         {dimensionId === 'exposure' && 'Exposure indicators — most recent census / administrative data'}
         {dimensionId === 'vulnerability' && 'Vulnerability indicators — sensitivity & adaptive capacity'}
         {dimensionId === 'historical_hazard' && 'Historical hazard — observed disaster proneness layers'}
-        {dimensionId === 'risk_score' && 'Composite risk score — IPCC WG2 framework (Risk = Hazard × Exposure × Vulnerability)'}
       </span>
     </footer>
   )

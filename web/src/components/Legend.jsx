@@ -1,5 +1,6 @@
 import React from 'react'
-import { useCRVAStore, RISK_CLASSES } from '../store/useCRVAStore.js'
+import { useCRVAStore, RISK_CLASSES, HAZARD_PERIODS } from '../store/useCRVAStore.js'
+import { riskWindow } from '../lib/risk.js'
 import dimensions from '../data/dimensions.json'
 import { getHazardMeta, hazardScale, cssGradient, fmt } from '../lib/hazardScale.js'
 import { FHI_ID, FHI_CLASSES } from '../lib/hazardIndex.js'
@@ -126,7 +127,7 @@ export default function Legend() {
           ))}
         </div>
         <div className={styles.source}>{dimensionId === 'vulnerability' ? '14 of 15 Atlas indicators · urban districts, islands and Ladakh not assessed' : dimensionId === 'exposure'
-          ? 'Rural districts · urban districts, islands and Ladakh not assessed · missing source data counted as 0'
+          ? 'Rural districts · urban districts, islands and Ladakh not assessed · no colour = no data'
           : 'Rural districts · urban districts, islands and Ladakh not assessed'}</div>
       </div>
     )
@@ -135,16 +136,17 @@ export default function Legend() {
   if (dimensionId === 'risk_score') {
     return (
       <div className={styles.box}>
-        <div className={styles.title}>Composite Risk Score</div>
-        <div className={styles.subLabel}>IPCC WG2 · Hazard × Exposure × Vulnerability</div>
+        <div className={styles.title}>Climate risk index</div>
+        <div className={styles.subLabel}>Rama Rao et al. (2020) · {HAZARD_PERIODS.find(p => p.id === riskWindow(hazardPeriod))?.label} · relative to the national mean</div>
         <div className={styles.riskRow}>
-          {RISK_CLASSES.slice().reverse().map(c => (
+          {RISK_CLASSES.map(c => (
             <div key={c.id} className={styles.riskItem}>
               <div className={styles.riskSwatch} style={{ background: c.color }} />
               <span>{c.label}</span>
             </div>
           ))}
         </div>
+        <div className={styles.source}>No colour: not assessed (urban districts, islands, Ladakh, or less than half the risk weight has data)</div>
       </div>
     )
   }

@@ -22,12 +22,13 @@ export const CROP_PERIODS = [
   { id: '2080', label: '~2080' },
 ]
 
+// Risk classes, highest first (Atlas Table 7); same colours as every other Atlas index in the tool (lib/risk.js)
 export const RISK_CLASSES = [
-  { id: 5, label: 'Very High', color: '#D73027' },
-  { id: 4, label: 'High',      color: '#F46D43' },
-  { id: 3, label: 'Moderate',  color: '#FEE08B' },
-  { id: 2, label: 'Low',       color: '#A6D96A' },
-  { id: 1, label: 'Very Low',  color: '#1A9850' },
+  { id: 'Very high', label: 'Very high', color: '#d7191c' },
+  { id: 'High',      label: 'High',      color: '#fdae61' },
+  { id: 'Medium',    label: 'Medium',    color: '#e9e4d4' },
+  { id: 'Low',       label: 'Low',       color: '#abd9e9' },
+  { id: 'Very low',  label: 'Very low',  color: '#2c7bb6' },
 ]
 
 export const useCRVAStore = create((set, get) => ({

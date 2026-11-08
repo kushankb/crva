@@ -34,9 +34,9 @@
   {
     "id": "risk_score",
     "label": "Risk Score",
-    "description": "Composite district-level climate risk classification (Very High to Very Low) combining hazard, exposure and vulnerability following the IPCC WG2 risk framework.",
+    "description": "Where is farming most at risk from climate change? The Rama Rao et al. (2020) index combines historical and future hazard, exposure and vulnerability with the Atlas weights.",
     "mapType": "risk",
-    "hasTimeline": false,
+    "hasTimeline": true,
     "hasScenario": false
   }
 ]

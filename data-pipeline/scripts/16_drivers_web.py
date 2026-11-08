@@ -11,7 +11,12 @@ Risk           as in the Atlas: each component index x its Table 6 weight (histo
                districts; future hazard reads relative to today (0 = no change). Vulnerability is 14 of 15 Atlas indicators.
 States         for each part, how many of the state's districts have each top driver.
 
-Writes a `drivers` block into web/public/data/crva_stats.json.
+Risk index   sum of the four parts; classes at ±0.5 / ±1.5 SD around the mean across districts with a risk index
+             (Atlas Table 7), per future-hazard window. Compared with Atlas Table 12 (state counts, 573 districts) in
+             Outputs/CRVA_risk/tables/state_classes_vs_atlas.csv.
+
+Writes a `drivers` and a `risk_score` block into web/public/data/crva_stats.json and web/public/data/risk.json
+  {ids, classes, idx: {window: [...]}, cls: {window: [...]}, missing: [...]}.
   conda run -n ml_trade python 16_drivers_web.py
 """
 import importlib
@@ -36,6 +41,19 @@ VU_ID = {"rain": "annual_rainfall_mm", "degr": "degraded_land_pct", "awhc": "awh
          "road": "road_density", "elec": "rural_electrification_pct", "fert": "fertiliser_use", "shg": "shg_density", "mkt": "market_density", "linc": "low_income_households_pct"}
 EXPO = ROOT.parent / "Outputs" / "CRVA_exposure" / "data" / "processed" / "exposure_index_lgd.csv"
 STATS = ROOT / "web" / "public" / "data" / "crva_stats.json"
+RISK_JSON = ROOT / "web" / "public" / "data" / "risk.json"
+RISK_OUT = ROOT.parent / "Outputs" / "CRVA_risk" / "tables"
+CLASSES = ["Very low", "Low", "Medium", "High", "Very high"]
+# Atlas Table 12: risk classes by state (Very low, Low, Medium, High, Very high), 573 districts
+ATLAS_T12 = {
+    "Andhra Pradesh": [0, 3, 6, 3, 1], "Arunachal Pradesh": [0, 1, 5, 6, 1], "Assam": [0, 2, 14, 5, 2], "Bihar": [0, 0, 14, 13, 10],
+    "Chhattisgarh": [0, 0, 10, 6, 0], "Goa": [0, 1, 1, 0, 0], "Gujarat": [3, 7, 7, 6, 2], "Haryana": [0, 0, 8, 8, 3],
+    "Himachal Pradesh": [0, 1, 3, 6, 2], "Jammu And Kashmir": [0, 1, 3, 7, 3], "Jharkhand": [0, 1, 11, 6, 0], "Karnataka": [0, 3, 9, 12, 3],
+    "Kerala": [0, 0, 1, 5, 8], "Madhya Pradesh": [1, 7, 21, 14, 2], "Maharashtra": [1, 2, 17, 11, 2], "Manipur": [0, 0, 3, 6, 0],
+    "Meghalaya": [0, 0, 0, 1, 6], "Mizoram": [0, 0, 1, 5, 2], "Nagaland": [0, 2, 0, 5, 1], "Odisha": [0, 0, 11, 13, 6],
+    "Puducherry": [1, 1, 0, 0, 0], "Punjab": [0, 2, 6, 4, 5], "Rajasthan": [0, 0, 5, 10, 17], "Sikkim": [0, 0, 0, 3, 1],
+    "Tamil Nadu": [4, 9, 11, 5, 0], "Telangana": [0, 2, 5, 2, 0], "Tripura": [0, 2, 2, 0, 0], "Uttar Pradesh": [0, 1, 21, 26, 22],
+    "Uttarakhand": [0, 0, 4, 2, 7], "West Bengal": [0, 0, 3, 11, 3]}
 # Ladakh (Leh, Kargil) is not assessed: left out of the exposure and historical hazard indices (2026-10-29)
 NOT_ASSESSED = {"district:003", "district:004"}
 RISK_W = {"historical_hazard": 0.2, "future_hazard": 0.2, "exposure": 0.2, "vulnerability": 0.4}
@@ -138,6 +156,23 @@ def main():
     for a, d in out.items():
         stats[a]["drivers"] = d
 
+    # risk index and classes (Atlas Table 7: ±0.5 / ±1.5 SD around the mean), per window
+    for v in stats.values():
+        v.pop("risk_score", None)
+    risk_json = {"ids": num_ids, "classes": CLASSES, "idx": {}, "cls": {}, "missing": None}
+    edges = [-np.inf, -1.5, -0.5, 0.5, 1.5, np.inf]
+    for w, (ix, contrib, share, missing) in risk_tab.items():
+        cls = pd.cut((ix - ix.mean()) / ix.std(), edges, labels=False)
+        risk_json["idx"][w] = [num(v, 3) for v in ix]
+        risk_json["cls"][w] = [None if pd.isna(c) else int(c) for c in cls]
+        for a in ids:
+            if pd.notna(ix[a]):
+                rs = stats[a].setdefault("risk_score", {"index": {}, "class": {}})
+                rs["index"][w], rs["class"][w] = num(ix[a], 3), CLASSES[int(cls[a])]
+        if w == "2050":
+            risk_json["missing"] = [None if pd.isna(ix[a]) else missing[a] for a in ids]
+    RISK_JSON.write_text(json.dumps(risk_json, separators=(",", ":")))
+
     # states: how many districts have each top driver
     dist = admin.load_districts().drop_duplicates("_id")
     key = lambda s: "".join(ch for ch in str(s).lower() if ch.isalpha()).replace("and", "")
@@ -160,6 +195,35 @@ def main():
         for w, v in d["risk"].items():
             if v and v["top"]:
                 s["risk"].setdefault(w, Counter())[v["top"]] += 1
+    # states: districts per risk class, per window
+    dist_state = {a: state_keys.get(state_of.get(a)) for a in ids}
+    for w in risk_tab:
+        cnt = {}
+        for a in ids:
+            c = (stats[a].get("risk_score") or {}).get("class", {}).get(w)
+            if c and dist_state[a]:
+                cnt.setdefault(dist_state[a], Counter())[c] += 1
+        for sk, c in cnt.items():
+            stats[sk].setdefault("risk_score", {"class_counts": {}})["class_counts"][w] = {k: int(c.get(k, 0)) for k in CLASSES}
+    # compare with Atlas Table 12 (state average class, 0 = Very low … 4 = Very high)
+    RISK_OUT.mkdir(parents=True, exist_ok=True)
+    rows = []
+    for sk, v in stats.items():
+        if not sk.startswith("state:") or "risk_score" not in v:
+            continue
+        name = v.get("name")
+        atlas = next((a for s_, a in ATLAS_T12.items() if key(s_) == key(name)), None)
+        for w, c in v["risk_score"]["class_counts"].items():
+            ours = [c[k] for k in CLASSES]
+            rows.append({"state": name, "window": w, **{f"ours_{k}": n for k, n in zip(CLASSES, ours)},
+                         "ours_mean_class": np.dot(range(5), ours) / max(sum(ours), 1),
+                         "atlas_mean_class": np.dot(range(5), atlas) / sum(atlas) if atlas else None})
+    cmp_ = pd.DataFrame(rows)
+    cmp_.round(3).to_csv(RISK_OUT / "state_classes_vs_atlas.csv", index=False)
+    for w, g in cmp_.dropna(subset=["atlas_mean_class"]).groupby("window"):
+        print(f"risk ~{w}: classes", [sum(1 for a in ids if (stats[a].get('risk_score') or {}).get('class', {}).get(w) == k) for k in CLASSES],
+              f"| state mean class r with Atlas Table 12 = {g.ours_mean_class.corr(g.atlas_mean_class):.2f}")
+
     for sk, s in agg.items():
         stats[sk]["drivers"] = {"future_hazard": {w: dict(c) for w, c in s["future_hazard"].items()},
                                 "exposure": dict(s["exposure"]), "historical_hazard": dict(s["historical_hazard"]), "vulnerability": dict(s["vulnerability"]), "risk": {w: dict(c) for w, c in s["risk"].items()},

@@ -28,7 +28,8 @@
 }
 
 .featureName {
-  font-size: 14.5px;
+  margin: 0;
+  font-size: 19px;
   font-weight: 700;
   color: var(--text-primary);
   line-height: 1.2;
@@ -71,17 +72,19 @@
 .close:hover { background: var(--border); }
 
 /* Tabs */
+/* Tabs: an even 3 x 2 grid in the order of the risk formula */
 .tabs {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
-  gap: 0;
+  padding: 0 8px;
 }
 
 .tab {
-  padding: 7px 11px;
-  font-size: 11.5px;
+  padding: 8px 4px;
+  font-size: 12px;
+  text-align: center;
   font-weight: 500;
   color: var(--text-muted);
   white-space: nowrap;
@@ -103,7 +106,7 @@
 }
 
 .source {
-  font-size: 9px;
+  font-size: 10px;
   color: var(--text-muted);
   padding: 7px 14px;
   border-top: 1px solid var(--border);
@@ -129,7 +132,7 @@
 
 /* Score grid */
 .sectionTitle {
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -202,10 +205,10 @@
   padding: 4px 0;
   border-bottom: 1px solid var(--border);
 }
-.indicName { font-size: 10.5px; color: var(--text-secondary); flex: 0 0 110px; line-height: 1.3; text-transform: capitalize; }
+.indicName { font-size: 12px; color: var(--text-secondary); flex: 0 0 130px; line-height: 1.3; }
 .indicBar { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
 .indicBarFill { height: 100%; border-radius: 2px; opacity: 0.75; }
-.indicVal { font-size: 10px; font-family: var(--font-mono); color: var(--text-muted); width: 32px; text-align: right; }
+.indicVal { font-size: 11.5px; font-family: var(--font-mono); color: var(--text-muted); width: 32px; text-align: right; }
 
 /* SSP legend in hazard tab */
 .sspLegend {
@@ -271,7 +274,7 @@
 
 /* Crop note / info text */
 .cropNote {
-  font-size: 10.5px;
+  font-size: 11.5px;
   color: var(--text-muted);
   margin-bottom: 8px;
   line-height: 1.4;
@@ -319,6 +322,7 @@
 }
 
 .activeIndicatorUnit {
+  margin-left: 6px;
   font-size: 11px;
   color: var(--text-muted);
   font-family: var(--font-mono);
@@ -382,7 +386,7 @@
 
 /* Overview summary note */
 .summaryNote {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--text-muted);
   margin-top: 8px;
   line-height: 1.45;
@@ -391,10 +395,10 @@
 
 /* Drivers */
 .driverSentence {
-  font-size: 12px;
-  line-height: 1.45;
+  font-size: 13px;
+  line-height: 1.5;
   color: var(--text-primary);
-  margin: 2px 0 6px;
+  margin: 2px 0 10px;
 }
 .partGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .partCard {
@@ -444,3 +448,76 @@
 .cropSoora { background: var(--text-primary); width: 8px; height: 8px; top: 4px; margin-left: -4px; }
 .cropVals { display: flex; flex-direction: column; align-items: flex-end; font-size: 11.5px; font-variant-numeric: tabular-nums; line-height: 1.25; }
 .cropVals span { font-size: 10.5px; color: var(--text-muted); }
+
+
+/* ── Redesign (2026-11): header breadcrumb, risk strip, part rows, percentile tracks ── */
+.headMain { min-width: 0; }
+.crumbs { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.crumbs .featureType { margin-bottom: 0; }
+.crumbSep { color: var(--text-muted); font-size: 11px; }
+.crumbLink { font-size: 12px; font-weight: 600; color: var(--accent); padding: 0; }
+.crumbLink:hover, .crumbLink:focus-visible { text-decoration: underline; }
+.body { font-size: 12.5px; padding: 14px 16px; overflow-x: hidden; }
+.loading { color: var(--text-muted); font-size: 12.5px; padding: 24px 0; text-align: center; }
+
+.hero {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+  padding: 10px 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.heroPill { font-size: 14px; font-weight: 700; padding: 5px 12px; border-radius: 6px; white-space: nowrap; }
+.heroPillNone { background: var(--border); color: var(--text-secondary); }
+.heroText { display: flex; flex-direction: column; flex: 1; min-width: 0; font-size: 13px; color: var(--text-primary); line-height: 1.35; }
+.heroText strong { font-size: 16px; }
+.heroSub { font-size: 11.5px; color: var(--text-muted); line-height: 1.4; }
+.heroSub strong { color: var(--text-primary); }
+.heroRow { display: flex; justify-content: space-between; align-items: baseline; width: 100%; }
+.heroTitle { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+.stackBar { display: flex; width: 100%; height: 14px; border-radius: 4px; overflow: hidden; gap: 1px; background: var(--border); }
+.stackLegend { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 11px; color: var(--text-secondary); width: 100%; }
+.stackLegend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: 0; }
+
+.partRows { display: flex; flex-direction: column; border-top: 1px solid var(--border); }
+.partRow {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 112px) 80px 10px; align-items: center; gap: 8px;
+  padding: 9px 2px; border-bottom: 1px solid var(--border); text-align: left; width: 100%;
+  transition: background 0.12s;
+}
+.partRow:hover, .partRow:focus-visible { background: rgba(46, 107, 94, 0.06); }
+.partName { font-size: 13px; font-weight: 600; color: var(--text-primary); display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 6px; }
+.partWeight { font-size: 11px; font-weight: 500; color: var(--text-muted); }
+.partChip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); line-height: 1.25; }
+.partChip i { flex-shrink: 0; }
+.partChip i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.12); }
+.partTrack { position: relative; height: 8px; background: var(--border); border-radius: 4px; }
+.partMid { position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--text-muted); }
+.partBar { position: absolute; top: 0; bottom: 0; border-radius: 4px; }
+.partBar.up { background: #c8553d; }
+.partBar.down { background: #4a7fb5; }
+.partNoData { position: absolute; inset: -4px 0; font-size: 10px; color: var(--text-muted); text-align: center; line-height: 16px; }
+.partGo { color: var(--text-muted); font-size: 15px; }
+.partAxis { display: flex; justify-content: flex-end; gap: 14px; font-size: 10.5px; color: var(--text-muted); padding: 4px 22px 0 0; }
+
+.noteBox { font-size: 12px; line-height: 1.45; color: var(--text-secondary); background: rgba(212, 160, 60, 0.12); border-radius: 6px; padding: 8px 10px; margin: 10px 0 0; }
+.hint { font-size: 11.5px; color: var(--text-muted); margin: 8px 0 0; line-height: 1.4; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+.method { margin-top: 16px; font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.method summary { cursor: pointer; font-weight: 600; color: var(--accent); font-size: 12px; list-style: none; }
+.method summary::before { content: '▸ '; }
+.method[open] summary::before { content: '▾ '; }
+.method p { margin: 6px 0 0; }
+
+.dimSummary { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+.dimSummary .partChip { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+
+.pctHead { display: grid; grid-template-columns: 1fr 88px 84px; gap: 10px; font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
+.pctHead > span:last-child { text-align: right; }
+.pctScale { display: flex; justify-content: space-between; }
+.pctRow { display: grid; grid-template-columns: 1fr 88px 84px; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--border); }
+.pctLabel { display: flex; flex-direction: column; font-size: 12.5px; color: var(--text-primary); line-height: 1.3; }
+.pctMeta { font-size: 10.5px; color: var(--text-muted); }
+.pctTrack { position: relative; height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--border), rgba(120, 110, 100, 0.35)); }
+.pctMarker { position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%; transform: translate(-50%, -50%); border: 2px solid var(--bg-panel); box-shadow: 0 0 0 1px rgba(0,0,0,0.25); }
+.pctVal { display: flex; flex-direction: column; align-items: flex-end; font-size: 12.5px; font-family: var(--font-mono); color: var(--text-primary); font-variant-numeric: tabular-nums; text-align: right; }
+.pctUnit { font-family: var(--font-sans); font-size: 10.5px; color: var(--text-muted); }
+.pctNone { font-family: var(--font-sans); font-size: 11.5px; color: var(--text-muted); }

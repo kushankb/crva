@@ -12,6 +12,8 @@ import exposureIndicators from '../data/exposure_indicators.json'
 import historicalIndicators from '../data/historical_hazard_indicators.json'
 import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import DriverBars, { driverSentence, hazardLabel, exposureLabel, historicalLabel, vulnerabilityLabel, RISK_PARTS, riskLabel } from './DriverBars.jsx'
+import { riskWindow, loadRisk, RISK_PARTS_W } from '../lib/risk.js'
+import { loadLayer } from '../lib/exposure.js'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -31,86 +33,146 @@ const DIM_COLORS = {
 
 const SSP_COLORS = { SSP126: '#1A9850', SSP245: '#80C97A', SSP370: '#F46D43', SSP585: '#D73027' }
 
+// Tabs follow the risk formula: the four parts in order of weight (Atlas Table 6), then crops
 const TABS = [
   { id: 'overview',     label: 'Overview' },
-  { id: 'hazard',       label: 'Future Hazard' },
-  { id: 'historical',   label: 'Historical Hazard' },
-  { id: 'crop',         label: 'Crop Sensitivity' },
-  { id: 'exposure',     label: 'Exposure' },
   { id: 'vulnerability',label: 'Vulnerability' },
+  { id: 'exposure',     label: 'Exposure' },
+  { id: 'historical',   label: 'Historical hazard' },
+  { id: 'hazard',       label: 'Future hazard' },
+  { id: 'crop',         label: 'Crops' },
 ]
+const PART_TAB = { vulnerability: 'vulnerability', exposure: 'exposure', historical_hazard: 'historical', future_hazard: 'hazard' }
+const normName = s => String(s ?? '').toLowerCase().replace(/[^a-z]/g, '').replace(/and/g, '')
 
 export default function DetailDrawer() {
-  const { selectedFeature, setSelectedFeature } = useCRVAStore()
+  const { selectedFeature, setSelectedFeature, hazardPeriod, drawerTab: activeTab, setDrawerTab: setActiveTab } = useCRVAStore()
   const [stats, setStats] = React.useState(null)
-  const { drawerTab: activeTab, setDrawerTab: setActiveTab } = useCRVAStore()
+  const [loading, setLoading] = React.useState(false)
+  const [parent, setParent] = React.useState(null)     // the district's state, for the breadcrumb
+  const [risk, setRisk] = React.useState(null)
 
+  React.useEffect(() => { loadRisk().then(setRisk) }, [])
   React.useEffect(() => {
     if (!selectedFeature) { setStats(null); return }
+    setLoading(true)
     loadStats().then(data => {
-      const key = `${selectedFeature.type}:${selectedFeature.id}`
-      setStats(data[key] ?? null)
+      setStats(data[`${selectedFeature.type}:${selectedFeature.id}`] ?? null)
+      const k = selectedFeature.type === 'district' ? normName(selectedFeature.state_name) : null
+      const hit = k ? Object.entries(data).find(([key, v]) => key.startsWith('state:') && normName(v.name) === k) : null
+      setParent(hit ? { id: hit[0].slice(6), name: hit[1].name } : null)
+      setLoading(false)
     })
   }, [selectedFeature])
 
   if (!selectedFeature) return null
-
-  const riskClass = stats?.risk_score?.class ?? null
-  const riskInfo  = RISK_CLASSES.find(r => r.id === riskClass)
-
-  const radarData = [
-    { axis: 'Climate Hazard',  value: stats?.climate_hazard?.composite_score ?? 0 },
-    { axis: 'Exposure',        value: stats?.exposure?.composite_score ?? 0 },
-    { axis: 'Vulnerability',   value: stats?.vulnerability?.composite_score ?? 0 },
-  ]
-
-  const hasHazardData = !!(stats?.climate_hazard?.indicators)
+  const w = riskWindow(hazardPeriod)
 
   return (
-    <aside className={styles.drawer}>
+    <aside className={styles.drawer} aria-label={`${selectedFeature.name}: climate risk details`}>
       <header className={styles.header}>
-        <div>
-          <div className={styles.featureType}>{selectedFeature.type}</div>
-          <div className={styles.featureName}>{selectedFeature.name}</div>
-          {selectedFeature.state_name && <div className={styles.stateName}>{selectedFeature.state_name}</div>}
+        <div className={styles.headMain}>
+          <div className={styles.crumbs}>
+            <span className={styles.featureType}>{selectedFeature.type}</span>
+            {parent && (
+              <>
+                <span className={styles.crumbSep} aria-hidden="true">·</span>
+                <button className={styles.crumbLink} title={`Show ${parent.name}: its districts by class and their main drivers`}
+                  onClick={() => setSelectedFeature({ type: 'state', id: parent.id, name: parent.name })}>{parent.name} ›</button>
+              </>
+            )}
+          </div>
+          <h2 className={styles.featureName}>{selectedFeature.name}</h2>
         </div>
-        <div className={styles.headerRight}>
-          {riskInfo && (
-            <div className={styles.riskBadge} style={{ background: riskInfo.color + '22', color: riskInfo.color, borderColor: riskInfo.color + '44' }}>
-              {riskInfo.label} Risk
-            </div>
-          )}
-          <button className={styles.close} onClick={() => setSelectedFeature(null)}>✕</button>
-        </div>
+        <button className={styles.close} onClick={() => setSelectedFeature(null)} aria-label="Close the panel">✕</button>
       </header>
 
-      <div className={styles.tabs}>
+      <RiskHero stats={stats} risk={risk} w={w} feature={selectedFeature} loading={loading} />
+
+      <nav className={styles.tabs} role="tablist" aria-label="Parts of risk">
         {TABS.map(t => (
-          <button key={t.id} className={`${styles.tab} ${activeTab === t.id ? styles.tabActive : ''}`} onClick={() => setActiveTab(t.id)}>
+          <button key={t.id} role="tab" aria-selected={activeTab === t.id} className={`${styles.tab} ${activeTab === t.id ? styles.tabActive : ''}`} onClick={() => setActiveTab(t.id)}>
             {t.label}
           </button>
         ))}
-      </div>
+      </nav>
 
       <div className={styles.body}>
-        {!stats && !hasHazardData && (
+        {loading ? (
+          <div className={styles.loading}>Loading…</div>
+        ) : !stats ? (
           <div className={styles.empty}>
             <div className={styles.emptyIcon}>◎</div>
             <div>No CRVA data for this {selectedFeature.type}.</div>
-            <div className={styles.emptyNote}>Exposure, Vulnerability and Risk Score data pending.</div>
           </div>
+        ) : (
+          <>
+            {activeTab === 'overview' && <OverviewTab stats={stats} />}
+            {activeTab === 'hazard' && <HazardTab stats={stats} />}
+            {activeTab === 'crop' && <CropTab stats={stats} />}
+            {activeTab === 'historical' && <ExposureTab data={stats?.historical_hazard} drivers={stats?.drivers} cfg={HH_CFG} fid={selectedFeature.id} />}
+            {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} drivers={stats?.drivers} fid={selectedFeature.id} />}
+            {activeTab === 'vulnerability' && <ExposureTab data={stats?.vulnerability} drivers={stats?.drivers} cfg={VU_CFG} fid={selectedFeature.id} />}
+          </>
         )}
-
-        {activeTab === 'overview' && <OverviewTab stats={stats} />}
-        {activeTab === 'hazard' && <HazardTab stats={stats} />}
-        {activeTab === 'crop' && <CropTab stats={stats} />}
-        {activeTab === 'historical' && <ExposureTab data={stats?.historical_hazard} drivers={stats?.drivers} cfg={HH_CFG} />}
-        {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} drivers={stats?.drivers} />}
-        {activeTab === 'vulnerability' && <ExposureTab data={stats?.vulnerability} drivers={stats?.drivers} cfg={VU_CFG} />}
       </div>
 
-      <div className={styles.source}>TCP/IND/4005 · IPCC WG2 AR6 · CRIDA · INDRA-CMIP6</div>
+      <div className={styles.source}>Rama Rao et al. (2020) ICAR-CRIDA method · INDRA-CMIP6 · FAO TCP/IND/4005</div>
     </aside>
+  )
+}
+
+// The answer first: the risk class for the chosen period, with the district's national rank (or, for a state, how
+// its districts split across classes). Stays visible on every tab.
+function RiskHero({ stats, risk, w, feature, loading }) {
+  const label = HAZARD_PERIODS.find(p => p.id === w)?.label
+  if (loading) return <div className={styles.hero}><span className={styles.heroSub}>Loading…</span></div>
+  if (feature.type === 'state') {
+    const cc = stats?.risk_score?.class_counts?.[w]
+    if (!cc) return null
+    const total = Object.values(cc).reduce((a, b) => a + b, 0)
+    const top = RISK_CLASSES.slice().sort((a, b) => (cc[b.id] ?? 0) - (cc[a.id] ?? 0))[0]
+    return (
+      <div className={styles.hero}>
+        <div className={styles.heroRow}>
+          <span className={styles.heroTitle}>Climate risk · {label}</span>
+          <span className={styles.heroSub}>{total} districts</span>
+        </div>
+        <div className={styles.stackBar} role="img" aria-label={RISK_CLASSES.map(c => `${c.label} ${cc[c.id] ?? 0}`).join(', ')}>
+          {RISK_CLASSES.slice().reverse().map(c => (cc[c.id] ? <span key={c.id} style={{ flex: cc[c.id], background: c.color }} title={`${c.label}: ${cc[c.id]}`} /> : null))}
+        </div>
+        <div className={styles.stackLegend}>
+          {RISK_CLASSES.slice().reverse().map(c => <span key={c.id}><i style={{ background: c.color }} />{c.label} {cc[c.id] ?? 0}</span>)}
+        </div>
+        <div className={styles.heroSub}>Most common class: <strong>{top.label}</strong>. Select a district for its own breakdown.</div>
+      </div>
+    )
+  }
+  const cls = stats?.risk_score?.class?.[w]
+  const info = RISK_CLASSES.find(c => c.id === cls)
+  let rank = null, n = 0
+  const i = risk ? risk.ids.indexOf(String(feature.id)) : -1
+  if (i >= 0 && typeof risk.idx[w]?.[i] === 'number') {
+    const v = risk.idx[w][i]
+    const all = risk.idx[w].filter(x => typeof x === 'number')
+    n = all.length; rank = 1 + all.filter(x => x > v).length
+  }
+  if (!info) {
+    return (
+      <div className={styles.hero}>
+        <span className={`${styles.heroPill} ${styles.heroPillNone}`}>Not assessed</span>
+        <span className={styles.heroSub}>{stats?.drivers?.not_assessed ? 'Ladakh: exposure and historical hazard data incomplete.' : 'Less than half of the risk weight has data here.'}</span>
+      </div>
+    )
+  }
+  return (
+    <div className={styles.hero}>
+      <span className={styles.heroPill} style={{ background: info.color, color: ['Very high', 'Very low'].includes(info.id) ? '#fff' : '#1C1814' }}>{info.label} risk</span>
+      <span className={styles.heroText}>
+        {rank && <span>Ranks <strong>{rank}</strong> of {n} districts</span>}
+        <span className={styles.heroSub}>{label} · 1 = highest risk · relative to the national average</span>
+      </span>
+    </div>
   )
 }
 
@@ -151,52 +213,75 @@ function OverviewTab({ stats }) {
   const dr = stats?.drivers
   const isState = dr?.states_view === 'top_counts'
   const risk = dr?.risk?.[period]
-  const items = RISK_PARTS.map(pt => ({ id: pt.id, label: `${pt.label} (${pt.weight}%)`, value: risk ? risk[pt.id] : null }))
-  const avail = items.filter(x => typeof x.value === 'number')
-  const total = avail.reduce((s, x) => s + x.value, 0)
-  const sentence = driverSentence('Risk', items.map(x => ({ ...x, label: x.label.replace(/ \(\d+%\)/, '') })), total, 'above average', 'below average')
   const mm = stats?.climate_hazard?.multimodel?.aggregate?.[period]
   const rrCat = mm ? statsCategory(AGG_RR, mm) : null
   const rrC = rrCat ? aggClass(AGG_RR, rrCat) : null
-  const ex = stats?.exposure
-  const hh = stats?.historical_hazard
-  const vu = stats?.vulnerability
+  const ex = stats?.exposure, hh = stats?.historical_hazard, vu = stats?.vulnerability
+  const partClass = {
+    vulnerability: { value: vu?.class ?? modal(vu?.class_counts), color: EX_CLASS_COLOR_OV[vu?.class ?? modal(vu?.class_counts)] },
+    exposure: { value: ex?.class ?? modal(ex?.class_counts), color: EX_CLASS_COLOR_OV[ex?.class ?? modal(ex?.class_counts)] },
+    historical_hazard: { value: hh?.class ?? modal(hh?.class_counts), color: EX_CLASS_COLOR_OV[hh?.class ?? modal(hh?.class_counts)] },
+    future_hazard: { value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models unfavourable` : null },
+  }
 
+  if (isState) {
+    return (
+      <>
+        <div className={styles.sectionTitle}>What drives risk in this state · {periodLabel(period)}</div>
+        <TopCounts counts={dr?.risk?.[period]} labelOf={riskLabel} />
+        <div className={styles.sectionTitle} style={{ marginTop: 18 }}>Parts of risk · most common class</div>
+        <PartRows parts={RISK_PARTS_W.map(p => ({ ...p, cls: partClass[p.id] }))} onOpen={id => setDrawerTab(PART_TAB[id])} />
+      </>
+    )
+  }
+  if (!risk) {
+    return <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : 'Not assessed: less than half of the risk weight has data here (urban districts, the islands, and districts missing from the source data).'}</div>
+  }
+  const items = RISK_PARTS_W.map(p => ({ id: p.id, label: p.label, value: risk[p.id] }))
+  const total = items.reduce((s, x) => s + (typeof x.value === 'number' ? x.value : 0), 0)
+  const sentence = driverSentence('Risk', items, total, 'above average', 'below average')
   return (
     <>
-      <div className={styles.sectionTitle}>What drives risk here · {periodLabel(period)}</div>
-      {isState ? (
-        <TopCounts counts={dr?.risk?.[period]} labelOf={riskLabel} />
-      ) : risk ? (
-        <>
-          {sentence && <div className={styles.driverSentence}>{sentence}</div>}
-          <DriverBars items={items} upLabel="raises risk" downLabel="lowers risk" pendingLabel="no data · weight shared" />
-          <div className={styles.summaryNote}>As in the Atlas: each part's index times its weight (Table 6). Exposure is relative to other districts; future hazard is relative to today (0 = no change). Vulnerability is 14 of the Atlas's 15 indicators.</div>
-          {risk.missing && <div className={styles.cropNote} style={{ marginTop: 6 }}>No {listNames(risk.missing.split(','), riskLabel).toLowerCase()} data here; its weight is shared among the other parts in proportion to their weights.</div>}
-        </>
-      ) : (
-        <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : 'Not assessed: less than half of the risk weight has data here (urban districts, the islands, and districts missing from the source data).'}</div>
-      )}
-
-      <div className={styles.sectionTitle} style={{ marginTop: 16 }}>Parts of risk</div>
-      <div className={styles.partGrid}>
-        {[
-          { tab: 'hazard', label: 'Future hazard', value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models unfavourable` : 'Rama Rao index, SSP2-4.5' },
-          { tab: 'exposure', label: 'Exposure', value: ex?.class ?? modal(ex?.class_counts), color: EX_CLASS_COLOR_OV[ex?.class ?? modal(ex?.class_counts)], note: ex?.class_counts ? 'Most common class among districts' : 'Rama Rao index, 5 indicators' },
-          { tab: 'historical', label: 'Historical hazard', value: hh?.class ?? modal(hh?.class_counts), color: EX_CLASS_COLOR_OV[hh?.class ?? modal(hh?.class_counts)], note: hh?.class_counts ? 'Most common class among districts' : 'Drought, flood, cyclone, 1981–2022' },
-          { tab: 'vulnerability', label: 'Vulnerability', value: vu?.class ?? modal(vu?.class_counts), color: EX_CLASS_COLOR_OV[vu?.class ?? modal(vu?.class_counts)], note: vu?.class_counts ? 'Most common class among districts' : '14 of 15 Atlas indicators' },
-        ].map(c => (
-          <button key={c.label} className={styles.partCard} disabled={!c.tab} onClick={() => c.tab && setDrawerTab(c.tab)}>
-            <span className={styles.partLabel}>{c.label}</span>
-            <span className={styles.partValue}>
-              {c.color && <span className={styles.riskDot} style={{ background: c.color }} />}
-              {c.value ?? 'No data'}
-            </span>
-            <span className={styles.partNote}>{c.note}</span>
-          </button>
-        ))}
-      </div>
+      <div className={styles.sectionTitle}>Why this risk level</div>
+      {sentence && <p className={styles.driverSentence}>{sentence}</p>}
+      <PartRows parts={RISK_PARTS_W.map(p => ({ ...p, cls: partClass[p.id], value: risk[p.id] }))} onOpen={id => setDrawerTab(PART_TAB[id])} bars />
+      {risk.missing && <p className={styles.noteBox}>No {listNames(risk.missing.split(','), riskLabel).toLowerCase()} data here; its weight is shared among the other parts in proportion to their weights.</p>}
+      <details className={styles.method}>
+        <summary>How is risk calculated?</summary>
+        <p>As in the Atlas (Tables 6 and 7): each part's index times its weight, added up, then classed at ±0.5 and ±1.5 SD around the national average. The bars show each part's contribution: right raises risk, left lowers it.</p>
+        <p>Exposure, vulnerability and historical hazard are relative to other districts; future hazard is the change from 1985–2014 (0 = no change), median of six climate models. Vulnerability uses 14 of the Atlas's 15 indicators.</p>
+      </details>
     </>
+  )
+}
+
+// One row per part of risk: name and weight, its class, (districts) its contribution as a diverging bar; opens its tab.
+function PartRows({ parts, onOpen, bars = false }) {
+  const m = Math.max(...parts.map(p => (typeof p.value === 'number' ? Math.abs(p.value) : 0)), 1e-9)
+  return (
+    <div className={styles.partRows} role="list">
+      {parts.map(p => {
+        const has = typeof p.value === 'number'
+        const wPct = has ? Math.min(50, (Math.abs(p.value) / m) * 50) : 0
+        return (
+          <button key={p.id} role="listitem" className={styles.partRow} onClick={() => onOpen(p.id)} title={`Open ${p.label}: its indicators and what drives it`}>
+            <span className={styles.partName}>{p.label}<span className={styles.partWeight}>{p.weight}%</span></span>
+            <span className={styles.partChip}>
+              {p.cls?.color && <i style={{ background: p.cls.color }} />}{p.cls?.value ?? 'No data'}
+            </span>
+            {bars && (
+              <span className={styles.partTrack} aria-label={has ? `${p.value >= 0 ? 'raises' : 'lowers'} risk` : 'no data, weight shared'}>
+                <span className={styles.partMid} />
+                {has ? <span className={`${styles.partBar} ${p.value >= 0 ? styles.up : styles.down}`} style={p.value >= 0 ? { left: '50%', width: `${wPct}%` } : { right: '50%', width: `${wPct}%` }} />
+                  : <span className={styles.partNoData}>no data</span>}
+              </span>
+            )}
+            <span className={styles.partGo} aria-hidden="true">›</span>
+          </button>
+        )
+      })}
+      {bars && <div className={styles.partAxis} aria-hidden="true"><span>← lowers risk</span><span>raises risk →</span></div>}
+    </div>
   )
 }
 
@@ -760,7 +845,9 @@ const VU_CFG = {
   empty: 'Not assessed: urban districts, the islands and Ladakh are outside the Rama Rao index',
 }
 
-function ExposureTab({ data, drivers, cfg = EX_CFG }) {
+function ExposureTab({ data, drivers, cfg = EX_CFG, fid }) {
+  const [layer, setLayer] = React.useState(null)
+  React.useEffect(() => { loadLayer(cfg.key).then(setLayer) }, [cfg.key])
   if (!data) return (
     <div className={styles.empty} style={{ height: 120 }}>
       <div>No {cfg.name.toLowerCase()} data</div>
@@ -771,18 +858,17 @@ function ExposureTab({ data, drivers, cfg = EX_CFG }) {
     const total = Object.values(data.class_counts).reduce((a, b) => a + b, 0)
     return (
       <>
-        <div className={styles.sectionTitle}>What drives {cfg.name.toLowerCase()}</div>
+        <div className={styles.sectionTitle}>What drives {cfg.name.toLowerCase()} in this state</div>
         <TopCounts counts={drivers?.[cfg.key]} labelOf={cfg.labelOf} />
-        <div style={{ height: 12 }} />
-        <div className={styles.sectionTitle}>{cfg.name} index · districts by class</div>
-        <div className={styles.cropNote}>Rama Rao et al. (2020) method. Zoom in and select a district for its indicators.</div>
+        <div className={styles.sectionTitle} style={{ marginTop: 18 }}>{cfg.name} · districts by class</div>
         {Object.entries(data.class_counts).reverse().map(([c, n]) => (
           <div key={c} className={styles.indicRow}>
-            <span className={styles.indicName}><span style={{ display: 'inline-block', width: 10, height: 10, borderRadius: 2, marginRight: 6, background: EX_CLASS_COLOR[c] }} />{c}</span>
+            <span className={styles.indicName}><span className={styles.swatch} style={{ background: EX_CLASS_COLOR[c] }} />{c}</span>
             <div className={styles.indicBar}><div className={styles.indicBarFill} style={{ width: `${(n / Math.max(total, 1)) * 100}%`, background: EX_CLASS_COLOR[c] }} /></div>
             <span className={styles.indicVal}>{n}</span>
           </div>
         ))}
+        <p className={styles.hint}>Select a district on the map for its indicators.</p>
       </>
     )
   }
@@ -791,42 +877,59 @@ function ExposureTab({ data, drivers, cfg = EX_CFG }) {
   const exd = drivers?.[cfg.key]
   const dItems = exd ? Object.entries(exd.c).map(([id, value]) => ({ id, label: cfg.labelOf(id), value })) : []
   const dSentence = exd ? driverSentence(cfg.name, dItems, exd.index, 'above average', 'below average') : null
+  const li = layer ? layer.ids.indexOf(String(fid)) : -1
+  // share of districts with a lower value: a scale every indicator shares
+  const pct = id => {
+    const arr = layer?.ind?.[id]; const v = arr?.[li]
+    if (li < 0 || typeof v !== 'number') return null
+    const all = arr.filter(x => typeof x === 'number')
+    return Math.round((100 * all.filter(x => x < v).length) / all.length)
+  }
   return (
     <>
-      <div className={styles.sectionTitle}>{cfg.name} index</div>
-      <div className={styles.cropNote}>Rama Rao et al. (2020) method: {cfg.noun}, Atlas weights, classes relative to the national mean</div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0 12px' }}>
-        <span style={{ width: 14, height: 14, borderRadius: 3, background: EX_CLASS_COLOR[data.class] ?? '#ccc' }} />
-        <strong>{data.class ?? '—'}</strong>
-        <span className={styles.emptyNote}>index {typeof data.index === 'number' ? data.index.toFixed(2) : '—'} (0 = national mean)</span>
+      <div className={styles.dimSummary}>
+        <span className={styles.partChip}><i style={{ background: EX_CLASS_COLOR[data.class] ?? '#ccc' }} />{data.class ?? 'No index'}</span>
+        <span className={styles.heroSub}>{typeof data.index === 'number' ? `${cfg.name} index ${data.index.toFixed(2)} · 0 = national average` : 'Not enough data for an index'}</span>
       </div>
       {exd && (
         <>
-          <div className={styles.sectionTitle} style={{ marginTop: 4 }}>What drives {cfg.name.toLowerCase()}</div>
-          {dSentence && <div className={styles.driverSentence}>{dSentence}</div>}
-          <DriverBars items={dItems} upLabel="raises" downLabel="lowers" pendingLabel="no data · weight shared" />
-          <div className={styles.summaryNote}>Each indicator compared with the national average (z-score) times its Atlas weight; the bars add up to the index.</div>
-          <div className={styles.sectionTitle} style={{ marginTop: 12 }}>Indicator values</div>
+          <div className={styles.sectionTitle}>What drives {cfg.name.toLowerCase()}</div>
+          {dSentence && <p className={styles.driverSentence}>{dSentence}</p>}
+          <DriverBars items={dItems} limit={6} upLabel="raises" downLabel="lowers" pendingLabel="no data · weight shared" />
         </>
       )}
+      <div className={styles.sectionTitle} style={{ marginTop: 16 }}>Indicator values</div>
+      <div className={styles.pctHead} aria-hidden="true"><span /><span className={styles.pctScale}><span>lowest</span><span>highest</span></span><span>value</span></div>
       {inds.map(ind => {
         const v = data.indicators?.[ind.id]
-        const isGap = gaps.includes(ind.id)
-        const top = ind.bands[ind.bands.length - 1] * 1.25
+        const isGap = gaps.includes(ind.id) || typeof v !== 'number'
+        const p = isGap ? null : pct(ind.id)
+        const unit = cfg.units ? cfg.units[ind.id] : ind.unit
         return (
-          <div key={ind.id} className={styles.indicRow}>
-            <span className={styles.indicName}>{ind.label} <span className={styles.emptyNote} style={{ textTransform: 'none' }}>({ind.weight}%{cfg.units ? ` · ${cfg.units[ind.id]}` : ''})</span></span>
-            <div className={styles.indicBar}>
-              <div className={styles.indicBarFill} style={{ width: `${Math.min(100, ((v ?? 0) / top) * 100)}%`, background: cfg.color }} />
+          <div key={ind.id} className={styles.pctRow}>
+            <div className={styles.pctLabel}>
+              <span>{ind.label}</span>
+              <span className={styles.pctMeta}>{ind.weight}% · {ind.direction === '-' ? 'higher lowers' : 'higher raises'} {cfg.name.toLowerCase()}</span>
             </div>
-            <span className={styles.indicVal}>{isGap ? 'no data' : typeof v === 'number' ? (v >= 100 ? v.toFixed(0) : v.toFixed(1)) : '—'}</span>
+            <div className={styles.pctTrack} title={p == null ? 'No data' : `Higher than ${p}% of districts`}>
+              {p != null && <span className={styles.pctMarker} style={{ left: `${p}%`, background: cfg.color }} />}
+            </div>
+            <div className={styles.pctVal}>
+              {isGap ? <span className={styles.pctNone}>no data</span> : <>{v >= 100 ? v.toFixed(0) : v.toFixed(1)}<span className={styles.pctUnit}> {unit}</span></>}
+              {p != null && <span className={styles.pctMeta}>above {p}%</span>}
+            </div>
           </div>
         )
       })}
-      {gaps.length > 0 && <div className={styles.cropNote} style={{ marginTop: 8 }}>{typeof data.index === 'number'
+      {gaps.length > 0 && <p className={styles.noteBox}>{typeof data.index === 'number'
         ? `No data for ${listNames(gaps, cfg.labelOf).toLowerCase()}; ${gaps.length > 1 ? 'their weight is' : 'its weight is'} shared among the other indicators in proportion to their Atlas weights.`
-        : 'This district has no row in the source data, so it has no index.'}</div>}
-      {data.source_district && <div className={styles.cropNote} style={{ marginTop: 8 }}>Values from 2011 district {data.source_district}.</div>}
+        : 'This district has no row in the source data, so it has no index.'}</p>}
+      {data.source_district && <p className={styles.hint}>Values from 2011 district {data.source_district}.</p>}
+      <details className={styles.method}>
+        <summary>How is the {cfg.name.toLowerCase()} index calculated?</summary>
+        <p>Rama Rao et al. (2020) method: {cfg.noun}. Each indicator is compared with the national average (z-score, signed so that + raises {cfg.name.toLowerCase()}), multiplied by its Atlas weight, and added up; the driver bars add up to the index. Classes at ±0.5 and ±1.5 SD around the national average.</p>
+        <p>"Above N%" is the share of districts with a lower value; the marker shows the same position on the track.</p>
+      </details>
     </>
   )
 }
