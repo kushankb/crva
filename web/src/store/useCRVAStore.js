@@ -31,11 +31,11 @@ export const DIM_TAB = Object.fromEntries(Object.entries(TAB_DIM).map(([t, d]) =
 
 export const useCRVAStore = create((set, get) => ({
   // Active dimension (map layer); the selected place stays selected
-  dimensionId: 'climate_hazard',
+  dimensionId: 'risk_score',
   setDimension: (id) => set(s => ({ dimensionId: id, drawerTab: DIM_TAB[id] ?? s.drawerTab })),
 
   // Panel tab
-  drawerTab: 'hazard',
+  drawerTab: 'overview',
   setDrawerTab: (t) => set(s => ({ drawerTab: t, dimensionId: TAB_DIM[t] ?? s.dimensionId })),
 
   hazardIndicatorId: 'rr_index',
