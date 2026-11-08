@@ -83,6 +83,7 @@ export default function Legend() {
           {anomaly && <span>0</span>}
           <span>≥ {sign(scale.vmax)}</span>
         </div>
+        {anomaly && (isMM(hazardIndicatorId) || isCX(hazardIndicatorId)) && <div className={styles.source}>Brown or red = more hazard, in the Atlas's direction (less rain, more heat, drought or extreme rain)</div>}
       </div>
     )
   }
@@ -100,6 +101,12 @@ export default function Legend() {
             ? 'Rama Rao et al. (2020) · relative to the national mean'
             : `${ind?.unit} · ${dimensionId === 'historical_hazard' ? 'classes of the source data' : dimensionId === 'exposure' ? 'Atlas class bands' : 'value bands'}`}
         </div>
+        {!isIdx && (
+          <div className={styles.dirNote}>
+            Darker = {{ vulnerability: 'more vulnerable', exposure: 'more exposed', historical_hazard: 'more hazard' }[dimensionId]}
+            {ind?.direction === '-' && <> · <strong>higher values lower it</strong>, so the lowest values are darkest</>}
+          </div>
+        )}
         <div className={styles.riskRow}>
           {items.slice().reverse().map(c => (
             <div key={c.label} className={styles.riskItem}>

@@ -8,7 +8,10 @@ export const EX_INDEX = 'exposure_index'
 export const HH_INDEX = 'historical_hazard_index'
 export const VU_INDEX = 'vulnerability_index'
 export const EX_CLASS_COLORS = ['#2c7bb6', '#abd9e9', '#e9e4d4', '#fdae61', '#d7191c']
-export const EX_BAND_COLORS = ['#eff3ff', '#bdd7e7', '#6baed6', '#3182bd', '#08519c']
+// Indicator maps: darker = raises the part (more exposed / vulnerable), as red does on the index maps. For an indicator
+// that lowers it (direction '-', e.g. rainfall or irrigation for vulnerability) the ramp is flipped, so the lowest
+// values are darkest.
+export const EX_BAND_COLORS = ['#fef0d9', '#fdcc8a', '#fc8d59', '#e34a33', '#b30000']
 const HH_BAND_COLORS = ['#fff7ec', '#fdd49e', '#fc8d59', '#b30000']
 
 const LAYERS = {
@@ -34,7 +37,11 @@ export function layerMeta(dim, id) {
 }
 export const exMeta = id => layerMeta('exposure', id)
 export const isLayerIndex = (dim, id) => LAYERS[dim].index === id
-export const layerColors = (dim, id) => (isLayerIndex(dim, id) ? EX_CLASS_COLORS : LAYERS[dim].bandColors)
+export const layerColors = (dim, id) => {
+  if (isLayerIndex(dim, id)) return EX_CLASS_COLORS
+  const c = LAYERS[dim].bandColors
+  return layerMeta(dim, id)?.direction === '-' ? c.slice().reverse() : c
+}
 
 // Class for the map: index class 0–4, or the indicator's band.
 export function layerClass(dim, id, data, i) {
@@ -51,7 +58,7 @@ export function layerLegend(dim, id) {
   if (isLayerIndex(dim, id)) return ['Very low', 'Low', 'Medium', 'High', 'Very high'].map((label, i) => ({ label, color: EX_CLASS_COLORS[i] }))
   const meta = layerMeta(dim, id)
   const b = meta?.bands ?? []
-  const colors = LAYERS[dim].bandColors
+  const colors = layerColors(dim, id)
   const labels = meta?.bandLabels
     ?? (LAYERS[dim].lowerInclusive
       ? [`< ${b[0]}`, ...b.slice(1).map((t, i) => `${b[i]}–${t}`), `≥ ${b[b.length - 1]}`]

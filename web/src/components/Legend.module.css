@@ -69,3 +69,7 @@
   border-radius: 3px;
   flex-shrink: 0;
 }
+
+/* indicator maps: which way the colours run (darker = raises the part) */
+.dirNote { font-size: 10.5px; color: var(--text-secondary); line-height: 1.4; margin: 2px 0 6px; }
+.dirNote strong { color: var(--text-primary); font-weight: 600; }
