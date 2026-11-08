@@ -154,6 +154,31 @@ def main():
             d["risk"] = {w: None for w in rk}
             d["not_assessed"] = "Ladakh: exposure and historical hazard data incomplete"
 
+    # why a district has no risk score, in words, for the drawer: urban (as in the Atlas), no row in the exposure and
+    # vulnerability source sheets (named by its Census 2011 district), or simply which parts have no data
+    ex_all = pd.read_csv(EXPO, dtype={"_id": str}).dropna(subset=["_id"]).drop_duplicates("_id").set_index("_id")
+    name2011 = pd.read_csv(HIST.with_name("hazard_lgd.csv"), dtype={"_id": str}).dropna(subset=["_id"]).drop_duplicates("_id").set_index("_id").district
+    PART_LABEL = {"vulnerability": "vulnerability", "exposure": "exposure", "historical_hazard": "historical hazard", "future_hazard": "future hazard"}
+    for a, d in out.items():
+        if a in NOT_ASSESSED or any(v is not None for v in d["risk"].values()):
+            continue
+        i = a.split(":", 1)[1]
+        e = ex_all.loc[i] if i in ex_all.index else None
+        gone = [PART_LABEL[k] for k in RISK_W if k not in d]
+        if e is not None and str(e.urban) == "True":
+            d["na"] = "Urban district: left out of the risk index, as in the Atlas."
+        elif e is None or name2011.get(i) == "Data Not Available":
+            d["na"] = ("No Census 2011 data for this area, so " if len(gone) < 4 else "No data for any part of risk here, so ") + \
+                      ("only future hazard is shown." if len(gone) < 4 else "it is not assessed.")
+        elif e.method == "no value in source":
+            was = admin.clean_name(name2011.get(i)) if isinstance(name2011.get(i), str) else None
+            d["na"] = (f"The exposure and vulnerability source data have no row for this district"
+                       f"{f' (Census 2011: {was})' if was else ''}, so less than half of the risk weight has data. "
+                       "Hazard is shown in its tabs.")
+        else:
+            d["na"] = ("No data for any part of risk here." if len(gone) == 4 else
+                       f"No data for {', '.join(gone[:-1])} or {gone[-1]}: less than half of the risk weight has data.")
+
     for a, d in out.items():
         stats[a]["drivers"] = d
 
@@ -220,8 +245,16 @@ def main():
     sgeo = gpd.read_file(ROOT / "web" / "public" / "data" / "india_states.geojson")
     ext = lambda g: [round(float(v), 2) for v in g.bounds]
     st_id = {key(r.name): str(r.state_id) for r in sgeo.itertuples()}
+    # former name: the Census 2011 name, where that 2011 district became exactly one of today's districts under a new
+    # name or spelling (Ahmadnagar -> Ahilyanagar, Allahabad -> Prayagraj). Split districts get none, so a parent's
+    # name never points at one of its children (Thane is not an alias for Palghar).
+    hl = pd.read_csv(HIST.with_name("hazard_lgd.csv"), dtype={"_id": str, "censuscode": str}).dropna(subset=["district"])
+    hl = hl[hl.censuscode.map(hl.censuscode.value_counts()) == 1]
+    former = {i: admin.clean_name(n) for i, n, d in zip(hl._id, hl.district, hl.lgd_district)
+              if key(admin.clean_name(n)) != key(admin.clean_name(d))}
     search = {"s": [[str(r.state_id), admin.clean_name(r.name), ext(r.geometry)] for r in sgeo.itertuples() if r.geometry is not None],
               "d": [[str(r.district_id), admin.clean_name(r.name), admin.clean_name(r.state_name), st_id.get(key(admin.clean_name(r.state_name))), ext(r.geometry)]
+                    + ([former[str(r.district_id)]] if str(r.district_id) in former else [])
                     for r in geo.itertuples() if r.geometry is not None and isinstance(r.name, str)]}
     (ROOT / "web" / "public" / "data" / "search.json").write_text(json.dumps(search, separators=(",", ":"), ensure_ascii=False))
     for w in risk_tab:

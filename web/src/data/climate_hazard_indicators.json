@@ -4,8 +4,8 @@
     "indicators": [
       {
         "id": "rr_index",
-        "label": "Rama Rao index",
-        "unit": "z-scores of change, relative to other districts",
+        "label": "Where is climate hazard rising most?",
+        "unit": "Rama Rao index · compared with other districts · used in the risk score",
         "kind": "aggregate",
         "description": "Main view. The Rama Rao et al. (2020) indicators and weights (Atlas Table 5c), normalised like the other CRVA dimensions: the change from 1985–2014 in each of the 15 indicators, truncated at the 1st and 99th percentile, as a z-score across districts (sign kept: more rain lowers hazard), weighted and added up, classed at ±0.5 and ±1.5 SD. Computed in each of six INDRA-CMIP6 models under SSP2-4.5; the median model is shown with how many models agree. Relative to other districts in the same period; 'Is climate getting worse here?' shows change against each district's own past."
       },

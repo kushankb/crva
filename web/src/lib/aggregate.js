@@ -5,7 +5,7 @@ export const AGG_REL = 'agg_rel'
 export const isAggregate = id => id === AGG_RR || id === AGG_ABS || id === AGG_REL
 
 export const AGG_TITLES = {
-  [AGG_RR]: 'Rama Rao index',
+  [AGG_RR]: 'Where is climate hazard rising most?',
   [AGG_ABS]: 'Is climate getting worse here?',
   [AGG_REL]: 'Where should we act first?',
 }

@@ -40,7 +40,7 @@ export default function Legend() {
           <div className={styles.title}>{ind.label}</div>
           <div className={styles.subLabel}>
             {hazardIndicatorId === AGG_RR
-              ? `Relative to other districts · ${sourceLabel(mmSource)} · SSP2-4.5`
+              ? `Rama Rao index · relative to other districts · ${sourceLabel(mmSource)} · SSP2-4.5`
               : hazardIndicatorId === AGG_ABS
                 ? `Share of indicator weight past its worsening threshold · ${sourceLabel(mmSource)}`
                 : `Rank among districts · fifths · ${sourceLabel(mmSource)}`}

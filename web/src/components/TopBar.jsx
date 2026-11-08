@@ -74,7 +74,8 @@ export default function TopBar() {
                   <li><strong>Vulnerability, exposure and historical hazard</strong> come from data published for the Census 2011 districts (about 610–620 rural districts), the same basis as the ICAR-CRIDA Atlas. The indices are computed on those districts, then carried to today's districts: each takes the value of the 2011 district covering most of its area.</li>
                   <li><strong>Districts created after 2011</strong> therefore share their parent district's values for these three parts (245 districts, from 107 districts that were later split). All indicators are shares or densities, so the parent's value is a fair stand-in, but differences within the old district cannot be seen.</li>
                   <li><strong>Future hazard</strong> is computed directly for today's districts from the climate model data, so it can differ between districts that share a parent.</li>
-                  <li><strong>Not assessed:</strong> urban districts (as in the Atlas), the islands, Ladakh, and a few districts missing from the source data. 745 districts have a risk score.</li>
+                  <li><strong>Not assessed:</strong> urban districts (as in the Atlas), the islands, Ladakh, Dadra &amp; Nagar Haveli and Daman &amp; Diu, and six districts with no row in the exposure and vulnerability source data (Ahilyanagar, Narmadapuram, Jalor, East Singhbhum, Ramanagara and Saiha; their hazard is still shown). 745 districts have a risk score.</li>
+                  <li><strong>Former names</strong> also work in the search box: "Ahmadnagar" finds Ahilyanagar, "Gulbarga" finds Kalaburagi.</li>
                 </ul>
               </section>
 

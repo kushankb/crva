@@ -3,11 +3,12 @@ import { useCRVAStore } from '../store/useCRVAStore.js'
 import styles from './Search.module.css'
 
 // Search states and districts by name. Picking one selects it as a map click would, and the map zooms to it.
-// Data: public/data/search.json {s: [[id, name, bbox]], d: [[id, name, state, stateId, bbox]]} (16_drivers_web.py)
+// Data: public/data/search.json {s: [[id, name, bbox]], d: [[id, name, state, stateId, bbox, former?]]} (16_drivers_web.py)
+// `former` is the Census 2011 name of a renamed district (Ahmadnagar for Ahilyanagar), so old names find it too.
 let cache
 const loadIndex = () => (cache ??= fetch(`${import.meta.env.BASE_URL}data/search.json`).then(r => r.json()).then(j => [
   ...j.s.map(([id, name, bbox]) => ({ type: 'state', id, name, bbox, key: norm(name) })),
-  ...j.d.map(([id, name, state, stateId, bbox]) => ({ type: 'district', id, name, state_name: state, stateId, bbox, key: norm(name) })),
+  ...j.d.map(([id, name, state, stateId, bbox, former]) => ({ type: 'district', id, name, state_name: state, stateId, bbox, former, key: norm(name), alt: former ? norm(former) : '' })),
 ]))
 // letters only, so "Tehri-Garhwal", "tehri garhwal" and "Tehri Garhwal" all match
 const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[^a-z0-9]/g, '')
@@ -15,7 +16,9 @@ const norm = s => String(s ?? '').toLowerCase().normalize('NFD').replace(/[^a-z0
 function find(items, q) {
   const k = norm(q)
   if (!k) return []
-  const score = it => (it.key === k ? 0 : it.key.startsWith(k) ? 1 : it.key.includes(k) ? 2 : 9) + (it.type === 'state' ? 0 : 0.5)
+  const rank = key => (!key ? 9 : key === k ? 0 : key.startsWith(k) ? 1 : key.includes(k) ? 2 : 9)
+  // a match on today's name ranks just ahead of the same match on a former name
+  const score = it => Math.min(rank(it.key), rank(it.alt) + 0.25) + (it.type === 'state' ? 0 : 0.5)
   return items.map(it => [score(it), it]).filter(([sc]) => sc < 9).sort((a, b) => a[0] - b[0] || a[1].name.localeCompare(b[1].name)).slice(0, 8).map(([, it]) => it)
 }
 
@@ -63,7 +66,7 @@ export default function Search() {
             <li key={`${it.type}:${it.id}`} role="option" aria-selected={i === active}
               className={`${styles.item} ${i === active ? styles.itemActive : ''}`}
               onMouseDown={e => { e.preventDefault(); pick(it) }} onMouseEnter={() => setActive(i)}>
-              <span className={styles.name}>{it.name}</span>
+              <span className={styles.name}>{it.name}{it.former && <span className={styles.former}> · formerly {it.former}</span>}</span>
               <span className={styles.meta}>{it.type === 'state' ? 'State' : it.state_name}</span>
             </li>
           )) : <li className={styles.empty}>{items ? `No state or district matches “${q}”` : 'Loading…'}</li>}

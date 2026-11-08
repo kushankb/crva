@@ -161,7 +161,7 @@ function RiskHero({ stats, risk, w, feature, loading }) {
     return (
       <div className={styles.hero}>
         <span className={`${styles.heroPill} ${styles.heroPillNone}`}>Not assessed</span>
-        <span className={styles.heroSub}>{stats?.drivers?.not_assessed ? 'Ladakh: exposure and historical hazard data incomplete.' : 'Less than half of the risk weight has data here.'}</span>
+        <span className={styles.heroSub}>{stats?.drivers?.not_assessed ? 'Ladakh: exposure and historical hazard data incomplete.' : stats?.drivers?.na ?? 'Less than half of the risk weight has data here.'}</span>
       </div>
     )
   }
@@ -259,7 +259,7 @@ function OverviewTab({ stats, risk: riskData, feature }) {
     )
   }
   if (!risk) {
-    return <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : 'Not assessed: less than half of the risk weight has data here (urban districts, the islands, and districts missing from the source data).'}</div>
+    return <div className={styles.emptyNote}>{dr?.not_assessed ? 'Not assessed. Exposure and historical hazard data for Ladakh are incomplete, so Leh and Kargil are left out of the risk index. Future hazard is still shown in its tab.' : (dr?.na ? 'No risk breakdown for this district. The parts it has data for are shown in their own tabs.' : 'Not assessed: less than half of the risk weight has data here (urban districts, the islands, and districts missing from the source data).')}</div>
   }
   const items = RISK_PARTS_W.map(p => ({ id: p.id, label: p.label, value: risk[p.id] }))
   const total = items.reduce((s, x) => s + (typeof x.value === 'number' ? x.value : 0), 0)
