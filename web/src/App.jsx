@@ -5,6 +5,7 @@ import ControlPanel from './components/ControlPanel.jsx'
 import Map from './components/Map.jsx'
 import DetailDrawer from './components/DetailDrawer.jsx'
 import Timeline from './components/Timeline.jsx'
+import Welcome from './components/Welcome.jsx'
 import { useCRVAStore } from './store/useCRVAStore.js'
 import styles from './styles/App.module.css'
 
@@ -27,6 +28,7 @@ export default function App() {
         <DetailDrawer />
       </div>
       <Timeline />
+      <Welcome />
     </div>
   )
 }
