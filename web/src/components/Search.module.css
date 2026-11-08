@@ -1,0 +1,20 @@
+.wrap { position: relative; flex: 0 1 380px; min-width: 180px; display: flex; align-items: center; }
+.icon { position: absolute; left: 10px; font-size: 15px; color: var(--text-muted); pointer-events: none; }
+.input {
+  width: 100%; height: 32px; padding: 0 30px 0 30px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--bg-card); color: var(--text-primary);
+  font: inherit; font-size: 13px;
+}
+.input::placeholder { color: var(--text-muted); }
+.input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+.input::-webkit-search-cancel-button { display: none; }
+.kbd { position: absolute; right: 8px; font-family: var(--font-mono); font-size: 10.5px; color: var(--text-muted); border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; line-height: 16px; pointer-events: none; }
+.list {
+  position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 50; margin: 0; padding: 4px; list-style: none;
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: 7px; box-shadow: var(--shadow, 0 6px 24px rgba(0,0,0,0.18));
+}
+.item { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 7px 9px; border-radius: 5px; cursor: pointer; }
+.itemActive { background: var(--accent-light); }
+.name { font-size: 13px; color: var(--text-primary); }
+.meta { font-size: 11.5px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.empty { padding: 8px 9px; font-size: 12.5px; color: var(--text-muted); }

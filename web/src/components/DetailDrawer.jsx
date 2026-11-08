@@ -77,7 +77,7 @@ export default function DetailDrawer() {
             {parent && (
               <>
                 <span className={styles.crumbSep} aria-hidden="true">·</span>
-                <button className={styles.crumbLink} title={`Show ${parent.name}: its districts by class and their main drivers`}
+                <button className={styles.crumbLink} title={`Show ${parent.name}: its districts, their classes and what raises or lowers their risk`}
                   onClick={() => setSelectedFeature({ type: 'state', id: parent.id, name: parent.name })}>{parent.name} ›</button>
               </>
             )}
@@ -180,21 +180,33 @@ const periodLabel = p => HAZARD_PERIODS.find(x => x.id === p)?.label ?? p
 const modal = counts => counts ? Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? null : null
 const EX_CLASS_COLOR_OV = { 'Very low': '#2c7bb6', 'Low': '#abd9e9', 'Medium': '#e9e4d4', 'High': '#fdae61', 'Very high': '#d7191c' }
 
-// State view: how many of the state's districts have each top driver.
-function TopCounts({ counts, labelOf, noun = 'districts' }) {
-  if (!counts) return null
-  const rows = Object.entries(counts).filter(([k]) => k && k !== 'null').sort((a, b) => b[1] - a[1])
-  const total = rows.reduce((s, [, n]) => s + n, 0)
+// State view: what pushes the state's districts up or down. Each district counts once, under the part pushing hardest
+// in its own direction (16_drivers_web.py): above the national average, the part raising it most; below, the part
+// lowering it most. Counts: {up: {part: n}, down: {part: n}}.
+function TopCounts({ counts, labelOf, what = 'it' }) {
+  if (!counts?.up && !counts?.down) return null
+  const group = (side, title, color) => {
+    const rows = Object.entries(counts[side] ?? {}).filter(([k]) => k && k !== 'null').sort((a, b) => b[1] - a[1])
+    const total = rows.reduce((s, [, n]) => s + n, 0)
+    if (!total) return null
+    return (
+      <div className={styles.driverGroup}>
+        <div className={styles.driverHead}><span>{title}</span><span>{total} {total === 1 ? 'district' : 'districts'}</span></div>
+        {rows.map(([k, n]) => (
+          <div key={k} className={styles.indicRow}>
+            <span className={styles.indicName}>{labelOf(k)}</span>
+            <div className={styles.indicBar}><div className={styles.indicBarFill} style={{ width: `${(n / total) * 100}%`, background: color }} /></div>
+            <span className={styles.indicVal}>{n}</span>
+          </div>
+        ))}
+      </div>
+    )
+  }
   return (
     <>
-      {rows.map(([k, n]) => (
-        <div key={k} className={styles.indicRow}>
-          <span className={styles.indicName}>{labelOf(k)}</span>
-          <div className={styles.indicBar}><div className={styles.indicBarFill} style={{ width: `${(n / Math.max(total, 1)) * 100}%`, background: '#c8553d' }} /></div>
-          <span className={styles.indicVal}>{n}</span>
-        </div>
-      ))}
-      <div className={styles.summaryNote}>Top driver in each of the state's {total} {noun}. Zoom in and select a district for its own breakdown.</div>
+      {group('up', `Raises ${what} · above the national average`, '#c8553d')}
+      {group('down', `Lowers ${what} · below the national average`, '#4A90C4')}
+      <div className={styles.summaryNote}>Each district counts once: under the part that raises {what} most if it is above the national average, or lowers it most if below. Select a district for its own breakdown.</div>
     </>
   )
 }
@@ -236,8 +248,8 @@ function OverviewTab({ stats, risk: riskData, feature }) {
         <DistrictList rows={rows} n={n} onPick={pick} />
         <div className={styles.sectionTitle} style={{ marginTop: 18 }}>Where its districts stand on each part</div>
         <PartSpread rows={rows} onOpen={openPart} />
-        <div className={styles.sectionTitle} style={{ marginTop: 18 }}>Main driver of risk, by district</div>
-        <TopCounts counts={dr?.risk?.[period]} labelOf={riskLabel} />
+        <div className={styles.sectionTitle} style={{ marginTop: 18 }}>What raises or lowers risk, by district</div>
+        <TopCounts counts={dr?.risk?.[period]} labelOf={riskLabel} what="risk" />
         <details className={styles.method}>
           <summary>Why no single score for the state?</summary>
           <p>Risk is computed for districts, relative to other districts (Atlas Tables 6 and 7). A state score would need every indicator added up from districts with its own weights (area, population or farmland) and then compared across states. The panel shows the state's districts instead: how many fall in each class, which ones, and what drives them.</p>
@@ -360,8 +372,8 @@ function FutureDrivers({ stats }) {
   if (dr.states_view === 'top_counts') {
     return (
       <div style={{ marginBottom: 14 }}>
-        <div className={styles.sectionTitle}>What drives future hazard · {periodLabel(period)}</div>
-        <TopCounts counts={dr.future_hazard?.[period]} labelOf={hazardLabel} />
+        <div className={styles.sectionTitle}>What raises or lowers future hazard · {periodLabel(period)}</div>
+        <TopCounts counts={dr.future_hazard?.[period]} labelOf={hazardLabel} what="future hazard" />
       </div>
     )
   }
@@ -844,8 +856,8 @@ function ExposureTab({ data, drivers, cfg = EX_CFG, fid }) {
     const total = Object.values(data.class_counts).reduce((a, b) => a + b, 0)
     return (
       <>
-        <div className={styles.sectionTitle}>What drives {cfg.name.toLowerCase()} in this state</div>
-        <TopCounts counts={drivers?.[cfg.key]} labelOf={cfg.labelOf} />
+        <div className={styles.sectionTitle}>What raises or lowers {cfg.name.toLowerCase()}, by district</div>
+        <TopCounts counts={drivers?.[cfg.key]} labelOf={cfg.labelOf} what={cfg.name.toLowerCase()} />
         <div className={styles.sectionTitle} style={{ marginTop: 18 }}>{cfg.name} · districts by class</div>
         {Object.entries(data.class_counts).reverse().map(([c, n]) => (
           <div key={c} className={styles.indicRow}>

@@ -186,23 +186,26 @@ def main():
     key = lambda s: "".join(ch for ch in str(s).lower() if ch.isalpha()).replace("and", "")
     state_of = dict(zip("district:" + dist["_id"].astype(str), dist["_state_name"].map(key)))
     state_keys = {key(v.get("name")): k for k, v in stats.items() if k.startswith("state:")}
+    # Each district counts once, under the part pushing hardest in its own direction: "up" = above the national
+    # average (the part raising it most), "down" = below (the part lowering it most). Kept apart so a part that
+    # lowers risk is never shown as a driver of risk.
     agg = {}
+    side = lambda total: "up" if total >= 0 else "down"
+    new_split = lambda: {"up": Counter(), "down": Counter()}
     for a, d in out.items():
         sk = state_keys.get(state_of.get(a))
         if not sk:
             continue
-        s = agg.setdefault(sk, {"future_hazard": {}, "exposure": Counter(), "historical_hazard": Counter(), "vulnerability": Counter(), "risk": {}})
+        s = agg.setdefault(sk, {"future_hazard": {}, "exposure": new_split(), "historical_hazard": new_split(), "vulnerability": new_split(), "risk": {}})
         for w, v in d.get("future_hazard", {}).items():
-            s["future_hazard"].setdefault(w, Counter())[v["top"]] += 1
-        if "exposure" in d:
-            s["exposure"][d["exposure"]["top"]] += 1
-        if "historical_hazard" in d:
-            s["historical_hazard"][d["historical_hazard"]["top"]] += 1
-        if "vulnerability" in d:
-            s["vulnerability"][d["vulnerability"]["top"]] += 1
+            s["future_hazard"].setdefault(w, new_split())[side(v["index"])][v["top"]] += 1
+        for dim in ("exposure", "historical_hazard", "vulnerability"):
+            if dim in d:
+                s[dim][side(d[dim]["index"])][d[dim]["top"]] += 1
         for w, v in d["risk"].items():
             if v and v["top"]:
-                s["risk"].setdefault(w, Counter())[v["top"]] += 1
+                total = sum(v[k] for k in RISK_W if v.get(k) is not None)
+                s["risk"].setdefault(w, new_split())[side(total)][v["top"]] += 1
     # states: districts per risk class, per window
     dist_state = {a: state_keys.get(state_of.get(a)) for a in ids}
     # risk.json: each district's name, state and map extent, so a state's panel can list and locate its districts
@@ -213,6 +216,14 @@ def main():
     risk_json["state"] = [dist_state[a].split(":", 1)[1] if dist_state[a] else None for a in ids]
     risk_json["bbox"] = [bb.get(n) for n in num_ids]
     RISK_JSON.write_text(json.dumps(risk_json, separators=(",", ":")))
+    # search.json: every state and district on the map, with its extent, for the search box
+    sgeo = gpd.read_file(ROOT / "web" / "public" / "data" / "india_states.geojson")
+    ext = lambda g: [round(float(v), 2) for v in g.bounds]
+    st_id = {key(r.name): str(r.state_id) for r in sgeo.itertuples()}
+    search = {"s": [[str(r.state_id), admin.clean_name(r.name), ext(r.geometry)] for r in sgeo.itertuples() if r.geometry is not None],
+              "d": [[str(r.district_id), admin.clean_name(r.name), admin.clean_name(r.state_name), st_id.get(key(admin.clean_name(r.state_name))), ext(r.geometry)]
+                    for r in geo.itertuples() if r.geometry is not None and isinstance(r.name, str)]}
+    (ROOT / "web" / "public" / "data" / "search.json").write_text(json.dumps(search, separators=(",", ":"), ensure_ascii=False))
     for w in risk_tab:
         cnt = {}
         for a in ids:
@@ -245,8 +256,10 @@ def main():
               f"| state mean class r with Atlas Table 12 = {g.ours_mean_class.corr(g.atlas_mean_class):.2f}")
 
     for sk, s in agg.items():
-        stats[sk]["drivers"] = {"future_hazard": {w: dict(c) for w, c in s["future_hazard"].items()},
-                                "exposure": dict(s["exposure"]), "historical_hazard": dict(s["historical_hazard"]), "vulnerability": dict(s["vulnerability"]), "risk": {w: dict(c) for w, c in s["risk"].items()},
+        plain = lambda sp: {k: dict(c) for k, c in sp.items()}
+        stats[sk]["drivers"] = {"future_hazard": {w: plain(c) for w, c in s["future_hazard"].items()},
+                                "exposure": plain(s["exposure"]), "historical_hazard": plain(s["historical_hazard"]),
+                                "vulnerability": plain(s["vulnerability"]), "risk": {w: plain(c) for w, c in s["risk"].items()},
                                 "states_view": "top_counts"}
     STATS.write_text(json.dumps(stats, separators=(",", ":")))
     n_fh = sum("future_hazard" in d for d in out.values())

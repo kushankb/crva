@@ -128,12 +128,22 @@ export default function Map() {
   useEffect(() => {
     const m = map.current
     if (!m) return
-    if (!sel || sel.type !== 'district') { m.__clearDistSel?.(); return }
+    if (!sel || sel.type !== 'district') {
+      m.__clearDistSel?.()
+      // a state picked in the search: highlight it and fit it, staying below district zoom so its panel stays a state view
+      if (sel?.type === 'state' && sel.bbox) {
+        m.__selectState?.(String(sel.id))
+        const [x0, y0, x1, y1] = sel.bbox
+        const cam = m.cameraForBounds([[x0, y0], [x1, y1]], { padding: { top: 60, bottom: 60, left: 60, right: 420 }, maxZoom: DISTRICT_ZOOM - 0.3 })
+        if (cam) m.easeTo({ ...cam, duration: 900 })
+      }
+      return
+    }
     m.__selectDist?.(sel.id)
-    // picked from the state panel: bring it into view, clear of the drawer, at district zoom
+    // picked from the state panel or the search: bring it into view, clear of the drawer, at district zoom
     if (sel.bbox) {
       const [x0, y0, x1, y1] = sel.bbox
-      const cam = m.cameraForBounds([[x0, y0], [x1, y1]], { padding: { top: 80, bottom: 80, left: 80, right: 440 }, maxZoom: 8.5 })
+      const cam = m.cameraForBounds([[x0, y0], [x1, y1]], { padding: { top: 80, bottom: 80, left: 80, right: 440 }, maxZoom: 7.6 })
       if (cam) m.easeTo({ ...cam, zoom: Math.max(cam.zoom, DISTRICT_ZOOM + 0.2), duration: 900 })
     }
   }, [sel])
@@ -186,6 +196,14 @@ function addAdminLayers(m, setSelectedFeature, popup) {
   let distHovId  = null, distSelId  = null
   // lets the component clear the district outline when the drawer moves to a state or closes
   m.__clearDistSel = () => { if (distSelId !== null) { m.setFeatureState({ source: 'districts', id: distSelId }, { selected: false }); distSelId = null } }
+  // a state picked in the search: highlight it (and clear any district outline)
+  m.__selectState = id => {
+    m.__clearDistSel()
+    if (stateSelId === id) return
+    if (stateSelId !== null) m.setFeatureState({ source: 'states', id: stateSelId }, { selected: false })
+    stateSelId = id
+    m.setFeatureState({ source: 'states', id }, { selected: true })
+  }
   // a district picked in the state panel: outline it (and clear the state's highlight)
   m.__selectDist = id => {
     if (stateSelId !== null) { m.setFeatureState({ source: 'states', id: stateSelId }, { selected: false }); stateSelId = null }

@@ -25,14 +25,18 @@ export const RISK_CLASSES = [
   { id: 'Very low',  label: 'Very low',  color: '#2c7bb6' },
 ]
 
-export const useCRVAStore = create((set, get) => ({
-  // Active dimension
-  dimensionId: 'climate_hazard',
-  setDimension: (id) => set({ dimensionId: id, selectedFeature: null }),
+// The map layer and the panel tab follow each other: a tab shows its layer, a layer opens its tab.
+export const TAB_DIM = { overview: 'risk_score', vulnerability: 'vulnerability', exposure: 'exposure', historical: 'historical_hazard', hazard: 'climate_hazard' }
+export const DIM_TAB = Object.fromEntries(Object.entries(TAB_DIM).map(([t, d]) => [d, t]))
 
-  // Climate hazard
-  drawerTab: 'overview',
-  setDrawerTab: (t) => set({ drawerTab: t }),
+export const useCRVAStore = create((set, get) => ({
+  // Active dimension (map layer); the selected place stays selected
+  dimensionId: 'climate_hazard',
+  setDimension: (id) => set(s => ({ dimensionId: id, drawerTab: DIM_TAB[id] ?? s.drawerTab })),
+
+  // Panel tab
+  drawerTab: 'hazard',
+  setDrawerTab: (t) => set(s => ({ drawerTab: t, dimensionId: TAB_DIM[t] ?? s.dimensionId })),
 
   hazardIndicatorId: 'rr_index',
   setHazardIndicator: (id) => set(s => ({ hazardIndicatorId: id, hazardSsp: modelView(id) ? 'SSP245' : s.hazardSsp, hazardPeriod: futureOnly(id) && s.hazardPeriod === 'historical' ? '2050' : s.hazardPeriod })),

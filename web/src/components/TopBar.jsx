@@ -1,5 +1,6 @@
 import React from 'react'
 import { useCRVAStore } from '../store/useCRVAStore.js'
+import Search from './Search.jsx'
 import styles from './TopBar.module.css'
 
 export default function TopBar() {
@@ -16,6 +17,7 @@ export default function TopBar() {
             <div className={styles.sub}>Climate Risk &amp; Vulnerability Assessment · District Level</div>
           </div>
         </div>
+        <Search />
         <div className={styles.right}>
           <button className={styles.aboutBtn} onClick={() => setShowAbout(true)}>About</button>
           <button className={styles.themeBtn} onClick={toggleTheme} title="Toggle theme">
@@ -71,7 +73,7 @@ export default function TopBar() {
                 <ol className={styles.steps}>
                   <li><strong>Pick a dimension</strong> at the top left: Risk score, Future hazard, Historical hazard, Exposure or Vulnerability.</li>
                   <li><strong>Choose an indicator</strong> in the left panel; for future hazard and risk, pick the period (and, for future hazard, the climate model) in the bar below the map.</li>
-                  <li><strong>Click a state</strong> for its districts by class and their main drivers. <strong>Zoom in</strong> and click a district for its own breakdown.</li>
+                  <li><strong>Click a state</strong> for its districts: their classes, ranks and what raises or lowers their risk. <strong>Zoom in</strong> and click a district for its own breakdown.</li>
                   <li><strong>In the district panel</strong>, the risk class and national rank stay at the top; click a part of risk to see its indicators and how the district compares nationally.</li>
                 </ol>
               </section>
