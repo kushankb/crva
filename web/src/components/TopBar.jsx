@@ -65,7 +65,17 @@ export default function TopBar() {
                     <div className={styles.dataCardDesc}>14 of the Atlas's 15 indicators across natural, human, social, physical and financial capital: rainfall, soils, groundwater, irrigation, literacy, roads, electrification, markets, self-help groups, fertiliser use and low-income households.</div>
                   </div>
                 </div>
-                <p className={styles.metaNote}>Exposure, historical hazard and vulnerability are on Census 2011 districts, carried to current (LGD) districts by largest overlap. Urban districts, the islands and Ladakh are not assessed.</p>
+              </section>
+
+              <section className={styles.section}>
+                <h3 className={styles.sectionHead}>Which districts?</h3>
+                <p>The map shows today's 780 districts (boundaries with LGD codes, matching the official district list of about the end of 2024).</p>
+                <ul className={styles.steps}>
+                  <li><strong>Vulnerability, exposure and historical hazard</strong> come from data published for the Census 2011 districts (about 610–620 rural districts), the same basis as the ICAR-CRIDA Atlas. The indices are computed on those districts, then carried to today's districts: each takes the value of the 2011 district covering most of its area.</li>
+                  <li><strong>Districts created after 2011</strong> therefore share their parent district's values for these three parts (245 districts, from 107 districts that were later split). All indicators are shares or densities, so the parent's value is a fair stand-in, but differences within the old district cannot be seen.</li>
+                  <li><strong>Future hazard</strong> is computed directly for today's districts from the climate model data, so it can differ between districts that share a parent.</li>
+                  <li><strong>Not assessed:</strong> urban districts (as in the Atlas), the islands, Ladakh, and a few districts missing from the source data. 745 districts have a risk score.</li>
+                </ul>
               </section>
 
               <section className={styles.section}>
