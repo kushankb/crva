@@ -16,12 +16,6 @@ export const HAZARD_PERIODS = [
   { id: '2100',      label: '~2100',     range: '2071–2100' },
 ]
 
-export const CROP_PERIODS = [
-  { id: '2020', label: '~2020' },
-  { id: '2050', label: '~2050' },
-  { id: '2080', label: '~2080' },
-]
-
 // Risk classes, highest first (Atlas Table 7); same colours as every other Atlas index in the tool (lib/risk.js)
 export const RISK_CLASSES = [
   { id: 'Very high', label: 'Very high', color: '#d7191c' },
@@ -61,11 +55,9 @@ export const useCRVAStore = create((set, get) => ({
   exposureIndicatorId: 'exposure_index',
   setExposureIndicator: (id) => set({ exposureIndicatorId: id }),
 
-  // Vulnerability (incl. crop sensitivity)
+  // Vulnerability
   vulnerabilityIndicatorId: 'vulnerability_index',
   setVulnerabilityIndicator: (id) => set({ vulnerabilityIndicatorId: id }),
-  cropSensitivityPeriod: '2050',
-  setCropSensitivityPeriod: (p) => set({ cropSensitivityPeriod: p }),
 
   // Map interaction
   selectedFeature: null,
@@ -86,11 +78,5 @@ export const useCRVAStore = create((set, get) => ({
     const sspKey = hazardSsp.toLowerCase()
     const prefix = hazardViewMode === 'anomaly' ? 'delta_' : ''
     return `${prefix}${sspKey}_${hazardPeriod}`
-  },
-  getCropPropKey: () => {
-    const { vulnerabilityIndicatorId, cropSensitivityPeriod } = get()
-    if (!vulnerabilityIndicatorId.startsWith('crop_')) return null
-    const base = vulnerabilityIndicatorId.replace('crop_', '')
-    return `${base}_${cropSensitivityPeriod}`
   },
 }))

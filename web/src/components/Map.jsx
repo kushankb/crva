@@ -40,8 +40,6 @@ const BASE_STYLE = {
 const DISTRICT_ZOOM = 6
 const VEC_ID     = 'hazard-vec'
 const VEC_LAYER  = 'hazard-circles'
-const CROP_ID    = 'crop-grid'
-const CROP_LAYER = 'crop-grid-fill'
 const CHORO_LAYER = 'choro-fill'
 
 export default function Map() {
@@ -55,7 +53,7 @@ export default function Map() {
   const {
     dimensionId,
     hazardIndicatorId, hazardSsp, hazardPeriod, hazardViewMode, mmSource, cxSeason,
-    vulnerabilityIndicatorId, cropSensitivityPeriod, exposureIndicatorId, historicalIndicatorId,
+    vulnerabilityIndicatorId, exposureIndicatorId, historicalIndicatorId,
     theme,
     setSelectedFeature,
   } = store
@@ -93,7 +91,7 @@ export default function Map() {
   useEffect(() => {
     if (!styleReady.current || !map.current) return
     syncMapToState(map.current, useCRVAStore.getState(), setTilesStatus)
-  }, [dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, exposureIndicatorId, historicalIndicatorId])
+  }, [dimensionId, hazardIndicatorId, vulnerabilityIndicatorId, exposureIndicatorId, historicalIndicatorId])
 
   // Update color expression when SSP/period/viewMode changes without reloading tiles
   useEffect(() => {
@@ -177,10 +175,10 @@ function addAdminLayers(m, setSelectedFeature, popup) {
 
   let stateHovId = null, stateSelId = null
   let distHovId  = null, distSelId  = null
-  const choroOn = () => { try { return m.getLayoutProperty('choro-fill', 'visibility') === 'visible' } catch { return false } }
   // lets the component clear the district outline when the drawer moves to a state or closes
   m.__clearDistSel = () => { if (distSelId !== null) { m.setFeatureState({ source: 'districts', id: distSelId }, { selected: false }); distSelId = null } }
-  const distMode = () => m.getZoom() >= DISTRICT_ZOOM || choroOn()
+  // zoomed out: states (state insights); from DISTRICT_ZOOM: districts, on every layer including risk
+  const distMode = () => m.getZoom() >= DISTRICT_ZOOM
 
   m.on('mousemove', 'state-fill', e => {
     if (distMode()) return
@@ -189,7 +187,7 @@ function addAdminLayers(m, setSelectedFeature, popup) {
     if (stateHovId !== null) m.setFeatureState({ source: 'states', id: stateHovId }, { hover: false })
     stateHovId = e.features[0].id
     m.setFeatureState({ source: 'states', id: stateHovId }, { hover: true })
-    popup.current.setLngLat(e.lngLat).setHTML(`<strong>${e.features[0].properties.name ?? 'State'}</strong><br/><span style="font-size:10px;opacity:.55">Click to explore</span>`).addTo(m)
+    popup.current.setLngLat(e.lngLat).setHTML(`<strong>${e.features[0].properties.name ?? 'State'}</strong><br/><span style="font-size:10px;opacity:.55">Click for the state · zoom in for districts</span>`).addTo(m)
   })
   m.on('mouseleave', 'state-fill', () => {
     if (stateHovId !== null) m.setFeatureState({ source: 'states', id: stateHovId }, { hover: false })
@@ -203,10 +201,9 @@ function addAdminLayers(m, setSelectedFeature, popup) {
     setSelectedFeature({ type: 'state', id: stateSelId, name: e.features[0].properties.name ?? 'Unknown' })
   })
 
-  // Districts are clickable at any zoom while a district layer is on the map (what you see is what you click);
-  // otherwise only from DISTRICT_ZOOM. The state is one click away in the drawer header.
-  const onDist = layer => (layer === 'district-fill' ? m.getZoom() >= DISTRICT_ZOOM : m.getZoom() < DISTRICT_ZOOM && choroOn())
-  for (const layer of ['district-fill', 'choro-fill']) {
+  // Districts from DISTRICT_ZOOM; the district's state is one click away in the drawer header.
+  const onDist = () => distMode()
+  for (const layer of ['district-fill']) {
     m.on('mousemove', layer, e => {
       if (!onDist(layer) || !e.features.length) return
       m.getCanvas().style.cursor = 'pointer'
@@ -233,7 +230,7 @@ function addAdminLayers(m, setSelectedFeature, popup) {
 
   m.on('click', e => {
     const atState = m.queryRenderedFeatures(e.point, { layers: ['state-fill'] }).length
-    const atDist  = m.queryRenderedFeatures(e.point, { layers: ['district-fill', 'choro-fill'] }).length
+    const atDist  = m.queryRenderedFeatures(e.point, { layers: ['district-fill'] }).length
     if (atState || atDist) return
     if (stateSelId !== null) { m.setFeatureState({ source: 'states', id: stateSelId }, { selected: false }); stateSelId = null }
     if (distSelId  !== null) { m.setFeatureState({ source: 'districts', id: distSelId }, { selected: false }); distSelId = null }
@@ -255,7 +252,7 @@ async function syncMapToState(m, store, setTilesStatus) {
   const { dimensionId, vulnerabilityIndicatorId } = store
 
   const safeHide = (id) => { try { if (m.getLayer(id)) m.setLayoutProperty(id, 'visibility', 'none') } catch (_) {} }
-  safeHide(VEC_LAYER); safeHide(CROP_LAYER); safeHide(CHORO_LAYER)
+  safeHide(VEC_LAYER); safeHide(CHORO_LAYER)
 
   if (dimensionId === 'climate_hazard' && (isAggregate(store.hazardIndicatorId) || isMM(store.hazardIndicatorId) || isCX(store.hazardIndicatorId))) {
     if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
@@ -280,10 +277,6 @@ async function syncMapToState(m, store, setTilesStatus) {
     const propKey = store.getHazardPropertyKey()
     const scale   = hazardScale(getHazardMeta(store.hazardIndicatorId), store.hazardViewMode)
     await loadVectorTiles(m, url, propKey, scale, VEC_ID, VEC_LAYER, 'state-fill', setTilesStatus)
-
-  } else if (dimensionId === 'vulnerability' && vulnerabilityIndicatorId?.startsWith('crop_')) {
-    const propKey = store.getCropPropKey()
-    await loadCropGrid(m, propKey, setTilesStatus)
 
   } else if (dimensionId === 'exposure' || dimensionId === 'historical_hazard' || dimensionId === 'vulnerability') {
     if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
@@ -325,64 +318,6 @@ async function loadVectorTiles(m, url, propKey, scale, sourceId, layerId, insert
     },
   }, insertBefore)
   m.setLayoutProperty(layerId, 'visibility', 'visible')
-  setTilesStatus('ok')
-}
-
-let cropCentroidsCache = null
-
-function polygonCentroid(coords) {
-  const ring = coords[0]
-  const n = ring.length - 1
-  let x = 0, y = 0
-  for (let i = 0; i < n; i++) { x += ring[i][0]; y += ring[i][1] }
-  return [x / n, y / n]
-}
-
-// Expand each 0.5° cell into a 5×5 grid of 0.1° sub-points so the
-// crop layer matches the visual density of the 0.1° hazard tiles.
-const OFFSETS = [-0.2, -0.1, 0, 0.1, 0.2]
-
-async function loadCropGrid(m, propKey, setTilesStatus) {
-  setTilesStatus('loading')
-  if (m.getLayer(CROP_LAYER)) m.removeLayer(CROP_LAYER)
-  if (m.getSource(CROP_ID))   m.removeSource(CROP_ID)
-
-  if (!cropCentroidsCache) {
-    const dataUrl = `${import.meta.env.BASE_URL}data/cc_impacts_rcp45.geojson`
-    const res  = await fetch(dataUrl)
-    const geoj = await res.json()
-    const features = []
-    for (const f of geoj.features) {
-      const [cx, cy] = polygonCentroid(f.geometry.coordinates)
-      for (const dx of OFFSETS) {
-        for (const dy of OFFSETS) {
-          features.push({
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [cx + dx, cy + dy] },
-            properties: f.properties,
-          })
-        }
-      }
-    }
-    cropCentroidsCache = { type: 'FeatureCollection', features }
-  }
-
-  m.addSource(CROP_ID, { type: 'geojson', data: cropCentroidsCache })
-  m.addLayer({
-    id: CROP_LAYER, type: 'circle', source: CROP_ID,
-    paint: {
-      'circle-radius': ['interpolate', ['linear'], ['zoom'], 3, 1.5, 4, 1.8, 5, 2.5, 6, 4.5, 7, 8.0, 8, 14.0, 9, 22.0],
-      'circle-color': propKey
-        ? buildColorExpr(propKey, { cmap: 'RdYlGn', vmin: -50, vmax: 50 })
-        : '#cccccc',
-      // Hide circles where this crop has no data (null = crop not grown here)
-      'circle-opacity': propKey
-        ? ['case', ['!=', ['get', propKey], null], 0.92, 0]
-        : 0.92,
-      'circle-stroke-width': 0,
-    },
-  }, 'state-fill')
-  m.setLayoutProperty(CROP_LAYER, 'visibility', 'visible')
   setTilesStatus('ok')
 }
 

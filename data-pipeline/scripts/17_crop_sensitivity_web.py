@@ -1,4 +1,7 @@
-"""
+"""NOT USED in the CRVA tool since 2026-11-08: crop impacts were removed from the CRVA to avoid confusion and
+will go into a separate tool. Kept for that tool; do not run it for the CRVA (it writes crop_sensitivity into
+crva_stats.json).
+
 Crop yield sensitivity for the detail drawer (districts and states), from the crop-impact synthesis in
 Outputs/2_impacts (Sections 3.1-3.3 of the impacts report).
 

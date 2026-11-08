@@ -28,7 +28,7 @@ const DIM_COLORS = {
 }
 
 export default function Legend() {
-  const { dimensionId, exposureIndicatorId, historicalIndicatorId, hazardIndicatorId, vulnerabilityIndicatorId, cropSensitivityPeriod, hazardViewMode, hazardPeriod, mmSource, cxSeason } = useCRVAStore()
+  const { dimensionId, exposureIndicatorId, historicalIndicatorId, hazardIndicatorId, vulnerabilityIndicatorId, hazardViewMode, hazardPeriod, mmSource, cxSeason } = useCRVAStore()
   const dim = dimensions.find(d => d.id === dimensionId)
 
   if (dimensionId === 'climate_hazard') {
@@ -87,25 +87,7 @@ export default function Legend() {
     )
   }
 
-  if (dimensionId === 'vulnerability' && vulnerabilityIndicatorId?.startsWith('crop_')) {
-    const allVuln = vulnerabilityIndicators.flatMap(g => g.indicators)
-    const ind = allVuln.find(i => i.id === vulnerabilityIndicatorId)
-    return (
-      <div className={styles.box}>
-        <div className={styles.title}>{ind?.label ?? 'Crop Yield Sensitivity'}</div>
-        <div className={styles.subLabel}>Soora et al. · RCP 4.5 · {cropSensitivityPeriod === '2020' ? '~2020' : cropSensitivityPeriod === '2050' ? '~2050' : '~2080'}</div>
-        <div className={styles.band} style={{ background: GRADIENT.RdYlGn }} />
-        <div className={styles.rangeRow}>
-          <span>–50% loss</span>
-          <span style={{ color: 'var(--text-muted)' }}>0</span>
-          <span>+50% gain</span>
-        </div>
-        <div className={styles.source}>% yield change vs baseline · grey = crop not grown · RCP 4.5</div>
-      </div>
-    )
-  }
-
-  if (dimensionId === 'exposure' || dimensionId === 'historical_hazard' || (dimensionId === 'vulnerability' && !vulnerabilityIndicatorId?.startsWith('crop_'))) {
+  if (dimensionId === 'exposure' || dimensionId === 'historical_hazard' || dimensionId === 'vulnerability') {
     const id = { exposure: exposureIndicatorId, historical_hazard: historicalIndicatorId, vulnerability: vulnerabilityIndicatorId }[dimensionId]
     const ind = layerMeta(dimensionId, id)
     const items = layerLegend(dimensionId, id)
@@ -151,7 +133,7 @@ export default function Legend() {
     )
   }
 
-  // Placeholder for exposure / vulnerability (non-crop)
+  // Placeholder for dimensions without data
   const color = DIM_COLORS[dimensionId] ?? '#888'
   return (
     <div className={styles.box}>

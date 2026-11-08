@@ -1,5 +1,5 @@
 import React from 'react'
-import { useCRVAStore, HAZARD_PERIODS, CROP_PERIODS } from '../store/useCRVAStore.js'
+import { useCRVAStore, HAZARD_PERIODS } from '../store/useCRVAStore.js'
 import { isAggregate } from '../lib/aggregate.js'
 import { isMM, MODELS } from '../lib/multimodel.js'
 import { isCX } from '../lib/compound.js'
@@ -11,7 +11,6 @@ export default function Timeline() {
     dimensionId,
     hazardPeriod, setHazardPeriod,
     hazardIndicatorId, hazardViewMode, setHazardViewMode,
-    cropPeriod, setCropPeriod,
   } = useCRVAStore()
 
   if (dimensionId === 'climate_hazard') {
@@ -51,23 +50,6 @@ export default function Timeline() {
             <ModelMenu />
           </>
         )}
-      </footer>
-    )
-  }
-
-  if (dimensionId === 'crop_impact') {
-    return (
-      <footer className={styles.bar}>
-        <span className={styles.label}>PERIOD</span>
-        <div className={styles.periods}>
-          {CROP_PERIODS.map(p => (
-            <button key={p.id} className={`${styles.period} ${cropPeriod === p.id ? styles.active : ''}`} onClick={() => setCropPeriod(p.id)}>
-              <span className={styles.periodLabel}>{p.label}</span>
-              <span className={styles.periodRange}>{p.range}</span>
-            </button>
-          ))}
-        </div>
-        <div className={styles.note}>RCP 4.5 · Soora et al.</div>
       </footer>
     )
   }

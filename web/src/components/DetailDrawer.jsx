@@ -33,14 +33,13 @@ const DIM_COLORS = {
 
 const SSP_COLORS = { SSP126: '#1A9850', SSP245: '#80C97A', SSP370: '#F46D43', SSP585: '#D73027' }
 
-// Tabs follow the risk formula: the four parts in order of weight (Atlas Table 6), then crops
+// Tabs follow the risk formula: the four parts in order of weight (Atlas Table 6)
 const TABS = [
   { id: 'overview',     label: 'Overview' },
   { id: 'vulnerability',label: 'Vulnerability' },
   { id: 'exposure',     label: 'Exposure' },
   { id: 'historical',   label: 'Historical hazard' },
   { id: 'hazard',       label: 'Future hazard' },
-  { id: 'crop',         label: 'Crops' },
 ]
 const PART_TAB = { vulnerability: 'vulnerability', exposure: 'exposure', historical_hazard: 'historical', future_hazard: 'hazard' }
 const normName = s => String(s ?? '').toLowerCase().replace(/[^a-z]/g, '').replace(/and/g, '')
@@ -109,7 +108,6 @@ export default function DetailDrawer() {
           <>
             {activeTab === 'overview' && <OverviewTab stats={stats} />}
             {activeTab === 'hazard' && <HazardTab stats={stats} />}
-            {activeTab === 'crop' && <CropTab stats={stats} />}
             {activeTab === 'historical' && <ExposureTab data={stats?.historical_hazard} drivers={stats?.drivers} cfg={HH_CFG} fid={selectedFeature.id} />}
             {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} drivers={stats?.drivers} fid={selectedFeature.id} />}
             {activeTab === 'vulnerability' && <ExposureTab data={stats?.vulnerability} drivers={stats?.drivers} cfg={VU_CFG} fid={selectedFeature.id} />}
@@ -144,7 +142,7 @@ function RiskHero({ stats, risk, w, feature, loading }) {
         <div className={styles.stackLegend}>
           {RISK_CLASSES.slice().reverse().map(c => <span key={c.id}><i style={{ background: c.color }} />{c.label} {cc[c.id] ?? 0}</span>)}
         </div>
-        <div className={styles.heroSub}>Most common class: <strong>{top.label}</strong>. Select a district for its own breakdown.</div>
+        <div className={styles.heroSub}>Most common class: <strong>{top.label}</strong>. Zoom in and select a district for its own breakdown.</div>
       </div>
     )
   }
@@ -195,7 +193,7 @@ function TopCounts({ counts, labelOf, noun = 'districts' }) {
           <span className={styles.indicVal}>{n}</span>
         </div>
       ))}
-      <div className={styles.summaryNote}>Top driver in each of the state's {total} {noun}. Select a district for its own breakdown.</div>
+      <div className={styles.summaryNote}>Top driver in each of the state's {total} {noun}. Zoom in and select a district for its own breakdown.</div>
     </>
   )
 }
@@ -741,76 +739,6 @@ function IndexView({ fhi }) {
   )
 }
 
-const ALL_CROPS = ['Rice_Irrigated','Wheat','Maize','Chickpea','Pigeonpea','Soybean','Groundnut','Mustard','Cotton','Potato','Sorghum','Pearl_Millet']
-const CROP_PERIODS_LIST = ['2020','2050','2080']
-
-const CROP_HORIZONS = [{ id: 'mid', label: 'Mid-century', range: '2031–2065' }, { id: 'end', label: 'End-century', range: '2071–2100' }]
-const pct = v => (typeof v === 'number' ? `${v > 0 ? '+' : v < 0 ? '−' : ''}${Math.abs(v).toFixed(1)}%` : '—')
-
-// Crop yield change: Soora et al. (TNC/InfoCrop) first, the pooled estimate and its range beside it.
-function CropTab({ stats }) {
-  const [h, setH] = React.useState('mid')
-  const cs = stats?.crop_sensitivity
-  if (!cs) return (
-    <div className={styles.empty} style={{ height: 120 }}>
-      <div>No crop sensitivity data</div>
-      <div className={styles.emptyNote}>None of the synthesised crops is grown here, or the area is outside the analysis</div>
-    </div>
-  )
-  const state = cs.level === 'state'
-  const rows = Object.entries(cs.crops).map(([crop, v]) => ({ crop, ...(v[h] ?? {}) })).filter(r => r.n)
-  rows.sort((a, b) => state ? (b.major - a.major) || a.crop.localeCompare(b.crop) : (b.prod_kt ?? 0) - (a.prod_kt ?? 0))
-  const vals = rows.flatMap(r => [r.soora, r.pooled, r.lo, r.hi]).filter(v => typeof v === 'number')
-  const span = Math.max(20, ...vals.map(Math.abs))
-  const x = v => `${50 + (Math.max(-span, Math.min(span, v)) / span) * 50}%`
-  return (
-    <>
-      <div className={styles.sectionTitle}>Crop yield change · climate change vs baseline</div>
-      <div className={styles.cropToggle} role="group" aria-label="Horizon">
-        {CROP_HORIZONS.map(o => (
-          <button key={o.id} className={`${styles.cropToggleBtn} ${h === o.id ? styles.cropToggleOn : ''}`} aria-pressed={h === o.id} onClick={() => setH(o.id)}>
-            {o.label}<span>{o.range}</span>
-          </button>
-        ))}
-      </div>
-      <div className={styles.cropKey} aria-hidden="true">
-        <span><i className={styles.keySoora} /> Soora et al. (TNC/InfoCrop)</span>
-        <span><i className={styles.keyPooled} /> Pooled{state ? ' (all studies)' : ' (3 sources)'}</span>
-        <span><i className={styles.keyRange} /> {state ? 'middle half of studies' : 'range of sources'}</span>
-      </div>
-      <div className={styles.cropRows}>
-        <div className={styles.cropAxis} aria-hidden="true"><span>{pct(-span)}</span><span>0</span><span>{pct(span)}</span></div>
-        {rows.map(r => (
-          <div key={r.crop} className={styles.cropRow}>
-            <div className={styles.cropName}>
-              {r.crop}
-              <span className={styles.cropMeta}>
-                {state ? (r.major ? 'major producer · ' : '') + `${r.n} stud${r.n === 1 ? 'y' : 'ies'}` : `${r.prod_kt >= 10 ? Math.round(r.prod_kt).toLocaleString() : r.prod_kt} kt · ${r.n} source${r.n === 1 ? '' : 's'}`}
-              </span>
-            </div>
-            <div className={styles.cropPlot} aria-label={`Soora ${pct(r.soora)}, pooled ${pct(r.pooled)}, range ${pct(r.lo)} to ${pct(r.hi)}`}>
-              <span className={styles.cropZero} />
-              {typeof r.lo === 'number' && <span className={styles.cropRange} style={{ left: x(Math.min(r.lo, r.hi)), right: `calc(100% - ${x(Math.max(r.lo, r.hi))})` }} />}
-              {typeof r.pooled === 'number' && <span className={styles.cropPooled} style={{ left: x(r.pooled) }} />}
-              {typeof r.soora === 'number' && <span className={styles.cropSoora} style={{ left: x(r.soora) }} />}
-            </div>
-            <div className={styles.cropVals}>
-              <strong>{pct(r.soora)}</strong>
-              <span>{pct(r.pooled)}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className={styles.summaryNote} style={{ marginTop: 10 }}>
-        {state
-          ? 'Pooled: median of all study points for the state (published studies and large-scale datasets), headline configuration of the impacts synthesis; the line is the middle half of studies.'
-          : 'Pooled: median of Soora (TNC/InfoCrop), GGCMI and Hultgren for this district, each averaged over its variants; the line is their range. Only crops grown in the district are shown, by production.'}
-        {' '}Soora et al. include CO2 fertilisation. % change in yield.
-      </div>
-    </>
-  )
-}
-
 const INDICATOR_LABELS = {
   net_sown_area_pct: 'Net Sown Area',
   rural_pop_density: 'Rural Pop. Density',
@@ -839,7 +767,7 @@ const HH_CFG = {
 }
 
 const VU_CFG = {
-  key: 'vulnerability', name: 'Vulnerability', groups: vulnerabilityIndicators.filter(g => g.subgroup !== 'crop_sensitivity'),
+  key: 'vulnerability', name: 'Vulnerability', groups: vulnerabilityIndicators,
   labelOf: vulnerabilityLabel, color: '#A259C4',
   noun: '14 indicators (per-capita income not available; its weight is added to low-income households)',
   empty: 'Not assessed: urban districts, the islands and Ladakh are outside the Rama Rao index',
@@ -868,7 +796,7 @@ function ExposureTab({ data, drivers, cfg = EX_CFG, fid }) {
             <span className={styles.indicVal}>{n}</span>
           </div>
         ))}
-        <p className={styles.hint}>Select a district on the map for its indicators.</p>
+        <p className={styles.hint}>Zoom in and select a district for its indicators.</p>
       </>
     )
   }

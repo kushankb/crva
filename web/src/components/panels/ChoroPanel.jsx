@@ -2,7 +2,7 @@ import React from 'react'
 import exposureIndicators from '../../data/exposure_indicators.json'
 import vulnerabilityIndicators from '../../data/vulnerability_indicators.json'
 import historicalIndicators from '../../data/historical_hazard_indicators.json'
-import { useCRVAStore, CROP_PERIODS } from '../../store/useCRVAStore.js'
+import { useCRVAStore } from '../../store/useCRVAStore.js'
 import styles from './Panel.module.css'
 
 const CONFIG = {
@@ -21,7 +21,7 @@ const CONFIG = {
     description: 'Inventory of rural people and agriculture-dependent livelihoods exposed to climate change impacts.',
   },
   vulnerability: {
-    indicators: vulnerabilityIndicators.filter(g => g.subgroup !== 'crop_sensitivity'),  // crops: right panel only
+    indicators: vulnerabilityIndicators,
     stateKey: 'vulnerabilityIndicatorId',
     setter: 'setVulnerabilityIndicator',
     footer: 'Rama Rao et al. (2020) indicators and weights (Tables 4, 5d). Per-capita income is not available; its 4 % weight is added to low-income households (12 %). SHG density, market density and low-income households replace the Atlas definitions.',
@@ -35,29 +35,9 @@ export default function ChoroPanel({ dimension }) {
   const selectedId = store[stateKey]
   const setIndicator = store[setter]
 
-  const isCropIndicator = selectedId?.startsWith('crop_')
-  const { cropSensitivityPeriod, setCropSensitivityPeriod } = store
 
   return (
     <div className={styles.root}>
-
-      {/* Crop period selector — only when a crop indicator is selected */}
-      {isCropIndicator && (
-        <div>
-          <div className={styles.sectionLabel} style={{ marginTop: 8 }}>TIME PERIOD</div>
-          <div className={styles.toggleRow}>
-            {CROP_PERIODS.map(p => (
-              <button
-                key={p.id}
-                className={`${styles.toggle} ${cropSensitivityPeriod === p.id ? styles.active : ''}`}
-                onClick={() => setCropSensitivityPeriod(p.id)}
-              >
-                {p.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       {false && (
         <div className={styles.placeholderNote}>
@@ -69,7 +49,6 @@ export default function ChoroPanel({ dimension }) {
         <div key={group.group} className={styles.group}>
           <div className={styles.groupLabel}>
             {group.subgroup === 'sensitivity' && <span className={styles.subTag}>Sensitivity</span>}
-            {group.subgroup === 'crop_sensitivity' && <span className={styles.subTag}>Sensitivity</span>}
             {group.subgroup === 'adaptive_capacity' && <span className={styles.subTag}>Adaptive Capacity</span>}
             {group.group}
           </div>
