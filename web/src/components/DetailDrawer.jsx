@@ -14,6 +14,7 @@ import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import DriverBars, { driverSentence, hazardLabel, exposureLabel, historicalLabel, vulnerabilityLabel, RISK_PARTS, riskLabel } from './DriverBars.jsx'
 import { riskWindow, loadRisk, RISK_PARTS_W } from '../lib/risk.js'
 import { loadLayer } from '../lib/exposure.js'
+import { stateRows, DistrictStrip, DistrictList, PartSpread } from './StateDistricts.jsx'
 import styles from './DetailDrawer.module.css'
 
 function getIndicatorMeta(id) {
@@ -106,7 +107,7 @@ export default function DetailDrawer() {
           </div>
         ) : (
           <>
-            {activeTab === 'overview' && <OverviewTab stats={stats} />}
+            {activeTab === 'overview' && <OverviewTab stats={stats} risk={risk} feature={selectedFeature} />}
             {activeTab === 'hazard' && <HazardTab stats={stats} />}
             {activeTab === 'historical' && <ExposureTab data={stats?.historical_hazard} drivers={stats?.drivers} cfg={HH_CFG} fid={selectedFeature.id} />}
             {activeTab === 'exposure' && <ExposureTab data={stats?.exposure} drivers={stats?.drivers} fid={selectedFeature.id} />}
@@ -142,7 +143,7 @@ function RiskHero({ stats, risk, w, feature, loading }) {
         <div className={styles.stackLegend}>
           {RISK_CLASSES.slice().reverse().map(c => <span key={c.id}><i style={{ background: c.color }} />{c.label} {cc[c.id] ?? 0}</span>)}
         </div>
-        <div className={styles.heroSub}>Most common class: <strong>{top.label}</strong>. Zoom in and select a district for its own breakdown.</div>
+        <div className={styles.heroSub}><strong>{(cc['High'] ?? 0) + (cc['Very high'] ?? 0)} of {total}</strong> districts are High or Very high. Most common: <strong>{top.label}</strong>. Pick a district below or on the map.</div>
       </div>
     )
   }
@@ -205,8 +206,8 @@ const listNames = (ids, labelOf) => {
   return n.length > 1 ? `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}` : n[0]
 }
 
-function OverviewTab({ stats }) {
-  const { hazardPeriod, setDrawerTab } = useCRVAStore()
+function OverviewTab({ stats, risk: riskData, feature }) {
+  const { hazardPeriod, setDrawerTab, setSelectedFeature } = useCRVAStore()
   const period = periodOf(hazardPeriod)
   const dr = stats?.drivers
   const isState = dr?.states_view === 'top_counts'
@@ -224,14 +225,23 @@ function OverviewTab({ stats }) {
 
   const pct = stats?.risk_score?.pct?.[riskWindow(hazardPeriod)]
   if (isState) {
+    const { rows, n, classShare } = stateRows(riskData, feature.id, riskWindow(hazardPeriod))
+    const pick = r => setSelectedFeature({ type: 'district', id: r.id, name: r.name, state_name: feature.name, bbox: r.bbox })
+    const openPart = id => setDrawerTab(PART_TAB[id])
     return (
       <>
-        <div className={styles.sectionTitle}>Where the state's districts stand · {periodLabel(period)}</div>
-        {pct && <RiskRadar pct={pct} who="The state's median district" />}
-        <div className={styles.sectionTitle} style={{ marginTop: 14 }}>Main driver of risk, by district</div>
+        <div className={styles.sectionTitle}>Its districts among India's districts · {periodLabel(period)}</div>
+        <DistrictStrip rows={rows} n={n} classShare={classShare} onPick={pick} />
+        <div className={styles.sectionTitle} style={{ marginTop: 14 }}>Districts by risk</div>
+        <DistrictList rows={rows} n={n} onPick={pick} />
+        <div className={styles.sectionTitle} style={{ marginTop: 18 }}>Where its districts stand on each part</div>
+        <PartSpread rows={rows} onOpen={openPart} />
+        <div className={styles.sectionTitle} style={{ marginTop: 18 }}>Main driver of risk, by district</div>
         <TopCounts counts={dr?.risk?.[period]} labelOf={riskLabel} />
-        <div className={styles.sectionTitle} style={{ marginTop: 18 }}>Parts of risk · most common class</div>
-        <PartRows parts={RISK_PARTS_W.map(p => ({ ...p, cls: partClass[p.id] }))} onOpen={id => setDrawerTab(PART_TAB[id])} />
+        <details className={styles.method}>
+          <summary>Why no single score for the state?</summary>
+          <p>Risk is computed for districts, relative to other districts (Atlas Tables 6 and 7). A state score would need every indicator added up from districts with its own weights (area, population or farmland) and then compared across states. The panel shows the state's districts instead: how many fall in each class, which ones, and what drives them.</p>
+        </details>
       </>
     )
   }

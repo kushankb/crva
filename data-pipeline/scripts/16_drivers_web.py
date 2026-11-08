@@ -16,7 +16,7 @@ Risk index   sum of the four parts; classes at ±0.5 / ±1.5 SD around the mean 
              Outputs/CRVA_risk/tables/state_classes_vs_atlas.csv.
 
 Writes a `drivers` and a `risk_score` block into web/public/data/crva_stats.json and web/public/data/risk.json
-  {ids, classes, idx: {window: [...]}, cls: {window: [...]}, missing: [...]}.
+  {ids, classes, idx/cls: {window: [...]}, pct: {window: {part: [...]}}, missing, names, state, bbox: [...]}.
   conda run -n ml_trade python 16_drivers_web.py
 """
 import importlib
@@ -157,15 +157,22 @@ def main():
     for a, d in out.items():
         stats[a]["drivers"] = d
 
+    # display names: undo the boundary file's symbol-for-vowel encoding (04_admin_aggregates.clean_name)
+    for v in stats.values():
+        if "name" in v:
+            v["name"] = admin.clean_name(v["name"])
+
     # risk index and classes (Atlas Table 7: ±0.5 / ±1.5 SD around the mean), per window
     for v in stats.values():
         v.pop("risk_score", None)
-    risk_json = {"ids": num_ids, "classes": CLASSES, "idx": {}, "cls": {}, "missing": None}
+    risk_json = {"ids": num_ids, "classes": CLASSES, "idx": {}, "cls": {}, "pct": {}, "missing": None}
     edges = [-np.inf, -1.5, -0.5, 0.5, 1.5, np.inf]
     for w, (ix, contrib, share, missing) in risk_tab.items():
         cls = pd.cut((ix - ix.mean()) / ix.std(), edges, labels=False)
         risk_json["idx"][w] = [num(v, 3) for v in ix]
         risk_json["cls"][w] = [None if pd.isna(c) else int(c) for c in cls]
+        # national position on each part, for the state panel's spread of districts
+        risk_json["pct"][w] = {k: [None if pd.isna(ix[a]) else num(part_pct[w].at[a, k], 0) for a in ids] for k in RISK_W}
         for a in ids:
             if pd.notna(ix[a]):
                 rs = stats[a].setdefault("risk_score", {"index": {}, "class": {}, "pct": {}})
@@ -173,7 +180,6 @@ def main():
                 rs["pct"][w] = {k: num(part_pct[w].at[a, k], 0) for k in RISK_W}
         if w == "2050":
             risk_json["missing"] = [None if pd.isna(ix[a]) else missing[a] for a in ids]
-    RISK_JSON.write_text(json.dumps(risk_json, separators=(",", ":")))
 
     # states: how many districts have each top driver
     dist = admin.load_districts().drop_duplicates("_id")
@@ -199,6 +205,14 @@ def main():
                 s["risk"].setdefault(w, Counter())[v["top"]] += 1
     # states: districts per risk class, per window
     dist_state = {a: state_keys.get(state_of.get(a)) for a in ids}
+    # risk.json: each district's name, state and map extent, so a state's panel can list and locate its districts
+    import geopandas as gpd
+    geo = gpd.read_file(ROOT / "web" / "public" / "data" / "india_districts.geojson")
+    bb = {str(r.district_id): [round(float(v), 2) for v in r.geometry.bounds] for r in geo.itertuples() if r.geometry is not None}
+    risk_json["names"] = [stats[a].get("name") for a in ids]
+    risk_json["state"] = [dist_state[a].split(":", 1)[1] if dist_state[a] else None for a in ids]
+    risk_json["bbox"] = [bb.get(n) for n in num_ids]
+    RISK_JSON.write_text(json.dumps(risk_json, separators=(",", ":")))
     for w in risk_tab:
         cnt = {}
         for a in ids:

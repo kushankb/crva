@@ -41,11 +41,24 @@ OUT_JSON      = WEB_DATA / "admin_stats.json"
 
 # ── Boundary loading ──────────────────────────────────────────────────────────
 
+# The boundary shapefile's names were typed in a font that puts long vowels on symbol keys:
+# > and < for ā, | and \ for ī, @ and # for ū (UTTAR>KHAND = Uttarākhand, BENGAL#RU = Bengaluru).
+# Some Assam names also end in a line break. Ids are left as they are; only the display names change.
+_VOWELS = str.maketrans({">": "a", "<": "a", "|": "i", "\\": "i", "@": "u", "#": "u"})
+
+
+def clean_name(s):
+    if not isinstance(s, str):
+        return s
+    t = s.strip()
+    return t.translate(_VOWELS).title() if any(c in t for c in "><|\\@#") else t
+
+
 def load_states():
     gdf = gpd.read_file(str(STATES_SHP)).to_crs("EPSG:4326")
     gdf = gdf.reset_index(drop=True)
     gdf["_id"]   = gdf["OBJECTID"].astype(str)
-    gdf["_name"] = gdf["STATE"].str.title()
+    gdf["_name"] = gdf["STATE"].str.title().map(clean_name)
     return gdf
 
 def load_districts():
@@ -57,8 +70,8 @@ def load_districts():
         return lgd if lgd.upper() not in ("NOT AVAILABLE", "NAN", "") else f"name:{row['DISTRICT']}"
 
     gdf["_id"]         = gdf.apply(dist_id, axis=1)
-    gdf["_name"]       = gdf["DISTRICT"].str.title()
-    gdf["_state_name"] = gdf["STATE_UT"].str.title()
+    gdf["_name"]       = gdf["DISTRICT"].str.title().map(clean_name)
+    gdf["_state_name"] = gdf["STATE_UT"].str.title().map(clean_name)
     return gdf
 
 # ── Aggregation ───────────────────────────────────────────────────────────────

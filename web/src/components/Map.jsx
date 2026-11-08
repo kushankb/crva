@@ -126,7 +126,16 @@ export default function Map() {
   const currentDim = store.dimensionId
   const sel = store.selectedFeature
   useEffect(() => {
-    if (!sel || sel.type !== 'district') map.current?.__clearDistSel?.()
+    const m = map.current
+    if (!m) return
+    if (!sel || sel.type !== 'district') { m.__clearDistSel?.(); return }
+    m.__selectDist?.(sel.id)
+    // picked from the state panel: bring it into view, clear of the drawer, at district zoom
+    if (sel.bbox) {
+      const [x0, y0, x1, y1] = sel.bbox
+      const cam = m.cameraForBounds([[x0, y0], [x1, y1]], { padding: { top: 80, bottom: 80, left: 80, right: 440 }, maxZoom: 8.5 })
+      if (cam) m.easeTo({ ...cam, zoom: Math.max(cam.zoom, DISTRICT_ZOOM + 0.2), duration: 900 })
+    }
   }, [sel])
 
   return (
@@ -177,6 +186,14 @@ function addAdminLayers(m, setSelectedFeature, popup) {
   let distHovId  = null, distSelId  = null
   // lets the component clear the district outline when the drawer moves to a state or closes
   m.__clearDistSel = () => { if (distSelId !== null) { m.setFeatureState({ source: 'districts', id: distSelId }, { selected: false }); distSelId = null } }
+  // a district picked in the state panel: outline it (and clear the state's highlight)
+  m.__selectDist = id => {
+    if (stateSelId !== null) { m.setFeatureState({ source: 'states', id: stateSelId }, { selected: false }); stateSelId = null }
+    if (distSelId === id) return
+    m.__clearDistSel()
+    distSelId = id
+    m.setFeatureState({ source: 'districts', id }, { selected: true })
+  }
   // zoomed out: states (state insights); from DISTRICT_ZOOM: districts, on every layer including risk
   const distMode = () => m.getZoom() >= DISTRICT_ZOOM
 
