@@ -14,6 +14,7 @@ import vulnerabilityIndicators from '../data/vulnerability_indicators.json'
 import DriverBars, { driverSentence, hazardLabel, exposureLabel, historicalLabel, vulnerabilityLabel, RISK_PARTS, riskLabel } from './DriverBars.jsx'
 import { riskWindow, loadRisk, RISK_PARTS_W } from '../lib/risk.js'
 import { loadLayer } from '../lib/exposure.js'
+import { SHOWN_HAZARD_GROUPS } from './panels/ClimateHazardPanel.jsx'
 import { stateRows, DistrictStrip, DistrictList, PartSpread } from './StateDistricts.jsx'
 import styles from './DetailDrawer.module.css'
 
@@ -401,7 +402,7 @@ function HazardTab({ stats }) {
   const anomaly = hazardViewMode === 'anomaly'
 
   const availableIds = indicators
-    ? hazardIndicators.flatMap(g => g.indicators.map(i => i.id))
+    ? SHOWN_HAZARD_GROUPS.flatMap(g => g.indicators.map(i => i.id))
         .filter(id => indicators[id]
           || (FHI_ENABLED && id === FHI_ID && stats?.climate_hazard?.future_hazard_index)
           || ((isAggregate(id) || isMM(id)) && stats?.climate_hazard?.multimodel)
@@ -456,7 +457,7 @@ function HazardTab({ stats }) {
 
       {showPicker && (
         <div className={styles.indicatorPicker}>
-          {hazardIndicators.map(g => {
+          {SHOWN_HAZARD_GROUPS.map(g => {
             const groupItems = g.indicators.filter(i => availableIds.includes(i.id))
             if (groupItems.length === 0) return null
             return (

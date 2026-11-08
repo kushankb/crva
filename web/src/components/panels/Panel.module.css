@@ -370,3 +370,12 @@
 }
 .readList li { margin-bottom: 6px; }
 .readList strong { color: var(--text-primary); font-weight: 600; }
+
+/* folded "How to read it": click the label to open */
+.readMore { margin-top: 16px; }
+.readMore > summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px; }
+.readMore > summary::-webkit-details-marker { display: none; }
+.readMore > summary::after { content: '▸'; font-size: 10px; color: var(--text-muted); transition: transform 150ms; }
+.readMore[open] > summary::after { transform: rotate(90deg); }
+.readMore > summary:hover { color: var(--text-secondary); }
+.readMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }

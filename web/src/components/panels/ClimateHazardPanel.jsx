@@ -13,8 +13,11 @@ const groups = allIndicators
 // Main views first; the ensemble-mean grids sit behind "More climate indicators".
 // The 14-model ensemble-mean grids stay in the app but are hidden for now.
 export const SHOW_ENSEMBLE_GRIDS = false
-const MAIN = groups.filter(g => !g.group.startsWith('Additional'))
-const MORE = SHOW_ENSEMBLE_GRIDS ? groups.filter(g => g.group.startsWith('Additional')) : []
+export const isExtraGroup = g => g.group.startsWith('Additional')
+// Indicator groups shown anywhere in the app (left panel and the district panel's picker)
+export const SHOWN_HAZARD_GROUPS = SHOW_ENSEMBLE_GRIDS ? allIndicators : allIndicators.filter(g => !isExtraGroup(g))
+const MAIN = groups.filter(g => !isExtraGroup(g))
+const MORE = SHOW_ENSEMBLE_GRIDS ? groups.filter(isExtraGroup) : []
 const GROUP_TITLES = { 'Aggregate future hazard': 'Overall future hazard' }
 
 // Settings for the selected indicator, shown right under it and only when they apply.
