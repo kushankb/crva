@@ -1,19 +1,21 @@
 """
-Future hazard index exactly as in Rama Rao et al. (2020), Atlas §3.3, applied to
-each INDRA-CMIP6 model separately, then summarised across models.
+Future hazard index, Rama Rao et al. (2020) indicators and weights (Atlas Table 5c), normalised as z-scores like
+the other CRVA dimensions (user decision, 2026-11-08), for each INDRA-CMIP6 model separately, then summarised.
 
 Per model and SSP2-4.5 window, over districts:
   1. change from 1985–2014 (% for rainfall and rainy days, absolute otherwise)
-  2. truncate at the 1st and 99th percentile
-  3. Z = ±X / (Xmax − Xmin) if the range spans 0, else ±X / |X|max  (− for inverse indicators)
-  4. index = Σ (Table 5c weight / 100) · Z; a missing indicator's weight is shared among the district's others
-     (crva_weights.reweighted_index, used for every CRVA dimension; with complete data this is the same sum)
-  5. category by the SD of the district index around zero (Table 7)
+  2. truncate at the 1st and 99th percentile (as in the Atlas)
+  3. z-score of the change across districts, signed (− for inverse indicators: more rain = less hazard)
+  4. index = weighted sum of the z-scores; a missing indicator's weight is shared among the district's others
+     (crva_weights.reweighted_index, used for every CRVA dimension)
+  5. classes at ±0.5 / ±1.5 SD around the mean (Table 7): Very low … Very high, relative to other districts
+Each model and window is normalised on its own (no pooling), so the index says where change is worse than
+elsewhere, not how much worse than today; the absolute view is 'Is climate getting worse here?' (10_multimodel.py).
+Until 2026-11-08 the Atlas Z (±X / range) was used; its spread was ~10x smaller than the other risk parts.
 States use the constants of the district distribution.
 
-Across models: median index, number of models whose category is unfavourable
-(moderately or more), and the median category (ordinal median, ties rounded
-towards no hazard).
+Across models: median index, number of models in High or Very high (n_unfav) and in Low or Very low (n_fav),
+and the median class (ordinal median, ties rounded towards Medium).
 
 Reads model_indicators/model_changes.csv (from 10_multimodel.py --per-model);
 writes model_indicators/atlas_index.csv, atlas_index_per_model.csv and atlas_contrib_per_model.csv
@@ -34,7 +36,7 @@ WEIGHTS = {"annual_rain": 10, "june_rain": 5, "july_rain": 15, "rainy_days": 5, 
            "hot_days": 5, "cold_days": 3, "frost": 2, "drought": 12, "dry_spells": 11, "p99_rain": 5,
            "events_100mm": 5, "rx1_pct": 5, "rx3_pct": 5}
 SIGN = {k: (-1 if k in ("annual_rain", "june_rain", "july_rain", "rainy_days") else 1) for k in WEIGHTS}
-CATS = ["More favourable", "Moderately favourable", "No hazard", "Moderately unfavourable", "More unfavourable"]
+CATS = ["Very low", "Low", "Medium", "High", "Very high"]
 EDGES = [-1.5, -0.5, 0.5, 1.5]  # in SD
 
 
@@ -55,8 +57,8 @@ def main():
             d = x[dist].dropna()
             lo, hi = np.percentile(d, [1, 99])
             xc = x.clip(lo, hi)
-            denom = (hi - lo) if lo < 0 < hi else max(abs(lo), abs(hi))
-            z[ind] = SIGN[ind] * xc / (denom if denom > 0 else 1)
+            mu, sd = xc[dist].mean(), xc[dist].std()
+            z[ind] = SIGN[ind] * (xc - mu) / (sd if sd > 0 else 1)
         index, c, share, _ = reweighted_index(z, WEIGHTS)
         cl = c.stack(future_stack=True).rename("contrib").reset_index()
         cl.columns = ["admin", "indicator", "contrib"]
@@ -64,10 +66,10 @@ def main():
         # values and normalised scores, for the distribution plots (Outputs/CRVA_indicator_distributions)
         scores.append(pd.concat([wide[list(WEIGHTS)].add_suffix("_change"), z.add_suffix("_score")], axis=1)
                       .assign(model=model, window=window).reset_index())
-        sd = index[dist].std(ddof=0)
+        sd, mu = index[dist].std(ddof=0), index[dist].mean()
         for admin, v in index.items():
             rows.append({"model": model, "window": window, "admin": admin, "index": v, "sd": sd,
-                         "code": category_code(v, sd)})
+                         "code": category_code(v - mu, sd)})
     per = pd.DataFrame(rows)
 
     summ = per.groupby(["admin", "window"]).agg(

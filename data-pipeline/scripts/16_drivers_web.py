@@ -130,13 +130,14 @@ def main():
     # risk, as in the Atlas: Table 6 weight x each component index; weights re-scaled over the parts a district has
     ids = list(out)
     num_ids = [a.split(":", 1)[1] for a in ids]
-    risk_tab = {}
+    risk_tab, part_pct = {}, {}
     for w, z in risk_fh.items():
         parts = pd.DataFrame({"historical_hazard": hh_idx.reindex(num_ids).values,
                               "future_hazard": z.reindex(ids).values,
                               "exposure": ex_idx.reindex(num_ids).values,
                               "vulnerability": vu_idx.reindex(num_ids).values}, index=ids)
         risk_tab[w] = reweighted_index(parts, RISK_W)
+        part_pct[w] = parts.rank(pct=True) * 100        # national position on each part, for the four-axis chart
     for a, d in out.items():
         rk = {}
         for w, (ix, contrib, share, missing) in risk_tab.items():
@@ -167,8 +168,9 @@ def main():
         risk_json["cls"][w] = [None if pd.isna(c) else int(c) for c in cls]
         for a in ids:
             if pd.notna(ix[a]):
-                rs = stats[a].setdefault("risk_score", {"index": {}, "class": {}})
+                rs = stats[a].setdefault("risk_score", {"index": {}, "class": {}, "pct": {}})
                 rs["index"][w], rs["class"][w] = num(ix[a], 3), CLASSES[int(cls[a])]
+                rs["pct"][w] = {k: num(part_pct[w].at[a, k], 0) for k in RISK_W}
         if w == "2050":
             risk_json["missing"] = [None if pd.isna(ix[a]) else missing[a] for a in ids]
     RISK_JSON.write_text(json.dumps(risk_json, separators=(",", ":")))
@@ -205,6 +207,10 @@ def main():
                 cnt.setdefault(dist_state[a], Counter())[c] += 1
         for sk, c in cnt.items():
             stats[sk].setdefault("risk_score", {"class_counts": {}})["class_counts"][w] = {k: int(c.get(k, 0)) for k in CLASSES}
+        # states: median national position of their districts on each part
+        for sk in cnt:
+            sub = part_pct[w].loc[[a for a in ids if dist_state[a] == sk and (stats[a].get("risk_score") or {}).get("class", {}).get(w)]]
+            stats[sk]["risk_score"].setdefault("pct", {})[w] = {k: num(sub[k].median(), 0) for k in RISK_W}
     # compare with Atlas Table 12 (state average class, 0 = Very low … 4 = Very high)
     RISK_OUT.mkdir(parents=True, exist_ok=True)
     rows = []

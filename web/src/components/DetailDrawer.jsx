@@ -1,5 +1,5 @@
 import React from 'react'
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from 'recharts'
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, ReferenceLine, CartesianGrid } from 'recharts'
 import { useCRVAStore, RISK_CLASSES, SSPS, SSP_LABELS, HAZARD_PERIODS } from '../store/useCRVAStore.js'
 import hazardIndicators from '../data/climate_hazard_indicators.json'
 import { fmt } from '../lib/hazardScale.js'
@@ -219,13 +219,16 @@ function OverviewTab({ stats }) {
     vulnerability: { value: vu?.class ?? modal(vu?.class_counts), color: EX_CLASS_COLOR_OV[vu?.class ?? modal(vu?.class_counts)] },
     exposure: { value: ex?.class ?? modal(ex?.class_counts), color: EX_CLASS_COLOR_OV[ex?.class ?? modal(ex?.class_counts)] },
     historical_hazard: { value: hh?.class ?? modal(hh?.class_counts), color: EX_CLASS_COLOR_OV[hh?.class ?? modal(hh?.class_counts)] },
-    future_hazard: { value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models unfavourable` : null },
+    future_hazard: { value: rrCat, color: rrC?.color, note: mm?.atlas ? `${mm.atlas.n_unfav} of ${stats.climate_hazard.multimodel.n_models} models High or Very high` : null },
   }
 
+  const pct = stats?.risk_score?.pct?.[riskWindow(hazardPeriod)]
   if (isState) {
     return (
       <>
-        <div className={styles.sectionTitle}>What drives risk in this state · {periodLabel(period)}</div>
+        <div className={styles.sectionTitle}>Where the state's districts stand · {periodLabel(period)}</div>
+        {pct && <RiskRadar pct={pct} who="The state's median district" />}
+        <div className={styles.sectionTitle} style={{ marginTop: 14 }}>Main driver of risk, by district</div>
         <TopCounts counts={dr?.risk?.[period]} labelOf={riskLabel} />
         <div className={styles.sectionTitle} style={{ marginTop: 18 }}>Parts of risk · most common class</div>
         <PartRows parts={RISK_PARTS_W.map(p => ({ ...p, cls: partClass[p.id] }))} onOpen={id => setDrawerTab(PART_TAB[id])} />
@@ -240,18 +243,62 @@ function OverviewTab({ stats }) {
   const sentence = driverSentence('Risk', items, total, 'above average', 'below average')
   return (
     <>
-      <div className={styles.sectionTitle}>Why this risk level</div>
+      <div className={styles.sectionTitle}>What drives risk here · {periodLabel(period)}</div>
       {sentence && <p className={styles.driverSentence}>{sentence}</p>}
-      <PartRows parts={RISK_PARTS_W.map(p => ({ ...p, cls: partClass[p.id], value: risk[p.id] }))} onOpen={id => setDrawerTab(PART_TAB[id])} bars />
+      {pct && <RiskRadar pct={pct} who="This district" />}
+      <PartRows parts={RISK_PARTS_W.map(p => ({ ...p, cls: partClass[p.id], value: risk[p.id], pct: pct?.[p.id] }))} onOpen={id => setDrawerTab(PART_TAB[id])} />
       {risk.missing && <p className={styles.noteBox}>No {listNames(risk.missing.split(','), riskLabel).toLowerCase()} data here; its weight is shared among the other parts in proportion to their weights.</p>}
       <details className={styles.method}>
         <summary>How is risk calculated?</summary>
-        <p>As in the Atlas (Tables 6 and 7): each part's index times its weight, added up, then classed at ±0.5 and ±1.5 SD around the national average. The bars show each part's contribution: right raises risk, left lowers it.</p>
-        <p>Exposure, vulnerability and historical hazard are relative to other districts; future hazard is the change from 1985–2014 (0 = no change), median of six climate models. Vulnerability uses 14 of the Atlas's 15 indicators.</p>
+        <p>As in the Atlas (Tables 6 and 7): each part's index times its weight, added up, then classed at ±0.5 and ±1.5 SD around the national average.</p>
+        <p>The chart shows where the district stands nationally on each part: the edge is the highest district in India, the dashed line the middle district. A part far out pushes risk up; vulnerability counts 40 %, the others 20 % each.</p>
+        <p>All four parts are z-scores, relative to other districts. Future hazard uses the change from 1985–2014 in its 15 indicators, median of six climate models. Vulnerability uses 14 of the Atlas's 15 indicators.</p>
       </details>
     </>
   )
 }
+
+// Four-axis chart: the district's national position (0 = lowest, 100 = highest district) on each part of risk,
+// against the middle district (dashed). Axis order follows the risk formula.
+function RiskRadar({ pct, who }) {
+  const data = RISK_PARTS_W.map(p => ({ axis: `${p.label}|${p.weight}%`, id: p.id, v: pct[p.id] ?? 0, mid: 50, has: typeof pct[p.id] === 'number' }))
+  // axis label on two lines (name, weight), placed outward so nothing is clipped
+  const AxisTick = ({ x, y, cx, cy, payload, textAnchor }) => {
+    const [name, w] = payload.value.split('|')
+    const up = y < cy - 5
+    return (
+      <text x={x} y={y} textAnchor={textAnchor} fontSize={11.5} fill="var(--text-secondary)">
+        <tspan x={x} dy={up ? -14 : 0}>{name}</tspan>
+        <tspan x={x} dy={13} fontSize={10.5} fill="var(--text-muted)">{w}</tspan>
+      </text>
+    )
+  }
+  const Tip = ({ active, payload }) => {
+    if (!active || !payload?.length) return null
+    const d = payload[0].payload
+    return <div className={styles.radarTip}><strong>{d.axis.replace('|', ' ')}</strong><br />{d.has ? `${who}: higher than ${d.v}% of districts` : 'No data (weight shared)'}</div>
+  }
+  return (
+    <figure className={styles.radar} aria-label={`${who}: ${data.map(d => `${d.axis.replace('|', ' ')} above ${d.v}% of districts`).join('; ')}`}>
+      <ResponsiveContainer width="100%" height={250}>
+        <RadarChart data={data} outerRadius="74%" margin={{ top: 22, right: 58, bottom: 18, left: 58 }}>
+          <PolarGrid stroke="var(--border)" />
+          <PolarRadiusAxis domain={[0, 100]} tickCount={5} tick={false} axisLine={false} />
+          <PolarAngleAxis dataKey="axis" tick={<AxisTick />} />
+          <Radar name="Middle district" dataKey="mid" stroke="var(--text-muted)" strokeDasharray="4 3" fill="none" isAnimationActive={false} />
+          <Radar name={who} dataKey="v" stroke="#c8553d" strokeWidth={2} fill="#c8553d" fillOpacity={0.22} dot={{ r: 3, fill: '#c8553d' }} isAnimationActive={false} />
+          <Tooltip content={<Tip />} />
+        </RadarChart>
+      </ResponsiveContainer>
+      <figcaption className={styles.radarKey}>
+        <span><i className={styles.keyDistrict} />{who}</span>
+        <span><i className={styles.keyMid} />Middle district in India</span>
+        <span>Edge = highest in India</span>
+      </figcaption>
+    </figure>
+  )
+}
+
 
 // One row per part of risk: name and weight, its class, (districts) its contribution as a diverging bar; opens its tab.
 function PartRows({ parts, onOpen, bars = false }) {
@@ -267,6 +314,7 @@ function PartRows({ parts, onOpen, bars = false }) {
             <span className={styles.partChip}>
               {p.cls?.color && <i style={{ background: p.cls.color }} />}{p.cls?.value ?? 'No data'}
             </span>
+            {typeof p.pct === 'number' && !bars && <span className={styles.partPct}>above {p.pct}%</span>}
             {bars && (
               <span className={styles.partTrack} aria-label={has ? `${p.value >= 0 ? 'raises' : 'lowers'} risk` : 'no data, weight shared'}>
                 <span className={styles.partMid} />
@@ -310,7 +358,7 @@ function FutureDrivers({ stats }) {
   const f = dr.future_hazard?.[period]
   if (!f) return null
   const items = Object.entries(f.c).map(([id, value]) => ({ id, label: hazardLabel(id), value }))
-  const sentence = driverSentence('Future hazard', items, f.index, 'unfavourable', 'favourable')
+  const sentence = driverSentence('Future hazard', items, f.index, 'above average', 'below average')
   return (
     <div style={{ marginBottom: 14 }}>
       <div className={styles.sectionTitle}>What drives future hazard · {periodLabel(period)}</div>
@@ -491,7 +539,7 @@ function HazardTab({ stats }) {
 function AggChip({ id, entry }) {
   if (!entry) return <span>—</span>
   const cat = statsCategory(id, entry), c = aggClass(id, cat)
-  const short = { 'More unfavourable': 'More unfav.', 'Moderately unfavourable': 'Mod. unfav.', 'No hazard': 'No hazard', 'Moderately favourable': 'Mod. fav.', 'More favourable': 'More fav.' }
+  const short = {}
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, justifyContent: 'flex-end' }}>
       <span style={{ width: 9, height: 9, borderRadius: 2, background: c?.color, border: '1px solid var(--border)' }} />
@@ -508,7 +556,7 @@ function AggView({ id, mm }) {
   const cur = mm.aggregate?.[period]
   const cat = statsCategory(id, cur)
   const detail = !cur ? '' : id === AGG_RR
-    ? `index ${cur.atlas.index > 0 ? '+' : ''}${cur.atlas.index.toFixed(3)} · ${cur.atlas.n_unfav} of ${n} models unfavourable`
+    ? `index ${cur.atlas.index > 0 ? '+' : ''}${cur.atlas.index.toFixed(2)} (0 = national average) · ${cur.atlas.n_unfav} of ${n} models High or Very high`
     : id === AGG_ABS
       ? `${cur.absolute.share.toFixed(1)}% of weight past threshold · ${cur.absolute.n_moderate} of ${n} models Moderate or worse`
       : `rank score ${cur.relative.score.toFixed(0)} / 100 (models ${cur.relative.min.toFixed(0)}–${cur.relative.max.toFixed(0)})`
@@ -524,7 +572,7 @@ function AggView({ id, mm }) {
       )}
       <div className={styles.cropNote} style={{ marginTop: 6 }}>
         {id === AGG_RR
-          ? 'Rama Rao et al. (2020) method: change in 15 indicators, normalised with the sign kept, Atlas weights, classes by SD around zero. Relative to other districts in the same period.'
+          ? 'Rama Rao et al. (2020) indicators and weights: the change from 1985–2014 in 15 indicators, each as a z-score across districts, weighted and added up; classes at ±0.5 and ±1.5 SD. It shows where change is worse than elsewhere in the same period; "Is climate getting worse here?" shows change against the district\'s own past.'
           : id === AGG_ABS
             ? 'Compares this district with its own 1985–2014 mean, using a worsening threshold for each indicator, so periods can be compared.'
             : 'Ranks this district against all others in the same period. It shows priority, not whether climate gets worse.'}

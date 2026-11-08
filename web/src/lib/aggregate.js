@@ -18,11 +18,12 @@ export const THRESHOLD_TEXT = {
 
 export const AGG_CLASSES = {
   [AGG_RR]: [
-    { label: 'More unfavourable',       color: '#b2182b' },
-    { label: 'Moderately unfavourable', color: '#ef8a62' },
-    { label: 'No hazard',               color: '#f2efe9' },
-    { label: 'Moderately favourable',   color: '#92c5de' },
-    { label: 'More favourable',         color: '#2166ac' },
+    // z-scores of change, relative to other districts (11_atlas_index.py, since 2026-11-08)
+    { label: 'Very high', color: '#b2182b' },
+    { label: 'High',      color: '#ef8a62' },
+    { label: 'Medium',    color: '#f2efe9' },
+    { label: 'Low',       color: '#92c5de' },
+    { label: 'Very low',  color: '#2166ac' },
   ],
   [AGG_ABS]: [
     { label: 'High',     note: 'over 40% of weight past threshold', color: '#b2182b' },

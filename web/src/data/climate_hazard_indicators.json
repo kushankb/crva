@@ -5,9 +5,9 @@
       {
         "id": "rr_index",
         "label": "Rama Rao index",
-        "unit": "Atlas future hazard",
+        "unit": "z-scores of change, relative to other districts",
         "kind": "aggregate",
-        "description": "Main view. Future hazard index exactly as in Rama Rao et al. (2020): change in the 15 indicators, truncated at the 1st and 99th percentile, normalised with the sign kept, weighted by Atlas Table 5c and classed by ±0.5 and ±1.5 SD around zero. Computed in each of six INDRA-CMIP6 models under SSP2-4.5; the median model is shown with how many models agree."
+        "description": "Main view. The Rama Rao et al. (2020) indicators and weights (Atlas Table 5c), normalised like the other CRVA dimensions: the change from 1985–2014 in each of the 15 indicators, truncated at the 1st and 99th percentile, as a z-score across districts (sign kept: more rain lowers hazard), weighted and added up, classed at ±0.5 and ±1.5 SD. Computed in each of six INDRA-CMIP6 models under SSP2-4.5; the median model is shown with how many models agree. Relative to other districts in the same period; 'Is climate getting worse here?' shows change against each district's own past."
       },
       {
         "id": "agg_abs",

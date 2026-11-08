@@ -33,7 +33,7 @@ WINDOWS = ["2047", "2050", "2100"]
 WEIGHTS = {"annual_rain": 10, "june_rain": 5, "july_rain": 15, "rainy_days": 5, "tmax": 6, "tmin": 6, "hot_days": 5,
            "cold_days": 3, "frost": 2, "drought": 12, "dry_spells": 11, "p99_rain": 5, "events_100mm": 5, "rx1_pct": 5, "rx3_pct": 5}
 PCT = {"annual_rain", "june_rain", "july_rain", "rainy_days"}
-ATLAS = ["More favourable", "Moderately favourable", "No hazard", "Moderately unfavourable", "More unfavourable"]
+ATLAS = ["Very low", "Low", "Medium", "High", "Very high"]   # future hazard classes (z-scores, 11_atlas_index.py)
 QUINT = ["Very low", "Low", "Medium", "High", "Very high"]
 
 
