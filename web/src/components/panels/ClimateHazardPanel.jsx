@@ -5,6 +5,7 @@ import { useCRVAStore, SSPS, SSP_LABELS } from '../../store/useCRVAStore.js'
 import { isAggregate } from '../../lib/aggregate.js'
 import { isMM, MODELS, sourceLabel } from '../../lib/multimodel.js'
 import { isCX, SEASONS } from '../../lib/compound.js'
+import { WeightMeter, GroupWeight } from './WeightMeter.jsx'
 import styles from './Panel.module.css'
 
 const groups = allIndicators
@@ -76,7 +77,10 @@ export default function ClimateHazardPanel() {
 
   const renderGroup = group => (
     <div key={group.group} className={styles.group}>
-      <div className={styles.groupLabel}>{GROUP_TITLES[group.group] ?? group.group}</div>
+      <div className={styles.groupLabel}>
+        {GROUP_TITLES[group.group] ?? group.group}
+        <GroupWeight indicators={group.indicators} weightOf={i => i.rr_weight} />
+      </div>
       {group.indicators.map(ind => (
         <React.Fragment key={ind.id}>
           <button
@@ -89,10 +93,11 @@ export default function ClimateHazardPanel() {
             aria-describedby={tip ? 'hazard-tip' : undefined}
             aria-expanded={hazardIndicatorId === ind.id}
           >
-            <span className={styles.indicatorLabel}>{ind.label}</span>
-            <span className={styles.indicatorUnit}>
-              {ind.rr_weight != null ? `weight ${ind.rr_weight}% · ` : ''}{ind.unit}
-            </span>
+            <div className={styles.indicatorTop}>
+              <span className={styles.indicatorLabel}>{ind.label}</span>
+              <WeightMeter weight={ind.rr_weight} of="future hazard index" />
+            </div>
+            <span className={styles.indicatorUnit}>{ind.unit}</span>
           </button>
           {hazardIndicatorId === ind.id && <IndicatorOptions id={ind.id} />}
         </React.Fragment>

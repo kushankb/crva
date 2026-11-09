@@ -381,3 +381,11 @@
 .readMore > summary:hover { color: var(--text-secondary); }
 .readMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 
+
+/* Indicator weights in the left panel (WeightMeter.jsx) */
+.weight { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; }
+.weightTrack { width: 30px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+.weightFill { display: block; height: 100%; border-radius: 2px; background: var(--accent); opacity: 0.8; }
+.weightNum { min-width: 26px; text-align: right; font-size: 10.5px; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.groupWeight { margin-left: auto; font-size: 10.5px; font-weight: 600; letter-spacing: 0; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.indicatorUnit .dirBadge { display: inline-block; margin-right: 5px; padding: 0 5px; line-height: 14px; vertical-align: 1px; }

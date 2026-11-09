@@ -3,7 +3,10 @@ import exposureIndicators from '../../data/exposure_indicators.json'
 import vulnerabilityIndicators from '../../data/vulnerability_indicators.json'
 import historicalIndicators from '../../data/historical_hazard_indicators.json'
 import { useCRVAStore } from '../../store/useCRVAStore.js'
+import { WeightMeter, GroupWeight } from './WeightMeter.jsx'
 import styles from './Panel.module.css'
+
+const DIM_NAMES = { historical_hazard: 'historical hazard index', exposure: 'exposure index', vulnerability: 'vulnerability index' }
 
 const CONFIG = {
   historical_hazard: {
@@ -57,6 +60,7 @@ export default function ChoroPanel({ dimension }) {
             {group.subgroup === 'sensitivity' && <span className={styles.subTag}>Sensitivity</span>}
             {group.subgroup === 'adaptive_capacity' && <span className={styles.subTag}>Adaptive Capacity</span>}
             {group.group}
+            <GroupWeight indicators={group.indicators} />
           </div>
           {group.indicators.map(ind => (
             <button
@@ -71,14 +75,14 @@ export default function ChoroPanel({ dimension }) {
             >
               <div className={styles.indicatorTop}>
                 <span className={styles.indicatorLabel}>{ind.label}</span>
-                {ind.mapType === 'grid'
-                  ? null
-                  : dimension === 'vulnerability' && ind.weight && <span className={styles.dirBadge}>
-                      {ind.direction === '-' ? 'lowers' : 'raises'}
-                    </span>
-                }
+                <WeightMeter weight={ind.weight} of={DIM_NAMES[dimension]} />
               </div>
-              <span className={styles.indicatorUnit}>{ind.unit} · {ind.source}</span>
+              <span className={styles.indicatorUnit}>
+                {dimension === 'vulnerability' && ind.weight && <span className={styles.dirBadge}>
+                  {ind.direction === '-' ? 'lowers' : 'raises'}
+                </span>}
+                {ind.unit} · {ind.source}
+              </span>
             </button>
           ))}
         </div>
