@@ -8,7 +8,7 @@
         "unit": "Atlas classes, ±0.5 and ±1.5 SD",
         "direction": "+",
         "source": "Three indicators below, Atlas weights",
-        "rationale": "Rama Rao et al. (2020): z-scores of drought, flood and cyclone proneness, weighted 55/25/20 (Table 5b), classed at ±0.5 and ±1.5 SD (Table 7)."
+        "rationale": "Rama Rao et al. (2020): z-scores of drought, flood and cyclone proneness, weighted 55/25/20, classed at ±0.5 and ±1.5 SD."
       }
     ]
   },

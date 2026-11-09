@@ -24,7 +24,7 @@ const CONFIG = {
     indicators: vulnerabilityIndicators,
     stateKey: 'vulnerabilityIndicatorId',
     setter: 'setVulnerabilityIndicator',
-    footer: 'Rama Rao et al. (2020) indicators and weights (Tables 4, 5d). Per-capita income is not available; its 4 % weight is added to low-income households (12 %). SHG density, market density and low-income households replace the Atlas definitions.',
+    footer: 'Rama Rao et al. (2020) indicators and weights. Per-capita income is not available; its 4 % weight is added to low-income households (12 %). SHG density, market density and low-income households replace the Atlas definitions.',
     description: 'How well districts can absorb and adapt to climate shocks: natural, human, social, physical and financial capital.',
   },
 }

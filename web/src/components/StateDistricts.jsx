@@ -115,6 +115,7 @@ export function PartSpread({ rows, onOpen }) {
   if (!pts.length) return null
   return (
     <div className={styles.spread}>
+      <p className={styles.spreadNote}>Each dot is a district. The ring is the state's middle district, and its number (right) is where it stands in India: higher than that % of all districts, from 0 (lowest) to 100 (highest).</p>
       <div className={styles.spreadScale}><span /><span>lowest in India</span><span>middle</span><span>highest</span></div>
       {RISK_PARTS_W.map(p => {
         const v = pts.map(r => r.pct[p.id]).filter(x => typeof x === 'number').sort((a, b) => a - b)
@@ -135,7 +136,7 @@ export function PartSpread({ rows, onOpen }) {
           </button>
         )
       })}
-      <div className={styles.summaryNote}>Each dot is a district; the ring is the state's middle district and its number. Click a part to open its tab.</div>
+      <div className={styles.summaryNote}>Click a part to open its tab.</div>
     </div>
   )
 }

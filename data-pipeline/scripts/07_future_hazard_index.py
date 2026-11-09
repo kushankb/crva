@@ -116,7 +116,7 @@ def main():
         stats[k]["climate_hazard"]["future_hazard_index"] = out
 
     META.write_text(json.dumps({
-        "method": "Rama Rao et al. 2020 Atlas, Table 5c weights, sign-preserving normalisation",
+        "method": "Rama Rao et al. 2020 Atlas weights, sign-preserving normalisation",
         "sd": {f"{s}_{p}": round(v, 4) for (s, p), v in sd.items()},
         "components": [{"id": c[0], "source": c[1], "weight": c[2], "change": c[3], "sign": c[4]} for c in COMPONENTS],
     }, indent=1))

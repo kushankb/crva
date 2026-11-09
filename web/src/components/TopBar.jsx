@@ -37,7 +37,7 @@ export default function TopBar() {
 
               <section className={styles.section}>
                 <h3 className={styles.sectionHead}>What is the India CRVA Tool?</h3>
-                <p>The India Climate Risk &amp; Vulnerability Assessment (CRVA) Tool is an interactive district map built for the FAO TCP/IND/4005 project with NITI Aayog. It follows the method of Rama Rao et al. (2020), the ICAR-CRIDA <em>Risk and Vulnerability Assessment of Indian Agriculture to Climate Change</em> Atlas: risk combines historical hazard, future hazard, exposure and vulnerability.</p>
+                <p>The India Climate Risk &amp; Vulnerability Assessment (CRVA) Tool is an interactive district map built by FAO with NITI Aayog. It follows the method of Rama Rao et al. (2020), the ICAR-CRIDA <em>Risk and Vulnerability Assessment of Indian Agriculture to Climate Change</em> Atlas: risk combines historical hazard, future hazard, exposure and vulnerability.</p>
                 <p>It helps planners and researchers see which districts' farming is most at risk from climate change, and why.</p>
               </section>
 
@@ -45,8 +45,8 @@ export default function TopBar() {
                 <h3 className={styles.sectionHead}>Data &amp; Methods</h3>
                 <div className={styles.dataGrid}>
                   <div className={styles.dataCard}>
-                    <div className={styles.dataCardLabel}>Risk (Atlas Table 6)</div>
-                    <div className={styles.dataCardDesc}>Historical hazard 20 %, future hazard 20 %, exposure 20 %, vulnerability 40 %. Where a district has no data for a part, its weight is shared among the others. Classes at ±0.5 and ±1.5 SD around the national average (Table 7).</div>
+                    <div className={styles.dataCardLabel}>Risk</div>
+                    <div className={styles.dataCardDesc}>Historical hazard 20 %, future hazard 20 %, exposure 20 %, vulnerability 40 %. Where a district has no data for a part, its weight is shared among the others. Classes at ±0.5 and ±1.5 SD around the national average.</div>
                   </div>
                   <div className={styles.dataCard}>
                     <div className={styles.dataCardLabel}>Future hazard</div>
@@ -92,7 +92,7 @@ export default function TopBar() {
 
               <section className={styles.section}>
                 <h3 className={styles.sectionHead}>Built with</h3>
-                <p className={styles.builtWith}>React · MapLibre GL JS · PMTiles · Vite · Zustand · Recharts · INDRA-CMIP6 · Rama Rao et al. (2020) · FAO TCP/IND/4005</p>
+                <p className={styles.builtWith}>React · MapLibre GL JS · PMTiles · Vite · Zustand · Recharts · INDRA-CMIP6 · Rama Rao et al. (2020)</p>
               </section>
 
             </div>

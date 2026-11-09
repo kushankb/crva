@@ -28,7 +28,7 @@ export default function RiskScorePanel() {
         </div>
       ))}
       <div className={styles.formulaNote} style={{ marginTop: 6 }}>
-        Atlas Table 6. Where a district has no data for a part, its weight is shared among the other parts.
+        Weights from the Atlas. Where a district has no data for a part, its weight is shared among the other parts.
       </div>
 
       <div className={styles.sectionLabel} style={{ marginTop: 16 }}>DISTRICTS BY CLASS · {period?.label}</div>
@@ -51,13 +51,13 @@ export default function RiskScorePanel() {
       <details className={styles.readMore}>
         <summary className={styles.sectionLabel}>HOW TO READ IT</summary>
         <ul className={styles.readList}>
-        <li><strong>Relative, not absolute.</strong> Classes compare each district with the national average: Medium is within ±0.5 SD, Very high more than 1.5 SD above (Atlas Table 7).</li>
+        <li><strong>Relative, not absolute.</strong> Classes compare each district with the national average: Medium is within ±0.5 SD, Very high more than 1.5 SD above.</li>
         <li><strong>Click a state</strong> to see its districts: where they rank in India and what drives them. <strong>Zoom in</strong> to select a single district.</li>
         <li><strong>The period</strong> changes only the future-hazard part. Its index varies far less than the other parts, so few districts change class between periods.</li>
         </ul>
       </details>
 
-      <div className={styles.footer}>Rama Rao et al. (2020) ICAR-CRIDA Atlas · FAO TCP/IND/4005</div>
+      <div className={styles.footer}>Rama Rao et al. (2020) ICAR-CRIDA Atlas</div>
     </div>
   )
 }

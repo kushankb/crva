@@ -552,6 +552,7 @@
 .dMore:hover { text-decoration: underline; }
 
 .spread { display: flex; flex-direction: column; }
+.spreadNote { margin: 0 0 10px; font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
 .spreadScale { display: grid; grid-template-columns: 112px 1fr 1fr 1fr 28px; font-size: 10px; color: var(--text-muted); margin-bottom: 2px; }
 .spreadScale span:nth-child(3) { text-align: center; }
 .spreadScale span:nth-child(4) { text-align: right; }

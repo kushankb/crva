@@ -117,7 +117,7 @@ export default function DetailDrawer() {
         )}
       </div>
 
-      <div className={styles.source}>Rama Rao et al. (2020) ICAR-CRIDA method · INDRA-CMIP6 · FAO TCP/IND/4005</div>
+      <div className={styles.source}>Rama Rao et al. (2020) ICAR-CRIDA method · INDRA-CMIP6</div>
     </aside>
   )
 }
@@ -253,7 +253,7 @@ function OverviewTab({ stats, risk: riskData, feature }) {
         <TopCounts counts={dr?.risk?.[period]} labelOf={riskLabel} what="risk" />
         <details className={styles.method}>
           <summary>Why no single score for the state?</summary>
-          <p>Risk is computed for districts, relative to other districts (Atlas Tables 6 and 7). A state score would need every indicator added up from districts with its own weights (area, population or farmland) and then compared across states. The panel shows the state's districts instead: how many fall in each class, which ones, and what drives them.</p>
+          <p>Risk is computed for districts, relative to other districts. A state score would need every indicator added up from districts with its own weights (area, population or farmland) and then compared across states. The panel shows the state's districts instead: how many fall in each class, which ones, and what drives them.</p>
         </details>
       </>
     )
@@ -273,7 +273,7 @@ function OverviewTab({ stats, risk: riskData, feature }) {
       {risk.missing && <p className={styles.noteBox}>No {listNames(risk.missing.split(','), riskLabel).toLowerCase()} data here; its weight is shared among the other parts in proportion to their weights.</p>}
       <details className={styles.method}>
         <summary>How is risk calculated?</summary>
-        <p>As in the Atlas (Tables 6 and 7): each part's index times its weight, added up, then classed at ±0.5 and ±1.5 SD around the national average.</p>
+        <p>As in the Atlas: each part's index times its weight, added up, then classed at ±0.5 and ±1.5 SD around the national average.</p>
         <p>The chart shows where the district stands nationally on each part: the edge is the highest district in India, the dashed line the middle district. A part far out pushes risk up; vulnerability counts 40 %, the others 20 % each.</p>
         <p>All four parts are z-scores, relative to other districts. Future hazard uses the change from 1985–2014 in its 15 indicators, median of six climate models. Vulnerability uses 14 of the Atlas's 15 indicators.</p>
       </details>
@@ -802,7 +802,7 @@ function IndexView({ fhi }) {
             </tbody>
           </table>
           <div className={styles.summaryNote}>
-            Method: Rama Rao et al. (2020) Atlas, Table 5c weights and sign-preserving normalisation. Hot/cold-day thresholds scaled to ±2 SD and drought proxied by SPI-3, because the ensemble-mean data smooths out day-to-day extremes.
+            Method: Rama Rao et al. (2020) Atlas weights and sign-preserving normalisation. Hot/cold-day thresholds scaled to ±2 SD and drought proxied by SPI-3, because the ensemble-mean data smooths out day-to-day extremes.
           </div>
         </>
       )}

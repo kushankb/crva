@@ -28,7 +28,7 @@ export default function Welcome() {
   return (
     <div className={styles.overlay}>
       <div className={styles.card} role="dialog" aria-modal="true" aria-labelledby="welcome-title">
-        <div className={styles.eyebrow}>India CRVA Tool · FAO TCP/IND/4005 with NITI Aayog</div>
+        <div className={styles.eyebrow}>India CRVA Tool · FAO with NITI Aayog</div>
         <h1 id="welcome-title" className={styles.title}>Where is Indian farming most at risk from climate change?</h1>
         <p className={styles.lead}>
           This map rates the climate risk to agriculture in each of India's districts, following the ICAR-CRIDA

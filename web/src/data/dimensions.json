@@ -10,7 +10,7 @@
   {
     "id": "historical_hazard",
     "label": "Historical Hazard",
-    "description": "How often districts have faced drought, floods and cyclones in the past, following Rama Rao et al. (2020): drought 55%, flood 25%, cyclone 20% (Table 5b).",
+    "description": "How often districts have faced drought, floods and cyclones in the past, following Rama Rao et al. (2020): drought 55%, flood 25%, cyclone 20%.",
     "mapType": "choropleth",
     "hasTimeline": false,
     "hasScenario": false

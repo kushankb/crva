@@ -117,7 +117,8 @@ export default function Map() {
       m.setPaintProperty('background',      'background-color', dark ? '#141210' : '#E8E2D8')
       m.setPaintProperty('india-land',      'fill-color',       dark ? '#1F1C18' : '#ffffff')
       m.setPaintProperty('state-outline',   'line-color',       dark ? '#6A6258' : '#555555')
-      m.setPaintProperty('district-outline','line-color',       dark ? '#5A5248' : '#666666')
+      m.setPaintProperty('district-outline','line-color',       dark ? '#C9C0B4' : '#ffffff')
+      m.setPaintProperty('district-outline','line-opacity',     dark ? 0.28 : 0.85)
       m.setPaintProperty('india-border',    'line-color',       dark ? '#7A6E64' : '#444444')
       m.setPaintProperty('district-selected', 'line-color',     dark ? '#F4EFE6' : '#1C1814')
     } catch (_) {}
@@ -184,10 +185,11 @@ function addAdminLayers(m, setSelectedFeature, popup) {
 
   m.addLayer({ id: 'india-land',      type: 'fill', source: 'states',    paint: { 'fill-color': '#ffffff' } })
   m.addLayer({ id: 'choro-fill',      type: 'fill', source: 'districts', layout: { visibility: 'none' }, paint: { 'fill-color': '#cccccc', 'fill-opacity': 0.7 } })
+  // district boundaries: thin light lines under the state lines, at every zoom
+  m.addLayer({ id: 'district-outline',type: 'line', source: 'districts', paint: { 'line-color': '#ffffff', 'line-opacity': 0.85, 'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.15, 5, 0.4, 7, 0.8, 10, 1.2] } })
   m.addLayer({ id: 'state-fill',      type: 'fill', source: 'states',    paint: { 'fill-color': ['case', ['boolean', ['feature-state', 'selected'], false], 'rgba(201,169,110,0.18)', ['boolean', ['feature-state', 'hover'], false], 'rgba(0,0,0,0.06)', 'rgba(0,0,0,0)'] } })
   m.addLayer({ id: 'state-outline',   type: 'line', source: 'states',    paint: { 'line-color': '#666666', 'line-width': 0.8 } })
   m.addLayer({ id: 'district-fill',   type: 'fill', source: 'districts', layout: { visibility: 'none' }, paint: { 'fill-color': ['case', ['boolean', ['feature-state', 'selected'], false], 'rgba(201,169,110,0.18)', ['boolean', ['feature-state', 'hover'], false], 'rgba(0,0,0,0.05)', 'rgba(0,0,0,0)'] } })
-  m.addLayer({ id: 'district-outline',type: 'line', source: 'districts', layout: { visibility: 'none' }, paint: { 'line-color': '#666666', 'line-width': 0.5 } })
   m.addLayer({ id: 'india-border',    type: 'line', source: 'states',    paint: { 'line-color': '#555555', 'line-width': 1.2 } })
   // selected district: a dark outline at every zoom, so the selection is visible on any layer
   m.addLayer({ id: 'district-selected', type: 'line', source: 'districts', paint: { 'line-color': '#1C1814', 'line-width': ['case', ['boolean', ['feature-state', 'selected'], false], 2.2, 0] } })
@@ -275,7 +277,7 @@ function addAdminLayers(m, setSelectedFeature, popup) {
   const updateBounds = () => {
     const z = m.getZoom()
     const showDist = z >= DISTRICT_ZOOM
-    ;['district-fill','district-outline'].forEach(id => m.setLayoutProperty(id, 'visibility', showDist ? 'visible' : 'none'))
+    m.setLayoutProperty('district-fill', 'visibility', showDist ? 'visible' : 'none')
     m.setLayoutProperty('state-fill',    'visibility', 'visible')
     m.setLayoutProperty('state-outline', 'visibility', 'visible')
   }
@@ -311,7 +313,7 @@ async function syncMapToState(m, store, setTilesStatus) {
     const url     = store.getHazardTileUrl()
     const propKey = store.getHazardPropertyKey()
     const scale   = hazardScale(getHazardMeta(store.hazardIndicatorId), store.hazardViewMode)
-    await loadVectorTiles(m, url, propKey, scale, VEC_ID, VEC_LAYER, 'state-fill', setTilesStatus)
+    await loadVectorTiles(m, url, propKey, scale, VEC_ID, VEC_LAYER, 'district-outline', setTilesStatus)
 
   } else if (dimensionId === 'exposure' || dimensionId === 'historical_hazard' || dimensionId === 'vulnerability') {
     if (m.getLayer(VEC_LAYER)) m.removeLayer(VEC_LAYER)
