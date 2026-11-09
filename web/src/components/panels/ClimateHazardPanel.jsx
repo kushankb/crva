@@ -5,6 +5,7 @@ import { useCRVAStore, SSPS, SSP_LABELS } from '../../store/useCRVAStore.js'
 import { isAggregate } from '../../lib/aggregate.js'
 import { isMM, MODELS, sourceLabel } from '../../lib/multimodel.js'
 import { isCX, SEASONS } from '../../lib/compound.js'
+import ModelSpread, { hasModelSpread } from './ModelSpread.jsx'
 import styles from './Panel.module.css'
 
 const groups = allIndicators
@@ -21,17 +22,20 @@ const MORE = SHOW_ENSEMBLE_GRIDS ? groups.filter(isExtraGroup) : []
 const GROUP_TITLES = { 'Aggregate future hazard': 'Overall future hazard' }
 
 // Settings for the selected indicator, shown right under it and only when they apply.
-function IndicatorOptions({ id }) {
+function IndicatorOptions({ id, unit }) {
   const {
     hazardSsp, setHazardSsp, hazardViewMode, setHazardViewMode,
     mmSource, setMmSource, cxSeason, setCxSeason,
   } = useCRVAStore()
   const agg = isAggregate(id), mm = isMM(id), cx = isCX(id)
   const grid = !agg && !mm && !cx && id !== FHI_ID
-  if (!cx && !grid) return null
+  const spread = hasModelSpread(id)
+  if (!cx && !grid && !spread) return null
 
   return (
     <div className={styles.optionsBox}>
+      {spread && <ModelSpread id={id} unit={unit} />}
+
       {cx && (
         <>
           <div className={styles.optionLabel}>Season</div>
@@ -93,7 +97,7 @@ export default function ClimateHazardPanel() {
               {ind.rr_weight != null ? `weight ${ind.rr_weight}% · ` : ''}{ind.unit}
             </span>
           </button>
-          {hazardIndicatorId === ind.id && <IndicatorOptions id={ind.id} />}
+          {hazardIndicatorId === ind.id && <IndicatorOptions id={ind.id} unit={ind.unit} />}
         </React.Fragment>
       ))}
     </div>

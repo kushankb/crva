@@ -17,7 +17,7 @@ const CONFIG = {
     indicators: exposureIndicators,
     stateKey: 'exposureIndicatorId',
     setter: 'setExposureIndicator',
-    footer: 'Census 2011 · DES 2015–16 · Agriculture Census 2015–16 · Livestock Census 2019 · Rama Rao et al. (2020) method. Districts missing from the source data are set to 0.',
+    footer: 'Census 2011 · DES 2015–16 · Agriculture Census 2015–16 · Livestock Census 2019 · Rama Rao et al. (2020) method. Where a district lacks an indicator, its weight is shared among the others.',
     description: 'Inventory of rural people and agriculture-dependent livelihoods exposed to climate change impacts.',
   },
   vulnerability: {

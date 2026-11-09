@@ -414,6 +414,9 @@ function HazardTab({ stats }) {
   const meta = getIndicatorMeta(activeId)
   const indData = indicators?.[activeId]
   const fhi = stats?.climate_hazard?.future_hazard_index
+  // States show their districts, not a state-level future hazard class: no aggregate heading for them.
+  const isState = stats?.type === 'state'
+  const hideHeading = isState && isAggregate(activeId)
 
   if (!indicators || availableIds.length === 0) {
     return (
@@ -445,7 +448,7 @@ function HazardTab({ stats }) {
     <>
       <FutureDrivers stats={stats} />
       {/* Indicator selector */}
-      <div className={styles.indicatorPickerRow}>
+      {!hideHeading && <div className={styles.indicatorPickerRow}>
         <div className={styles.activeIndicatorLabel}>
           {meta?.label ?? activeId}
           <span className={styles.activeIndicatorUnit}>{meta?.unit}</span>
@@ -453,9 +456,9 @@ function HazardTab({ stats }) {
         <button className={styles.changeIndBtn} onClick={() => setShowPicker(v => !v)}>
           {showPicker ? 'Done' : 'Change'}
         </button>
-      </div>
+      </div>}
 
-      {showPicker && (
+      {showPicker && !hideHeading && (
         <div className={styles.indicatorPicker}>
           {SHOWN_HAZARD_GROUPS.map(g => {
             const groupItems = g.indicators.filter(i => availableIds.includes(i.id))
@@ -478,7 +481,7 @@ function HazardTab({ stats }) {
         </div>
       )}
 
-      {isAggregate(activeId) ? <AggView id={activeId} mm={stats?.climate_hazard?.multimodel} />
+      {isAggregate(activeId) ? <AggView id={activeId} mm={stats?.climate_hazard?.multimodel} isState={isState} />
         : isMM(activeId) ? <MMView id={activeId} mm={stats?.climate_hazard?.multimodel} />
         : isCX(activeId) ? <CXView id={activeId} mm={stats?.climate_hazard?.multimodel} />
         : activeId === FHI_ID ? <IndexView fhi={fhi} /> : <>
@@ -571,7 +574,7 @@ function AggChip({ id, entry }) {
   )
 }
 
-function AggView({ id, mm }) {
+function AggView({ id, mm, isState }) {
   const { hazardPeriod } = useCRVAStore()
   const period = hazardPeriod === 'historical' ? '2050' : hazardPeriod
   if (!mm) return <div className={styles.cropNote}>No model results for this area.</div>
@@ -585,6 +588,7 @@ function AggView({ id, mm }) {
       : `rank score ${cur.relative.score.toFixed(0)} / 100 (models ${cur.relative.min.toFixed(0)}–${cur.relative.max.toFixed(0)})`
   return (
     <>
+      {!isState && <>
       <div className={styles.sectionTitle} style={{ marginTop: 8 }}>SSP2-4.5 · {HAZARD_PERIODS.find(p => p.id === period)?.label} · median of {n} models</div>
       {cur && (
         <div className={styles.riskSummary} style={{ borderColor: aggClass(id, cat)?.color, marginTop: 0 }}>
@@ -609,6 +613,7 @@ function AggView({ id, mm }) {
           ))}
         </tbody>
       </table>
+      </>}
       {cur && (
         <>
           <div className={styles.sectionTitle} style={{ marginTop: 12 }}>The 15 indicators · {HAZARD_PERIODS.find(p => p.id === period)?.label}</div>

@@ -49,8 +49,10 @@ def abs_class(s):
 
 
 def main():
-    models_df = pd.concat([pd.read_csv(f) for f in sorted(MI.glob("*.csv"))
-                           if f.stem not in ("multimodel", "model_changes", "atlas_index", "atlas_index_per_model")])
+    # Only the six per-model indicator files (one per model, with base and future values).
+    # Other CSVs here (atlas_*_per_model, model_changes, ...) also carry a model column and would blank these values.
+    frames = [pd.read_csv(f) for f in sorted(MI.glob("*.csv"))]
+    models_df = pd.concat([d for d in frames if {"base", "ssp245_2050"} <= set(d.columns) and d["model"].nunique() == 1])
     models = sorted(models_df["model"].unique())
     sources = ["median"] + models
     dist = models_df[models_df["admin"].str.startswith("district:")]
