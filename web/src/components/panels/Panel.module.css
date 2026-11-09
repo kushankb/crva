@@ -380,37 +380,3 @@
 .readMore > summary:hover { color: var(--text-secondary); }
 .readMore > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
 
-/* Six-model comparison under the selected future-hazard indicator (ModelSpread.jsx) */
-.spreadRow {
-  display: grid;
-  grid-template-columns: 82px 1fr auto;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 4px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.spreadRow:hover { background: var(--accent-dim); }
-.spreadRow:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.spreadRowActive { background: var(--accent-dim); }
-.spreadRowActive .spreadLabel { color: var(--text-primary); font-weight: 600; }
-.spreadLabel { font-size: 10.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.spreadValue { font-size: 10.5px; color: var(--text-secondary); font-variant-numeric: tabular-nums; min-width: 28px; text-align: right; }
-.spreadSvg { width: 100%; height: 14px; display: block; overflow: visible; grid-column: 2 / -1; }
-.spreadSvg:not(:last-child) { grid-column: auto; }
-.spreadZero { stroke: var(--border-hi); stroke-width: 1; stroke-dasharray: 2 2; vector-effect: non-scaling-stroke; }
-.spreadWhisker { stroke: var(--text-muted); stroke-width: 1; vector-effect: non-scaling-stroke; }
-.spreadBox { fill: var(--border-hi); }
-.spreadBoxMedian { fill: var(--accent); opacity: 0.75; }
-.spreadBoxStrong { fill: #ef8a62; }
-.spreadMid { stroke: var(--text-primary); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
-.spreadAxis {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
-  margin: 0 4px 0 92px;
-  font-size: 10px;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
-}
-.spreadAxisZero { position: absolute; transform: translateX(-50%); }
