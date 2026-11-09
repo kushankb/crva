@@ -34,6 +34,12 @@ export default function ChoroPanel({ dimension }) {
   const store = useCRVAStore()
   const selectedId = store[stateKey]
   const setIndicator = store[setter]
+  // Hover or focus an indicator for what it measures and why it matters (as in the future hazard panel)
+  const [tip, setTip] = React.useState(null)
+  const showTip = (e, ind) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    setTip({ definition: ind.definition, rationale: ind.rationale, left: r.right + 10, top: r.top })
+  }
 
 
   return (
@@ -57,7 +63,11 @@ export default function ChoroPanel({ dimension }) {
               key={ind.id}
               className={`${styles.indicator} ${selectedId === ind.id ? styles.indicatorActive : ''}`}
               onClick={() => setIndicator(ind.id)}
-              title={ind.rationale}
+              onMouseEnter={e => showTip(e, ind)}
+              onMouseLeave={() => setTip(null)}
+              onFocus={e => showTip(e, ind)}
+              onBlur={() => setTip(null)}
+              aria-describedby={tip ? 'choro-tip' : undefined}
             >
               <div className={styles.indicatorTop}>
                 <span className={styles.indicatorLabel}>{ind.label}</span>
@@ -75,6 +85,14 @@ export default function ChoroPanel({ dimension }) {
       ))}
 
       <div className={styles.footer}>{footer}</div>
+
+      {(tip?.definition || tip?.rationale) && (
+        <div id="choro-tip" role="tooltip" className={styles.tooltip}
+          style={{ left: tip.left, top: Math.min(tip.top, window.innerHeight - 160) }}>
+          {tip.definition && <div>{tip.definition}</div>}
+          {tip.rationale && <div className={tip.definition ? styles.tooltipWhy : undefined}>{tip.definition ? <><strong>Why it matters:</strong> {tip.rationale}</> : tip.rationale}</div>}
+        </div>
+      )}
     </div>
   )
 }

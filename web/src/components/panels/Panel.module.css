@@ -298,6 +298,7 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
   pointer-events: none;
 }
+.tooltipWhy { margin-top: 6px; color: var(--text-secondary); }
 
 .select {
   width: 100%;

@@ -18,6 +18,7 @@
       {
         "id": "net_sown_area_pct",
         "label": "Net sown area",
+        "definition": "Net sown area as a share of the district's geographical area.",
         "unit": "% of geographical area",
         "direction": "+",
         "source": "DES 2015–16",
@@ -28,6 +29,7 @@
       {
         "id": "small_marginal_farmers_pct",
         "label": "Small & marginal holdings",
+        "definition": "Holdings under 2 ha (marginal under 1 ha, small 1–2 ha) as a share of all operational holdings.",
         "unit": "% of operational holdings",
         "direction": "+",
         "source": "Agriculture Census 2015–16",
@@ -38,6 +40,7 @@
       {
         "id": "crossbred_cattle_pct",
         "label": "Crossbred cattle",
+        "definition": "Crossbred cattle as a share of all cattle.",
         "unit": "% of cattle",
         "direction": "+",
         "source": "Livestock Census 2019; Jharkhand NSSO 2003",
@@ -53,6 +56,7 @@
       {
         "id": "rural_pop_density",
         "label": "Rural population density",
+        "definition": "Rural population per km² of district area.",
         "unit": "persons per km²",
         "direction": "+",
         "source": "Census 2011",
@@ -63,6 +67,7 @@
       {
         "id": "scst_population_pct",
         "label": "SC/ST population",
+        "definition": "Scheduled Caste and Scheduled Tribe population as a share of the total population.",
         "unit": "% of population",
         "direction": "+",
         "source": "Census 2011",
